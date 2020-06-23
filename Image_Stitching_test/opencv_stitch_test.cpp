@@ -49,8 +49,10 @@ int main(int argc, char *argv[])
 	imwrite(result_name, pano);
 	Mat pano2 = pano.clone();
 	imshow("pano",pano);
-	if(waitKey() == 27)  return 0;
 
-	cout << "---------ok------------"<<endl;
+	waitKey();
+
+	return 0;
+
 
 }
