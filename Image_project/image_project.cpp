@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
         	imagePoints1.push_back(keyPoints1[GoodMatchePoints[i].trainIdx].pt);
 	}
 
-	Mat homo = findHomography(imagePoints2, imagePoints2, CV_RANSAC);
+	Mat homo = findHomography(imagePoints1, imagePoints2, CV_RANSAC);
 	cout << "H:\n" << homo << endl << endl;
 
 	CalcCorners(homo, image01);
