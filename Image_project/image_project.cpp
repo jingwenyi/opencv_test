@@ -68,17 +68,49 @@ void CalcCorners(const Mat& H, const Mat& src)
 
 }
 
-
+void Rotate(const Mat &srcImage, Mat &destImage)
+{
+	for(int i=0; i<srcImage.cols; i++)
+	{
+		for(int j=0; j<srcImage.rows; j++)
+		{
+			Scalar color = srcImage.at<Vec3b>(srcImage.rows - j -1, i);
+			destImage.at<Vec3b>(i,j) = Vec3b(color(0), color(1), color(2));
+		}
+	}
+}
 
 
 int main(int argc, char *argv[])
 {
-	Mat image01 = imread("./test_photo/DSC00032.JPG");
-	Mat image02 = imread("./test_photo/DSC00033.JPG");
+	Mat image02_old = imread("./test_photo/DSC00032.JPG");
+	Mat image01_old = imread("./test_photo/DSC00033.JPG");
+
+	//rotation image
+	//imshow("p1", image01);
+	//Mat destImage(image01.cols, image01.rows, CV_8UC3);
+	//Rotate(image01, destImage);
+	//imshow("d1", destImage);
+	//imwrite("d1.jpg", destImage);
+
+	Mat image01(image01_old.cols, image01_old.rows, CV_8UC3);
+	Mat image02(image02_old.cols, image02_old.rows, CV_8UC3);
+
+	Rotate(image01_old, image01);
+	Rotate(image02_old, image02);
+	imwrite("imge01.jpg", image01);
+	imwrite("image02.jpg", image02);
+
+	
+	//waitKey();
+	//return 0;
+
 
 	Mat image1, image2;
 	cvtColor(image01, image1, CV_RGB2GRAY);
 	cvtColor(image02, image2, CV_RGB2GRAY);
+
+	
 
 	std::vector<KeyPoint> keyPoints1, keyPoints2;
 	Ptr<SURF> detector = SURF::create(2000);
