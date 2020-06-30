@@ -118,13 +118,14 @@ int main(int argc, char *argv[])
 	extractor->compute(image1, keyPoints1, descriptors1);
 	extractor->compute(image2, keyPoints2, descriptors2);
 
-#if 0
-	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce");
-	std::vector<DMatch> matches;
-	matcher->match(descriptors1, descriptors2, matches);
+#if 1
+	Ptr<DescriptorMatcher> matcher11 = DescriptorMatcher::create("BruteForce");
+	std::vector<DMatch> matches11;
+	matcher11->match(descriptors1, descriptors2, matches11);
 
 	Mat imgMatches;
-	drawMatches(image1, keyPoints1, image2, keyPoints2, matches, imgMatches);
+	drawMatches(image1, keyPoints1, image2, keyPoints2, matches11, imgMatches);
+	imwrite("keypoint.jpg", imgMatches);
 	imshow("m", imgMatches);
 
 #endif
