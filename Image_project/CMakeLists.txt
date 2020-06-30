@@ -12,3 +12,7 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 add_executable(image_project  image_project.cpp )
 # 链接OpenCV库
 target_link_libraries( image_project  ${OpenCV_LIBS} )
+
+
+add_executable(image_project2  image_project2.cpp)
+target_link_libraries(image_project2 ${OpenCV_LIBS})

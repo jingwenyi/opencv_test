@@ -4,6 +4,8 @@
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <math.h>
+
 
 using namespace std;
 using namespace cv;
@@ -83,27 +85,8 @@ void Rotate(const Mat &srcImage, Mat &destImage)
 
 int main(int argc, char *argv[])
 {
-	Mat image02_old = imread("./test_photo/DSC00032.JPG");
-	Mat image01_old = imread("./test_photo/DSC00033.JPG");
-
-	//rotation image
-	//imshow("p1", image01);
-	//Mat destImage(image01.cols, image01.rows, CV_8UC3);
-	//Rotate(image01, destImage);
-	//imshow("d1", destImage);
-	//imwrite("d1.jpg", destImage);
-
-	Mat image01(image01_old.cols, image01_old.rows, CV_8UC3);
-	Mat image02(image02_old.cols, image02_old.rows, CV_8UC3);
-
-	Rotate(image01_old, image01);
-	Rotate(image02_old, image02);
-	imwrite("image01.jpg", image01);
-	imwrite("image02.jpg", image02);
-
-	
-	//waitKey();
-	//return 0;
+	Mat image01= imread("./test_photo/DSC00032.JPG");
+	Mat image02 = imread("./test_photo/DSC00033.JPG");
 
 
 	Mat image1, image2;
@@ -169,7 +152,7 @@ int main(int argc, char *argv[])
 	}
 	
 	cout <<"n1-> matches:" << GoodMatchePoints.size() << endl;
-	
+#if 0	
 	FlannBasedMatcher matcher2;
 	matchePoints.clear();
 	std::vector<Mat> train_desc2(1, descriptors2);
@@ -189,49 +172,39 @@ int main(int argc, char *argv[])
 	}
 	
 	cout << "1->2 & 2->1 matches:" << GoodMatchePoints.size() << endl;
-
-#if 0
-	Mat first_match;
-	drawMatches(image02, keyPoints2, image01, keyPoints1, GoodMatchePoints, first_match);
-	imshow("first_match", first_match);
-
 #endif
 
+#if 1
+	Mat img_matches;
+	drawMatches(image1, keyPoints1, image2, keyPoints2, GoodMatchePoints,
+				img_matches, Scalar::all(-1), Scalar::all(-1), std::vector<char>(), 
+				DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+	imwrite("good_matches.jpg", img_matches);
+	imshow("good_matches", img_matches);
+
+#endif
+	
+
+	//The edge of the image is counted by matching feature points
 	std::vector<Point2f> imagePoints1, imagePoints2;
+	// 1.Find the largest edge
+	
 	for(int i=0; i<GoodMatchePoints.size(); i++)
 	{
+		imagePoints1.push_back(keyPoints1[GoodMatchePoints[i].trainIdx].pt);
 		imagePoints2.push_back(keyPoints2[GoodMatchePoints[i].queryIdx].pt);
-        	imagePoints1.push_back(keyPoints1[GoodMatchePoints[i].trainIdx].pt);
+		cout << "image1:x=" << imagePoints1[i].x << ",y=" << imagePoints1[i].y;
+		cout << "image2:x=" << imagePoints2[i].x << ",y=" << imagePoints2[i].y << endl;
+		
 	}
-
-	Mat homo = findHomography(imagePoints1, imagePoints2, CV_RANSAC);
-	cout << "H:\n" << homo << endl << endl;
-
-	CalcCorners(homo, image01);
-
-	cout << "left_top:" << corners.left_top << endl;
-   	cout << "left_bottom:" << corners.left_bottom << endl;
-    	cout << "right_top:" << corners.right_top << endl;
-    	cout << "right_bottom:" << corners.right_bottom << endl;
 	
-	Mat imageTransform;
-	warpPerspective(image01, imageTransform, homo, Size(MAX(corners.right_top.x, corners.right_bottom.x), image02.rows));
-    	
-#if 0
-	imwrite("trans1.jpg", imageTransform);
-	imshow("tr", imageTransform);
+	
+	
+	
 	
 
-#endif
+	
 
-	int dst_width = imageTransform.cols;
-	int dst_height = image02.rows;
-	Mat dst(dst_height, dst_width, CV_8UC3);
-	dst.setTo(0);
-	imageTransform.copyTo(dst(Rect(0, 0, imageTransform.cols, imageTransform.rows)));
-	image02.copyTo(dst(Rect(0 , 0, image02.cols, image02.rows)));
-	imwrite("dst.jpg", dst);
-	imshow("dest", dst);
 	
 	cout << "-----------ok----------------" << endl;
 	waitKey();
