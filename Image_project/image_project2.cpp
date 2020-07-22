@@ -83,7 +83,7 @@ void Rotate(const Mat &srcImage, Mat &destImage)
 }
 
 
-int main(int argc, char *argv[])
+int main_test(int argc, char *argv[])
 {
 	Mat image01= imread("./test_photo/DSC00032.JPG");
 	Mat image02 = imread("./test_photo/DSC00033.JPG");
@@ -213,4 +213,107 @@ int main(int argc, char *argv[])
 
 	return 0;
 
+}
+
+
+//orb test
+int main(int argc, char *argv[])
+{
+	Mat image01= imread("./test_photo/DSC00032.JPG");
+	Mat image02 = imread("./test_photo/DSC00033.JPG");
+
+	//灰度图转换  
+	Mat image1, image2;
+	cvtColor(image01, image1, CV_RGB2GRAY);
+	cvtColor(image02, image2, CV_RGB2GRAY);
+
+
+
+	Ptr<ORB> orb = ORB::create(2000);
+	std::vector<KeyPoint> keypoints1, keypoints2;
+	orb->detect(image1, keypoints1);
+	orb->detect(image2, keypoints2);
+
+	Mat descriptors1, descriptors2;
+	orb->compute(image1, keypoints1, descriptors1);
+	orb->compute(image2, keypoints1, descriptors2);
+#if 0
+	flann::Index flannIndex(descriptors1, flann::LshIndexParams(12, 20, 2), cvflann::FLANN_DIST_HAMMING);
+
+    vector<DMatch> GoodMatchePoints;
+
+    Mat macthIndex(descriptors2.rows, 2, CV_32SC1), matchDistance(descriptors2.rows, 2, CV_32FC1);
+    flannIndex.knnSearch(descriptors2, macthIndex, matchDistance, 2, flann::SearchParams());
+
+    // Lowe's algorithm,获取优秀匹配点
+    for (int i = 0; i < matchDistance.rows; i++)
+    {
+        if (matchDistance.at<float>(i, 0) < 0.5 * matchDistance.at<float>(i, 1))
+        {
+            DMatch dmatches(i, macthIndex.at<int>(i, 0), matchDistance.at<float>(i, 0));
+            GoodMatchePoints.push_back(dmatches);
+        }
+    }
+
+	cout << "good matches:" << GoodMatchePoints.size() << endl;
+
+    Mat first_match;
+    drawMatches(image02, keypoints2, image01, keypoints1, GoodMatchePoints, first_match, Scalar::all(-1), Scalar::all(-1), std::vector<char>(), 
+				DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+	imwrite("first_match.jpg", first_match);
+    imshow("first_match ", first_match);
+
+    vector<Point2f> imagePoints1, imagePoints2;
+
+    for (int i = 0; i<GoodMatchePoints.size(); i++)
+    {
+        imagePoints2.push_back(keypoints2[GoodMatchePoints[i].queryIdx].pt);
+        imagePoints1.push_back(keypoints1[GoodMatchePoints[i].trainIdx].pt);
+    }
+#else
+	FlannBasedMatcher matcher;
+	std::vector<DMatch> matches;
+
+	if(descriptors1.type() != CV_32F)
+	{
+		descriptors1.convertTo(descriptors1, CV_32F);
+		descriptors2.convertTo(descriptors2, CV_32F);
+	}
+
+	matcher.match(descriptors1, descriptors2, matches);
+
+	double min_dist = min_element(matches.begin(), matches.end(),
+					[](const DMatch& d1, const DMatch& d2)->double
+	{
+		return d1.distance < d2.distance;
+	})->distance;
+
+	cout << "min distance" << min_dist << endl;
+
+	vector<DMatch> good_matches;
+	for(int i = 0; i < descriptors1.rows; i++)
+	{
+		if(matches[i].distance < max<double>(min_dist * 2, 60.0))
+		{
+			good_matches.push_back(matches[i]);
+		}
+	}
+
+	cout << "good matches size:" << good_matches.size() << endl;
+
+	Mat img_matches;
+	drawMatches(image01, keypoints1, image02, keypoints2,
+			good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+			std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+
+	imwrite("good_matches.jpg", img_matches);
+	imshow("good matches", img_matches);
+	
+#endif
+
+	cout << "------------ok-----------" << endl;
+	waitKey();
+
+
+	return 0;
 }
