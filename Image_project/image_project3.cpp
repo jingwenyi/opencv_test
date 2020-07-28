@@ -110,6 +110,7 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 	return 0;
 }
 
+void optimize_seam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis);
 
 int main(int argc, char *argv[])
 {
@@ -132,15 +133,15 @@ int main(int argc, char *argv[])
 	Mat destImage( image01.rows + x_dis, image01.cols + abs(y_dis),CV_8UC3);
 
 	destImage.setTo(0);
-	image02.copyTo(destImage(Rect(0,0, image02.cols, image02.rows)));
-	//从第一张图片中裁剪出需要的部分
-	Mat image01_need;
-	image01(Rect(0, image01.rows - x_dis, image01.cols, x_dis)).copyTo(image01_need);
-	//imshow("need", image01_need);
-	image01_need.copyTo(destImage(Rect(abs(y_dis), image01.rows, image01_need.cols, image01_need.rows)));
-	
-	
-	
+	if(y_dis < 0){
+		image01.copyTo(destImage(Rect(abs(y_dis), x_dis, image01.cols, image01.rows)));
+		image02.copyTo(destImage(Rect(0,0, image02.cols, image02.rows)));
+    }else{
+		image01.copyTo(destImage(Rect(0, x_dis, image01.cols, image01.rows)));
+		image02.copyTo(destImage(Rect(y_dis,0, image02.cols, image02.rows)));
+	}
+
+	optimize_seam(image01, image02, destImage, x_dis, y_dis);
 
 	imshow("dest", destImage);
 	imwrite("dest.jpg", destImage);
@@ -150,7 +151,30 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+//优化两图的连接处，使得拼接自然
+void optimize_seam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis)
+{
+	int start = img2.rows;
+	//重叠区域的宽度
+	double process_width = img2.rows - x_dis;
+	double alpha = 1; //img1 中像素的权重
 
+	int i,k;
+	for(i=x_dis, k=0; i<img2.rows && k<img1.rows; i++, k++)
+	{
+		uchar* p = img1.ptr<uchar>(k);
+		uchar* t = img2.ptr<uchar>(i);
+		uchar* d = dst.ptr<uchar>(i);
 
+		alpha = (process_width - (i-x_dis)) / process_width;
+		int j,n;
+		for(j=abs(y_dis), n=0; j<img2.cols && n<img1.cols; j++, n++)
+		{
+			d[j*3] = p[n*3]*alpha + t[j*3]*(1-alpha);
+			d[j*3 + 1] = p[n*3 + 1]*alpha + t[j*3 + 1]*(1-alpha);
+			d[j*3 + 2] = p[n*3 + 2]*alpha + t[j*3 + 2]*(1-alpha);
+		}
+	}
+}
 
 
