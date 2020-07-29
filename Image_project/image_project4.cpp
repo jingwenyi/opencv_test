@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, int &y_dis)
 
 {
-	//快速匹配，由于匹配效果很好，没有添加连续性检查代码
+	//快速匹配
 	//在image1 中的上半部分 1/2 出，取一个4000*100 的匹配块
 	int base[IMAGE1_NUMBER_OF_SAMPLES];
 	int start_row = (image1.rows / 4);
@@ -107,6 +107,14 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 	int min_all_num = 0;
 	int min_all_num_dis = 0;
 
+	int min_all_err2 = INT_MAX;
+	int min_all_num2 = 0;
+	int min_all_num_dis2 = 0;
+
+	int min_all_err3 = INT_MAX;
+	int min_all_num3 = 0;
+	int min_all_num_dis3 = 0;
+
 	int min_err[num];
 	int min_err_dis[num] = {0};
 
@@ -118,6 +126,7 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 	int match_image[IMAGE2_NUMBER_OF_SAMPLES];
 	int dis = IMAGE2_NUMBER_OF_SAMPLES - IMAGE1_NUMBER_OF_SAMPLES + 1;
 
+	//在image2 进行匹配，找出最小的3 个值
 	for(int n = 0; n < num; n++)
 	{
 		for(int i=0; i<IMAGE2_NUMBER_OF_SAMPLES; i++)
@@ -131,7 +140,7 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 			int err = 0;
 			for(int j=0; j<IMAGE1_NUMBER_OF_SAMPLES; j++)
 			{
-				err += pow((match_image[j+i] - base[j]), 2);
+				err += pow(match_image[j+i] - base[j], 2);
 			}
 
 			if(err < min_err[n])
@@ -141,29 +150,92 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 
 				if(min_err[n] < min_all_err)
 				{
+					min_all_err3 = min_all_err2;
+					min_all_num_dis3 = min_all_num_dis2;
+					min_all_num3 = min_all_num2;
+
+					min_all_err2 = min_all_err;
+					min_all_num_dis2 = min_all_num_dis;
+					min_all_num2 = min_all_num;
+				
 					min_all_err = min_err[n];
 					min_all_num_dis = min_err_dis[n];
 					min_all_num = n;
+				}
+				else if(min_err[n] < min_all_err2)
+				{
+					min_all_err3 = min_all_err2;
+					min_all_num_dis3 = min_all_num_dis2;
+					min_all_num3 = min_all_num2;
+
+					min_all_err2 = min_err[n];
+					min_all_num_dis2 = min_err_dis[n];
+					min_all_num2 = n;
+				}
+				else if(min_err[n] < min_all_err3)
+				{
+					min_all_err3 = min_err[n];
+					min_all_num_dis3 = min_err_dis[n];
+					min_all_num3 = n;
 				}
 			}
 
 		}
 	}
 
-#if 1
-	for(int n = 0; n<num; n++)
-	{
-		cout << "num:" << n << ",min_err_dis:" << min_err_dis[n] << ",min_err:" << min_err[n] << endl;
-	}
+
 	
 	cout << "min all err:" << min_all_err << ",min all num:" << min_all_num << ",min all num dis:" << min_all_num_dis << endl;
+	cout << "min all err2:" << min_all_err2 << ",min all num:" << min_all_num2 << ",min all num dis:" << min_all_num_dis2 << endl;
+	cout << "min all err3:" << min_all_err3 << ",min all num:" << min_all_num3 << ",min all num dis:" << min_all_num_dis3 << endl;
+
+
+	//块匹配连续性检查
+	int err1 = 0, err2 = 0, err3 = 0;
+	for(int i=0; i<NUMBER_OF_INTERVAL_ROWS; i++)
+	{
+		for(int j=0; j<IMAGE1_NUMBER_OF_SAMPLES; j++)
+		{
+			err1 += pow(image2.at<uchar>(min_all_num + i, match_start_col + min_all_num_dis + j) - 
+								image1.at<uchar>(start_row - NUMBER_OF_INTERVAL_ROWS + i, start_col + j), 2);
+			err2 += pow(image2.at<uchar>(min_all_num2 + i, match_start_col + min_all_num_dis2 + j) - 
+								image1.at<uchar>(start_row - NUMBER_OF_INTERVAL_ROWS + i, start_col + j), 2);
+			err3 += pow(image2.at<uchar>(min_all_num3 + i, match_start_col + min_all_num_dis3 + j) - 
+								image1.at<uchar>(start_row - NUMBER_OF_INTERVAL_ROWS + i, start_col + j), 2);
+		}
+	}
+
+
+	cout << "err1:" << err1 << ",err2:" << err2 << ",err3" << err3 << endl;
+
+	int err0 = 0;
+	err0 = err1 < err2 ? err1 : err2;
+	err0 = err0 < err3 ? err0 : err3;
+
+	cout << "err0:" << err0 << endl;
+
+	if(err0 == err2)
+	{
+		min_all_err = min_all_err2;
+		min_all_num_dis = min_all_num_dis2;
+		min_all_num = min_all_num2;
+	}
+	else if(err0 == err3)
+	{
+		min_all_err = min_all_err3;
+		min_all_num_dis = min_all_num_dis3;
+		min_all_num = min_all_num3;
+	}
+
+	cout << "min_all_err:" << min_all_err << ",min_all_num_dis:" << min_all_num_dis << ",min_all_num" << min_all_num << endl;
+
 	
 	for(int i=0; i<IMAGE1_NUMBER_OF_SAMPLES; i++)
 	{
 		image2.at<uchar>(min_all_num, match_start_col + min_all_num_dis + i) = 0;
 		image2.at<uchar>(min_all_num+NUMBER_OF_INTERVAL_ROWS, match_start_col + min_all_num_dis + i) = 0;
 	}
-#endif
+
 
 	//y < 0, 表示向左 移动的像素，y > 0 表示向 右移动的像素
 	y_dis = (IMAGE2_NUMBER_OF_SAMPLES - IMAGE1_NUMBER_OF_SAMPLES) / 2 - min_all_num_dis;
