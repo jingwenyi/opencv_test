@@ -76,6 +76,25 @@ int main(int argc, char *argv[])
 	imwrite("image01_gray.jpg", image01_gray);
 	imwrite("image02_gray.jpg", image02_gray);
 
+	cout << "x_dis:" << x_dis << ",y_dis" << y_dis << endl;
+
+#if 1
+	//把第二幅图像拼接到第一幅上
+	
+	Mat destImage( image01_rotate.rows + x_dis, image01_rotate.cols + abs(y_dis),CV_8UC3);
+
+	destImage.setTo(0);
+	if(y_dis < 0){
+		image01_rotate.copyTo(destImage(Rect(abs(y_dis), x_dis, image01_rotate.cols, image01_rotate.rows)));
+		image02_rotate.copyTo(destImage(Rect(0,0, image02_rotate.cols, image02_rotate.rows)));
+    }else{
+		image01_rotate.copyTo(destImage(Rect(0, x_dis, image01_rotate.cols, image01_rotate.rows)));
+		image02_rotate.copyTo(destImage(Rect(y_dis,0, image02_rotate.cols, image02_rotate.rows)));
+	}
+#endif
+
+
+	imwrite("map.jpg", destImage);
 
 	cout << "-----------ok-------------" << endl;
 
@@ -239,7 +258,7 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 
 	//y < 0, 表示向左 移动的像素，y > 0 表示向 右移动的像素
 	y_dis = (IMAGE2_NUMBER_OF_SAMPLES - IMAGE1_NUMBER_OF_SAMPLES) / 2 - min_all_num_dis;
-	//x > 0, 向上移动了14 个像素点
+	//x > 0, 向上移动的像素
 	x_dis = min_all_num - start_row + NUMBER_OF_INTERVAL_ROWS;
 
 	return 0;
