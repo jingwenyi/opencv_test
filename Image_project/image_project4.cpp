@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	Mat destImage( image01_rotate.rows + x_dis, image01_rotate.cols + abs(y_dis),CV_8UC3);
 	destImage.setTo(0);
 
-	//加权融合，接口处理50 行像素点
+	//加权融合
 	OptimizeSeam(image01_rotate, image02_rotate, destImage, x_dis, y_dis);
 	
 	
@@ -270,25 +270,28 @@ void imrotate(Mat& img, Mat& newIm, double angle)
 
 
 
-//优化两图的连接处，使得拼接自然,  优化接口处50 行像素
+//优化两图的连接处，使得拼接自然
 void OptimizeSeam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis)
 {
+	//裁剪掉img2 下边100 个像素，处理由于旋转导致没有图像的问题
+	Mat img2_tmp = img2(Range(0, img2.rows - 100), Range(0, img2.cols));
+
 	if(y_dis < 0){
 		img1.copyTo(dst(Rect(abs(y_dis), x_dis, img1.cols, img1.rows)));
-		img2.copyTo(dst(Rect(0,0, img2.cols, img2.rows)));
+		img2_tmp.copyTo(dst(Rect(0,0, img2_tmp.cols, img2_tmp.rows)));
     }else{
 		img1.copyTo(dst(Rect(0, x_dis, img1.cols, img1.rows)));
-		img2.copyTo(dst(Rect(y_dis, 0, img2.cols, img2.rows)));
+		img2_tmp.copyTo(dst(Rect(y_dis, 0, img2_tmp.cols, img2_tmp.rows)));
 	}
 
 #if 1
-	//优化接口50 行像素
-	int w = 50;
-	int dst_rows_start = img2.rows - 1;
+	//优化接口600 行像素
+	int w = 600;
+	int dst_rows_start = img2_tmp.rows - 1;
 	int dst_cols_start = 0;
-	int img1_rows_start = img1.rows - x_dis - 1;
+	int img1_rows_start = img1.rows - x_dis - 1 - 100;
 	int img1_cols_start = y_dis < 0 ? abs(y_dis) - 1 : 0;
-	int img2_rows_start = img2.rows - 1;
+	int img2_rows_start = img2_tmp.rows - 1;
 	int img2_cols_start = y_dis < 0 ? 0 : y_dis - 1;
 
 	float alpha = 1;//img1中像素的权重
@@ -296,7 +299,7 @@ void OptimizeSeam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis)
 	for(int i=0; i<w; i++)//rows
 	{
 		uchar* p = img1.ptr<uchar>(img1_rows_start - i);
-		uchar* t = img2.ptr<uchar>(img2_rows_start - i);
+		uchar* t = img2_tmp.ptr<uchar>(img2_rows_start - i);
         uchar* d = dst.ptr<uchar>(dst_rows_start - i);
 
 		for(int j=0; j<dst.cols - abs(y_dis); j++)
