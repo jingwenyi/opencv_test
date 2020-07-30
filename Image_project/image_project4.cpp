@@ -11,8 +11,10 @@ using namespace cv;
 
 
 #define  IMAGE1_NUMBER_OF_SAMPLES   4000
-#define  NUMBER_OF_INTERVAL_ROWS    100
+#define  NUMBER_OF_INTERVAL_ROWS    1000
 #define  IMAGE2_NUMBER_OF_SAMPLES   4100
+#define  IMAGE2_CLIP_WIDTH  		500
+#define  INTERFACE_OPTIMIZATION_WIDTH 400
 
 
 
@@ -86,10 +88,45 @@ int main(int argc, char *argv[])
 
 	//加权融合
 	OptimizeSeam(image01_rotate, image02_rotate, destImage, x_dis, y_dis);
-	
-	
 
 	imwrite("map.jpg", destImage);
+
+	//第三张图片舍弃，角度太大, 5度
+
+//================================image4===========================================
+
+	//第四 张图片的融合
+	Mat image03 = imread("/home/wenyi/workspace/test_photo/DSC00625.JPG");
+	//先进行图像的旋转
+	Mat image03_rotate;
+	imrotate(image03, image03_rotate, yaw_AB_avg - yaw_AB[3]);
+	//imwrite("image03_rotate.jpg", image03_rotate);
+
+
+	//灰度图转换
+	Mat image03_gray, destImage_gray;
+	cvtColor(destImage, destImage_gray, CV_RGB2GRAY);
+	cvtColor(image03_rotate, image03_gray, CV_RGB2GRAY);
+
+	x_dis = 0;
+	y_dis = 0;
+	Overlapping_image_mosaic_algorithm( destImage_gray, image03_gray, x_dis, y_dis);
+
+	cout << "image3, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
+
+	imwrite("destImage_gray.jpg", destImage_gray);
+	imwrite("image03_gray.jpg", image03_gray);
+
+
+	//为目标图片申请空间	
+	Mat destImage2( destImage.rows + x_dis, destImage.cols + abs(y_dis),CV_8UC3);
+	destImage2.setTo(0);
+
+	//加权融合
+	OptimizeSeam(destImage, image03_rotate, destImage2, x_dis, y_dis);
+
+	imwrite("map2.jpg", destImage2);
+
 
 	cout << "-----------ok-------------" << endl;
 
@@ -104,7 +141,7 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 	//快速匹配
 	//在image1 中的上半部分 1/2 出，取一个4000*100 的匹配块
 	int base[IMAGE1_NUMBER_OF_SAMPLES];
-	int start_row = (image1.rows / 4);
+	int start_row = 1000 + NUMBER_OF_INTERVAL_ROWS;
 	int start_col = (image1.cols / 2) - IMAGE1_NUMBER_OF_SAMPLES/2;
 
 	for(int i=0; i<IMAGE1_NUMBER_OF_SAMPLES; i++)
@@ -273,8 +310,8 @@ void imrotate(Mat& img, Mat& newIm, double angle)
 //优化两图的连接处，使得拼接自然
 void OptimizeSeam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis)
 {
-	//裁剪掉img2 下边100 个像素，处理由于旋转导致没有图像的问题
-	Mat img2_tmp = img2(Range(0, img2.rows - 100), Range(0, img2.cols));
+	//裁剪掉img2 下边IMAGE2_CLIP_WIDTH  个像素，处理由于旋转导致没有图像的问题
+	Mat img2_tmp = img2(Range(0, img2.rows - IMAGE2_CLIP_WIDTH), Range(0, img2.cols));
 
 	if(y_dis < 0){
 		img1.copyTo(dst(Rect(abs(y_dis), x_dis, img1.cols, img1.rows)));
@@ -286,10 +323,10 @@ void OptimizeSeam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis)
 
 #if 1
 	//优化接口600 行像素
-	int w = 600;
+	int w = INTERFACE_OPTIMIZATION_WIDTH;
 	int dst_rows_start = img2_tmp.rows - 1;
 	int dst_cols_start = 0;
-	int img1_rows_start = img1.rows - x_dis - 1 - 100;
+	int img1_rows_start = img1.rows - x_dis - 1 - IMAGE2_CLIP_WIDTH;
 	int img1_cols_start = y_dis < 0 ? abs(y_dis) - 1 : 0;
 	int img2_rows_start = img2_tmp.rows - 1;
 	int img2_cols_start = y_dis < 0 ? 0 : y_dis - 1;
