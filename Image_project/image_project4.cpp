@@ -31,6 +31,8 @@ const static float yaw_CD[] = {	281.47f,	287.41f,	282.65f,	290.22f,	284.3f,		283
 
 int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, int &y_dis);
 void imrotate(Mat& img, Mat& newIm, double angle);
+void OptimizeSeam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis);
+
 
 
 int main(int argc, char *argv[])
@@ -78,21 +80,14 @@ int main(int argc, char *argv[])
 
 	cout << "x_dis:" << x_dis << ",y_dis" << y_dis << endl;
 
-#if 1
-	//把第二幅图像拼接到第一幅上
-	
+	//为目标图片申请空间	
 	Mat destImage( image01_rotate.rows + x_dis, image01_rotate.cols + abs(y_dis),CV_8UC3);
-
 	destImage.setTo(0);
-	if(y_dis < 0){
-		image01_rotate.copyTo(destImage(Rect(abs(y_dis), x_dis, image01_rotate.cols, image01_rotate.rows)));
-		image02_rotate.copyTo(destImage(Rect(0,0, image02_rotate.cols, image02_rotate.rows)));
-    }else{
-		image01_rotate.copyTo(destImage(Rect(0, x_dis, image01_rotate.cols, image01_rotate.rows)));
-		image02_rotate.copyTo(destImage(Rect(y_dis,0, image02_rotate.cols, image02_rotate.rows)));
-	}
-#endif
 
+	//加权融合，接口处理50 行像素点
+	OptimizeSeam(image01_rotate, image02_rotate, destImage, x_dis, y_dis);
+	
+	
 
 	imwrite("map.jpg", destImage);
 
@@ -275,5 +270,55 @@ void imrotate(Mat& img, Mat& newIm, double angle)
 
 
 
+//优化两图的连接处，使得拼接自然,  优化接口处50 行像素
+void OptimizeSeam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis)
+{
+	if(y_dis < 0){
+		img1.copyTo(dst(Rect(abs(y_dis), x_dis, img1.cols, img1.rows)));
+		img2.copyTo(dst(Rect(0,0, img2.cols, img2.rows)));
+    }else{
+		img1.copyTo(dst(Rect(0, x_dis, img1.cols, img1.rows)));
+		img2.copyTo(dst(Rect(y_dis, 0, img2.cols, img2.rows)));
+	}
 
+#if 1
+	//优化接口50 行像素
+	int w = 50;
+	int dst_rows_start = img2.rows - 1;
+	int dst_cols_start = 0;
+	int img1_rows_start = img1.rows - x_dis - 1;
+	int img1_cols_start = y_dis < 0 ? abs(y_dis) - 1 : 0;
+	int img2_rows_start = img2.rows - 1;
+	int img2_cols_start = y_dis < 0 ? 0 : y_dis - 1;
+
+	float alpha = 1;//img1中像素的权重
+	
+	for(int i=0; i<w; i++)//rows
+	{
+		uchar* p = img1.ptr<uchar>(img1_rows_start - i);
+		uchar* t = img2.ptr<uchar>(img2_rows_start - i);
+        uchar* d = dst.ptr<uchar>(dst_rows_start - i);
+
+		for(int j=0; j<dst.cols - abs(y_dis); j++)
+		{
+			//如果遇到img2 中无像素的黑点，则完全拷贝img1 中的数据
+			if(t[(img2_cols_start + j) * 3] == 0 &&
+				t[(img2_cols_start + j) * 3 + 1] == 0 &&
+				t[(img2_cols_start + j) * 3 + 2] == 0)
+			{
+				alpha = 1.0f;
+			}
+			else
+			{
+				alpha = ((float)w - (float)i) / (float)w;
+			}
+
+
+			d[(dst_cols_start + j) * 3] = p[(img1_cols_start + j) * 3] * alpha + t[(img2_cols_start + j) * 3] * (1 - alpha);
+			d[(dst_cols_start + j) * 3 + 1] = p[(img1_cols_start + j) * 3 + 1] * alpha + t[(img2_cols_start + j) * 3 + 1] * (1 - alpha);
+			d[(dst_cols_start + j) * 3 + 2] = p[(img1_cols_start + j) * 3 + 2] * alpha + t[(img2_cols_start + j) * 3 + 2] * (1 - alpha);
+		}		
+	}
+#endif
+}
 
