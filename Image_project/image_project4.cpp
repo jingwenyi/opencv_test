@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	//加权融合
 	OptimizeSeam(image01_rotate, image02_rotate, destImage, x_dis, y_dis);
 
-	imwrite("map.jpg", destImage);
+	//imwrite("map.jpg", destImage);
 
 	image01.release();
 	image02.release();
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	//加权融合
 	OptimizeSeam(destImage, image03_rotate, destImage2, x_dis, y_dis);
 
-	imwrite("map2.jpg", destImage2);
+	//imwrite("map2.jpg", destImage2);
 
 	destImage.release();
 	destImage_gray.release();
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 	//加权融合
 	OptimizeSeam(destImage2, image04_rotate, destImage3, x_dis, y_dis);
 
-	imwrite("map3.jpg", destImage3);
+	//imwrite("map3.jpg", destImage3);
 
 	destImage2.release();
 	destImage2_gray.release();
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 	Mat image05 = imread("/home/wenyi/workspace/test_photo/DSC00632.JPG");
 	Mat image05_rotate;
 	imrotate(image05, image05_rotate, yaw_AB_avg - yaw_AB[10]);
-	imwrite("image05_rotate.jpg", image05_rotate);
+	//imwrite("image05_rotate.jpg", image05_rotate);
 
 	//灰度图转换
 	Mat image05_gray, destImage3_gray;
@@ -198,8 +198,8 @@ int main(int argc, char *argv[])
 	cout << "image4, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
 
 	
-	imwrite("destImage3_gray.jpg", destImage3_gray);
-	imwrite("image05_gray.jpg", image05_gray);
+	//imwrite("destImage3_gray.jpg", destImage3_gray);
+	//imwrite("image05_gray.jpg", image05_gray);
 
 
 	//为目标图片申请空间	
@@ -209,13 +209,127 @@ int main(int argc, char *argv[])
 	//加权融合
 	OptimizeSeam(destImage3, image05_rotate, destImage4, x_dis, y_dis);
 
-	imwrite("map4.jpg", destImage4);
+	//imwrite("map4.jpg", destImage4);
 
 	destImage3.release();
 	destImage3_gray.release();
 	image05.release();
 	image05_gray.release();
 	image05_rotate.release();
+
+//===============================635===================
+	Mat image06 = imread("/home/wenyi/workspace/test_photo/DSC00635.JPG");
+	Mat image06_rotate;
+	imrotate(image06, image06_rotate, yaw_AB_avg - yaw_AB[13]);
+	//imwrite("image06_rotate.jpg", image06_rotate);
+	
+	//灰度图转换
+	Mat image06_gray, destImage4_gray;
+	cvtColor(destImage4, destImage4_gray, CV_RGB2GRAY);
+	cvtColor(image06_rotate, image06_gray, CV_RGB2GRAY);
+	
+	x_dis = 0;
+	y_dis = 0;
+	Overlapping_image_mosaic_algorithm( destImage4_gray, image06_gray, x_dis, y_dis);
+	
+	cout << "image5, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
+	
+		
+	//imwrite("destImage4_gray.jpg", destImage4_gray);
+	//imwrite("image06_gray.jpg", image06_gray);
+	
+	
+	//为目标图片申请空间	
+	Mat destImage5( destImage4.rows + x_dis, destImage4.cols + abs(y_dis),CV_8UC3);
+	destImage5.setTo(0);
+	
+	//加权融合
+	OptimizeSeam(destImage4, image06_rotate, destImage5, x_dis, y_dis);
+	
+	//imwrite("map5.jpg", destImage5);
+	
+	destImage4.release();
+	destImage4_gray.release();
+	image06.release();
+	image06_gray.release();
+	image06_rotate.release();
+
+//===============================636===================
+	Mat image07 = imread("/home/wenyi/workspace/test_photo/DSC00636.JPG");
+	Mat image07_rotate;
+	imrotate(image07, image07_rotate, yaw_AB_avg - yaw_AB[14]);
+	//imwrite("image07_rotate.jpg", image07_rotate);
+		
+	//灰度图转换
+	Mat image07_gray, destImage5_gray;
+	cvtColor(destImage5, destImage5_gray, CV_RGB2GRAY);
+	cvtColor(image07_rotate, image07_gray, CV_RGB2GRAY);
+		
+	x_dis = 0;
+	y_dis = 0;
+	Overlapping_image_mosaic_algorithm( destImage5_gray, image07_gray, x_dis, y_dis);
+		
+	cout << "image6, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
+		
+			
+	//imwrite("destImage5_gray.jpg", destImage5_gray);
+	//imwrite("image07_gray.jpg", image07_gray);
+		
+		
+	//为目标图片申请空间	
+	Mat destImage6( destImage5.rows + x_dis, destImage5.cols + abs(y_dis),CV_8UC3);
+	destImage6.setTo(0);
+		
+	//加权融合
+	OptimizeSeam(destImage5, image07_rotate, destImage6, x_dis, y_dis);
+		
+	imwrite("map6.jpg", destImage6);
+		
+	destImage5.release();
+	destImage5_gray.release();
+	image07.release();
+	image07_gray.release();
+	image07_rotate.release();
+
+
+//===============================638===================
+	Mat image08 = imread("/home/wenyi/workspace/test_photo/DSC00638.JPG");
+	Mat image08_rotate;
+	imrotate(image08, image08_rotate, yaw_AB_avg - yaw_AB[16]);
+	imwrite("image08_rotate.jpg", image08_rotate);
+			
+	//灰度图转换
+	Mat image08_gray, destImage6_gray;
+	cvtColor(destImage6, destImage6_gray, CV_RGB2GRAY);
+	cvtColor(image08_rotate, image08_gray, CV_RGB2GRAY);
+			
+	x_dis = 0;
+	y_dis = 0;
+	Overlapping_image_mosaic_algorithm( destImage6_gray, image08_gray, x_dis, y_dis);
+			
+	cout << "image7, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
+			
+				
+	imwrite("destImage6_gray.jpg", destImage6_gray);
+	imwrite("image08_gray.jpg", image08_gray);
+			
+			
+	//为目标图片申请空间	
+	Mat destImage7( destImage6.rows + x_dis, destImage6.cols + abs(y_dis),CV_8UC3);
+	destImage7.setTo(0);
+			
+	//加权融合
+	OptimizeSeam(destImage6, image08_rotate, destImage7, x_dis, y_dis);
+			
+	imwrite("map7.jpg", destImage7);
+			
+	destImage6.release();
+	destImage6_gray.release();
+	image08.release();
+	image08_gray.release();
+	image08_rotate.release();
+
+
 
 	cout << "-----------ok-------------" << endl;
 
