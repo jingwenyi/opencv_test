@@ -14,7 +14,7 @@ using namespace cv;
 #define  NUMBER_OF_INTERVAL_ROWS    1000
 #define  IMAGE2_NUMBER_OF_SAMPLES   4100
 #define  IMAGE2_CLIP_WIDTH  		500
-#define  INTERFACE_OPTIMIZATION_WIDTH 400
+#define  INTERFACE_OPTIMIZATION_WIDTH 600
 
 
 
@@ -58,13 +58,13 @@ int main(int argc, char *argv[])
 	//AB:91.7618, CD:284.542
 	cout << "yaw AB avg:" << yaw_AB_avg << ",yaw CD avg:" << yaw_CD_avg << endl;
 
-	
+//-------------------622+625---------------
 	Mat image01 = imread("/home/wenyi/workspace/test_photo/DSC00622.JPG");
-	Mat image02 = imread("/home/wenyi/workspace/test_photo/DSC00623.JPG");
+	Mat image02 = imread("/home/wenyi/workspace/test_photo/DSC00625.JPG");
 	//先进行图像的旋转
 	Mat image01_rotate, image02_rotate;
 	imrotate(image01, image01_rotate, yaw_AB_avg - yaw_AB[0]);
-	imrotate(image02, image02_rotate, yaw_AB_avg - yaw_AB[1]);
+	imrotate(image02, image02_rotate, yaw_AB_avg - yaw_AB[3]);
 
 	//imwrite("image01_rotate.jpg", image01_rotate);
 	//imwrite("image02_rotate.jpg", image02_rotate);
@@ -77,8 +77,8 @@ int main(int argc, char *argv[])
 
 	Overlapping_image_mosaic_algorithm( image01_gray, image02_gray, x_dis, y_dis);
 
-	imwrite("image01_gray.jpg", image01_gray);
-	imwrite("image02_gray.jpg", image02_gray);
+	//imwrite("image01_gray.jpg", image01_gray);
+	//imwrite("image02_gray.jpg", image02_gray);
 
 	cout << "x_dis:" << x_dis << ",y_dis" << y_dis << endl;
 
@@ -91,15 +91,22 @@ int main(int argc, char *argv[])
 
 	imwrite("map.jpg", destImage);
 
+	image01.release();
+	image02.release();
+	image01_rotate.release();
+	image02_rotate.release();
+	image01_gray.release();
+	image02_gray.release();
+
 	//第三张图片舍弃，角度太大, 5度
 
-//================================image4===========================================
+//================================628===========================================
 
 	//第四 张图片的融合
-	Mat image03 = imread("/home/wenyi/workspace/test_photo/DSC00625.JPG");
+	Mat image03 = imread("/home/wenyi/workspace/test_photo/DSC00628.JPG");
 	//先进行图像的旋转
 	Mat image03_rotate;
-	imrotate(image03, image03_rotate, yaw_AB_avg - yaw_AB[3]);
+	imrotate(image03, image03_rotate, yaw_AB_avg - yaw_AB[6]);
 	//imwrite("image03_rotate.jpg", image03_rotate);
 
 
@@ -114,8 +121,8 @@ int main(int argc, char *argv[])
 
 	cout << "image3, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
 
-	imwrite("destImage_gray.jpg", destImage_gray);
-	imwrite("image03_gray.jpg", image03_gray);
+	//imwrite("destImage_gray.jpg", destImage_gray);
+	//imwrite("image03_gray.jpg", image03_gray);
 
 
 	//为目标图片申请空间	
@@ -127,6 +134,88 @@ int main(int argc, char *argv[])
 
 	imwrite("map2.jpg", destImage2);
 
+	destImage.release();
+	destImage_gray.release();
+	image03.release();
+	image03_gray.release();
+	image03_rotate.release();
+
+
+//=========================630==================================
+
+	Mat image04 = imread("/home/wenyi/workspace/test_photo/DSC00630.JPG");
+	Mat image04_rotate;
+	imrotate(image04, image04_rotate, yaw_AB_avg - yaw_AB[8]);
+	//imwrite("image04_rotate.jpg", image04_rotate);
+
+	//灰度图转换
+	Mat image04_gray, destImage2_gray;
+	cvtColor(destImage2, destImage2_gray, CV_RGB2GRAY);
+	cvtColor(image04_rotate, image04_gray, CV_RGB2GRAY);
+
+	x_dis = 0;
+	y_dis = 0;
+	Overlapping_image_mosaic_algorithm( destImage2_gray, image04_gray, x_dis, y_dis);
+
+	cout << "image4, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
+
+	
+	//imwrite("destImage2_gray.jpg", destImage2_gray);
+	//imwrite("image04_gray.jpg", image04_gray);
+
+
+	//为目标图片申请空间	
+	Mat destImage3( destImage2.rows + x_dis, destImage2.cols + abs(y_dis),CV_8UC3);
+	destImage3.setTo(0);
+
+	//加权融合
+	OptimizeSeam(destImage2, image04_rotate, destImage3, x_dis, y_dis);
+
+	imwrite("map3.jpg", destImage3);
+
+	destImage2.release();
+	destImage2_gray.release();
+	image04.release();
+	image04_gray.release();
+	image04_rotate.release();
+	
+
+//===============================632===================
+	Mat image05 = imread("/home/wenyi/workspace/test_photo/DSC00632.JPG");
+	Mat image05_rotate;
+	imrotate(image05, image05_rotate, yaw_AB_avg - yaw_AB[10]);
+	imwrite("image05_rotate.jpg", image05_rotate);
+
+	//灰度图转换
+	Mat image05_gray, destImage3_gray;
+	cvtColor(destImage3, destImage3_gray, CV_RGB2GRAY);
+	cvtColor(image05_rotate, image05_gray, CV_RGB2GRAY);
+
+	x_dis = 0;
+	y_dis = 0;
+	Overlapping_image_mosaic_algorithm( destImage3_gray, image05_gray, x_dis, y_dis);
+
+	cout << "image4, x_dis:" << x_dis << ",y_dis:" << y_dis << endl;
+
+	
+	imwrite("destImage3_gray.jpg", destImage3_gray);
+	imwrite("image05_gray.jpg", image05_gray);
+
+
+	//为目标图片申请空间	
+	Mat destImage4( destImage3.rows + x_dis, destImage3.cols + abs(y_dis),CV_8UC3);
+	destImage4.setTo(0);
+
+	//加权融合
+	OptimizeSeam(destImage3, image05_rotate, destImage4, x_dis, y_dis);
+
+	imwrite("map4.jpg", destImage4);
+
+	destImage3.release();
+	destImage3_gray.release();
+	image05.release();
+	image05_gray.release();
+	image05_rotate.release();
 
 	cout << "-----------ok-------------" << endl;
 
@@ -326,7 +415,7 @@ void OptimizeSeam(Mat& img1, Mat& img2, Mat& dst, int x_dis, int y_dis)
 	int w = INTERFACE_OPTIMIZATION_WIDTH;
 	int dst_rows_start = img2_tmp.rows - 1;
 	int dst_cols_start = 0;
-	int img1_rows_start = img1.rows - x_dis - 1 - IMAGE2_CLIP_WIDTH;
+	int img1_rows_start = img1.rows - (dst.rows - img2_tmp.rows) - 1;
 	int img1_cols_start = y_dis < 0 ? abs(y_dis) - 1 : 0;
 	int img2_rows_start = img2_tmp.rows - 1;
 	int img2_cols_start = y_dis < 0 ? 0 : y_dis - 1;
