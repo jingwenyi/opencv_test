@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-
+#define NUM_OF_ERR		3
 int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, int &y_dis)
 
 {
@@ -357,17 +357,22 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 	int num = image2.rows  - NUMBER_OF_INTERVAL_ROWS;
 	int match_start_col = image2.cols / 2 - IMAGE2_NUMBER_OF_SAMPLES / 2;
 
-	int min_all_err = INT_MAX;
-	int min_all_num = 0;
-	int min_all_num_dis = 0;
 
-	int min_all_err2 = INT_MAX;
-	int min_all_num2 = 0;
-	int min_all_num_dis2 = 0;
+	
+	int min_all_err[NUM_OF_ERR];
+	int min_all_num[NUM_OF_ERR];
+	int min_all_num_dis[NUM_OF_ERR];
 
-	int min_all_err3 = INT_MAX;
-	int min_all_num3 = 0;
-	int min_all_num_dis3 = 0;
+	for(int i=0; i<NUM_OF_ERR; i++)
+	{
+		min_all_err[i] = INT_MAX;
+		min_all_num[i] = 0;
+		min_all_num_dis[i] = 0;
+	}
+
+	
+	
+	
 
 	int min_err[num];
 	int min_err_dis[num] = {0};
@@ -402,35 +407,23 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 				min_err[n] = err;
 				min_err_dis[n] = i;
 
-				if(min_err[n] < min_all_err)
+				for(int j=0; j<NUM_OF_ERR; j++)
 				{
-					min_all_err3 = min_all_err2;
-					min_all_num_dis3 = min_all_num_dis2;
-					min_all_num3 = min_all_num2;
+					if(min_err[n] < min_all_err[j])
+					{
+						for(int k=NUM_OF_ERR - 1; k>j; k--)
+						{
+							min_all_err[k] = min_all_err[k-1];
+							min_all_num_dis[k] = min_all_num_dis[k-1];
+							min_all_num[k] = min_all_num[k-1];
+						}
 
-					min_all_err2 = min_all_err;
-					min_all_num_dis2 = min_all_num_dis;
-					min_all_num2 = min_all_num;
-				
-					min_all_err = min_err[n];
-					min_all_num_dis = min_err_dis[n];
-					min_all_num = n;
-				}
-				else if(min_err[n] < min_all_err2)
-				{
-					min_all_err3 = min_all_err2;
-					min_all_num_dis3 = min_all_num_dis2;
-					min_all_num3 = min_all_num2;
 
-					min_all_err2 = min_err[n];
-					min_all_num_dis2 = min_err_dis[n];
-					min_all_num2 = n;
-				}
-				else if(min_err[n] < min_all_err3)
-				{
-					min_all_err3 = min_err[n];
-					min_all_num_dis3 = min_err_dis[n];
-					min_all_num3 = n;
+						min_all_err[j] = min_err[n];
+						min_all_num_dis[j] = min_err_dis[n];
+						min_all_num[j] = n;
+						break;
+					}
 				}
 			}
 
@@ -438,63 +431,73 @@ int Overlapping_image_mosaic_algorithm( Mat &image1, Mat &image2, int &x_dis, in
 	}
 
 
-	
-	cout << "min all err:" << min_all_err << ",min all num:" << min_all_num << ",min all num dis:" << min_all_num_dis << endl;
-	cout << "min all err2:" << min_all_err2 << ",min all num:" << min_all_num2 << ",min all num dis:" << min_all_num_dis2 << endl;
-	cout << "min all err3:" << min_all_err3 << ",min all num:" << min_all_num3 << ",min all num dis:" << min_all_num_dis3 << endl;
+	for(int i=0; i<NUM_OF_ERR; i++)
+	{
+		cout << "i=" << i << ",err:" << min_all_err[i] << ",num:" << min_all_num[i] << ",dis:" << min_all_num_dis[i] << endl;
+	}
 
 
 	//块匹配连续性检查
-	int err1 = 0, err2 = 0, err3 = 0;
+	int err[NUM_OF_ERR];
+	for(int i=0; i<NUM_OF_ERR; i++)
+	{
+		err[i] = 0;
+	}
+
+	
 	for(int i=0; i<NUMBER_OF_INTERVAL_ROWS; i++)
 	{
 		for(int j=0; j<IMAGE1_NUMBER_OF_SAMPLES; j++)
 		{
-			err1 += pow(image2.at<uchar>(min_all_num + i, match_start_col + min_all_num_dis + j) - 
+			for(int k=0; k<NUM_OF_ERR; k++)
+			{
+				err[k] += pow(image2.at<uchar>(min_all_num[k] + i, match_start_col + min_all_num_dis[k] + j) - 
 								image1.at<uchar>(start_row - NUMBER_OF_INTERVAL_ROWS + i, start_col + j), 2);
-			err2 += pow(image2.at<uchar>(min_all_num2 + i, match_start_col + min_all_num_dis2 + j) - 
-								image1.at<uchar>(start_row - NUMBER_OF_INTERVAL_ROWS + i, start_col + j), 2);
-			err3 += pow(image2.at<uchar>(min_all_num3 + i, match_start_col + min_all_num_dis3 + j) - 
-								image1.at<uchar>(start_row - NUMBER_OF_INTERVAL_ROWS + i, start_col + j), 2);
+			}
 		}
 	}
 
 
-	cout << "err1:" << err1 << ",err2:" << err2 << ",err3" << err3 << endl;
-
-	int err0 = 0;
-	err0 = err1 < err2 ? err1 : err2;
-	err0 = err0 < err3 ? err0 : err3;
-
-	cout << "err0:" << err0 << endl;
-
-	if(err0 == err2)
+	for(int i=0; i<NUM_OF_ERR; i++)
 	{
-		min_all_err = min_all_err2;
-		min_all_num_dis = min_all_num_dis2;
-		min_all_num = min_all_num2;
-	}
-	else if(err0 == err3)
-	{
-		min_all_err = min_all_err3;
-		min_all_num_dis = min_all_num_dis3;
-		min_all_num = min_all_num3;
+		cout << "err" << i << ":" << err[i] << endl;
 	}
 
-	cout << "min_all_err:" << min_all_err << ",min_all_num_dis:" << min_all_num_dis << ",min_all_num" << min_all_num << endl;
+	int err0 = INT_MAX;
+	int err0_i = 0;
+
+	for(int i=0; i<NUM_OF_ERR; i++)
+	{
+		if(err[i] < err0)
+		{
+			err0 = err[i];
+			err0_i = i;
+		}
+	}
+
+	cout << "err0:" << err0 << ",i:" << err0_i << endl;
+
+
+
+	cout << "min err:" << min_all_err[err0_i] << ",min dis:" << min_all_num_dis[err0_i] << ",min_num:" << min_all_num[err0_i] << endl;
 
 	
 	for(int i=0; i<IMAGE1_NUMBER_OF_SAMPLES; i++)
 	{
-		image2.at<uchar>(min_all_num, match_start_col + min_all_num_dis + i) = 0;
-		image2.at<uchar>(min_all_num+NUMBER_OF_INTERVAL_ROWS, match_start_col + min_all_num_dis + i) = 0;
+		image2.at<uchar>(min_all_num[err0_i], match_start_col + min_all_num_dis[err0_i] + i) = 0;
+		image2.at<uchar>(min_all_num[err0_i]+NUMBER_OF_INTERVAL_ROWS, match_start_col + min_all_num_dis[err0_i] + i) = 0;
 	}
 
 
 	//y < 0, 表示向左 移动的像素，y > 0 表示向 右移动的像素
-	y_dis = (IMAGE2_NUMBER_OF_SAMPLES - IMAGE1_NUMBER_OF_SAMPLES) / 2 - min_all_num_dis;
+	y_dis = (IMAGE2_NUMBER_OF_SAMPLES - IMAGE1_NUMBER_OF_SAMPLES) / 2 - min_all_num_dis[err0_i];
 	//x > 0, 向上移动的像素
-	x_dis = min_all_num - start_row + NUMBER_OF_INTERVAL_ROWS;
+	x_dis = min_all_num[err0_i] - start_row + NUMBER_OF_INTERVAL_ROWS;
+
+	if(x_dis <= 0)
+	{
+		return -1;
+	}
 
 	return 0;
 }
