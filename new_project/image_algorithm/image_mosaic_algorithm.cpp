@@ -2,17 +2,19 @@
 
 namespace IMAGE_MOSAIC
 {
-void image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, double angle)
+void Image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, double angle)
 {
-
+	cv::Point2f pt(src_image.cols/2, src_image.rows/2);
+	cv::Mat r = cv::getRotationMatrix2D(pt, angle, 1.0);
+	cv::warpAffine(src_image, dest_image, r, cv::Size(src_image.cols, src_image.rows));
 }
 
-int image_algorithm::Image_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, int head, Point &distance)
+int Image_algorithm::Image_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, int head, cv::Point2f &distance)
 {
 	return OK;
 }
 
-int image_algorithm::Optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, Point distace, Point &left_top, Point &right_bottom)
+int Image_algorithm::Optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2f distace, cv::Point2f &left_top, cv::Point2f &right_bottom)
 {
 
 	return OK;
