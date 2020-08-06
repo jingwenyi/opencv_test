@@ -45,7 +45,15 @@ public:
 	**  distance :  distance.x 表示 两幅图像的列向距离，y 表示两幅图像的行向距离
 	**  成功返回OK,  失败返回 ERR
 	*/
-	int Image_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, int head, cv::Point2f &distance);
+	int Image_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, int head, cv::Point2i &distance);
+
+	int Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+
+	int Image_mosaic_down_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+
+	int Image_mosaic_left_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+
+	int Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
 
 	/*
 	**	图像拼接函数
@@ -56,7 +64,7 @@ public:
 	**   left_top  right_bottom:  第一张图片拼接后在 dest_image 中的位置
 	**  成功返回 OK,  失败返回 ERR
 	*/
-	int Optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2f distace, cv::Point2f &left_top, cv::Point2f &right_bottom);
+	int Optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2i distace, cv::Point2i &left_top, cv::Point2i &right_bottom);
 
 
 };

@@ -88,7 +88,7 @@ const static char *image_name2[29] = {
 	"DSC00677.JPG"
 
 };
-int main()
+int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 
@@ -110,6 +110,7 @@ int main()
 	//AB:91.7618, CD:284.542
 	cout << "yaw AB avg:" << yaw_AB_avg << ",yaw CD avg:" << yaw_CD_avg << endl;
 
+#if 0
 
 	//旋转AB 航线上的所有图片
 	
@@ -123,6 +124,12 @@ int main()
 		Mat image = imread(strFile.c_str());
 		Mat image_rotate;
 
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
 		image_algorithm->Image_rotate(image, image_rotate,  yaw_AB_avg - yaw_AB[i]);
 
 		string strName = "./rotate_image/";
@@ -130,11 +137,15 @@ int main()
 
 		imwrite(strName.c_str(), image_rotate);
 	}
-
+#endif
 
 	//测试两种图片的拼接坐标查找
+	Mat image_test1 = imread("/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/DSC00622.JPG");
+	Mat image_test2 = imread("/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/DSC00623.JPG");
+	Point2i point_test;
+	image_algorithm->Image_mosaic_algorithm(image_test1, image_test2, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
 	
-
+	cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
 
 
 	cout << "-----------ok-------------" << endl;
