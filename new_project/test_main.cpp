@@ -139,13 +139,41 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	//测试两种图片的拼接坐标查找
-	Mat image_test1 = imread("/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/DSC00622.JPG");
-	Mat image_test2 = imread("/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/DSC00623.JPG");
-	Point2i point_test;
-	image_algorithm->Image_mosaic_algorithm(image_test1, image_test2, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
+	//测试两张 图片的拼接坐标查找
+#if 1
+	for(int i=0; i<27; i++)
+	{
+		
+		string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		string strFile2 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		strFile1 += string(image_name[i]);
+		strFile2 += string(image_name[i+1]);
+
+		Mat src_image1 = imread(strFile1.c_str());
+		Mat src_image2 = imread(strFile2.c_str());
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile1 << endl;
+			return -1;
+		}
+
+		if(src_image2.empty())
+		{
+			cout << "failed to load:" << strFile2 << endl;
+			return -1;
+		}
+
+		Point2i point_test;
+		image_algorithm->Image_mosaic_algorithm(src_image1, src_image2, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
 	
-	cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
+		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+	}
+
+
+
+#endif
 
 
 	cout << "-----------ok-------------" << endl;
