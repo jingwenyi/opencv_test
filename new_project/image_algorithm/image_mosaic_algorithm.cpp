@@ -5,15 +5,84 @@ namespace IMAGE_MOSAIC
 
 #define  DUBUG
 
-#define  NUMBER_OF_INTERVAL_ROWS    40
-#define  DISLOCATION_DISTANCE		100
-
-
 void Image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, double angle)
 {
 	cv::Point2f pt(src_image.cols/2, src_image.rows/2);
 	cv::Mat r = cv::getRotationMatrix2D(pt, angle, 1.0);
 	cv::warpAffine(src_image, dest_image, r, cv::Size(src_image.cols, src_image.rows));
+}
+
+void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2i &sample_size, int &dis)
+{
+	if(image_size.x > 4000)
+	{
+		sample_size.x = 1000;
+	}
+	else if(image_size.x > 1500)
+	{
+		sample_size.x = 600;
+	}
+	else if(image_size.x > 800)
+	{
+		sample_size.x = 200;
+	}
+	else
+	{
+		sample_size.x = 100;
+	}
+
+	dis = 100;
+
+
+	if(image_size.y > 4000)
+	{
+		sample_size.y = 100;
+	}
+	else if(image_size.y > 1500)
+	{
+		sample_size.y = 60;
+	}
+	else
+	{
+		sample_size.y = 20;
+	}
+
+}
+
+void Image_algorithm::Get_sample_size_left_right(cv::Point2i image_size, cv::Point2i &sample_size, int &dis)
+{
+	if(image_size.x > 4000)
+	{
+		sample_size.x = 100;
+	}
+	else if(image_size.x > 1500)
+	{
+		sample_size.x = 60;
+	}
+	else
+	{
+		sample_size.x = 20;
+	}
+
+
+	if(image_size.y > 4000)
+	{
+		sample_size.y = 1000;
+	}
+	else if(image_size.y > 1500)
+	{
+		sample_size.y = 600;
+	}
+	else if(image_size.y > 800)
+	{
+		sample_size.y = 200;
+	}
+	else
+	{
+		sample_size.y = 100;
+	}
+
+	dis = 100;
 }
 
 
@@ -49,15 +118,19 @@ int Image_algorithm::Image_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_im
 
 int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance)
 {
-	cv::Point2i image1_sample_size(src_image1.cols / 2, NUMBER_OF_INTERVAL_ROWS);
-	
+	cv::Point2i image_size(src_image1.cols, src_image1.rows);
+	cv::Point2i image1_sample_size;
+
 	//图像1 和图像2  在x 方向上可能移动的最大距离 diff_x
-	int diff_x = DISLOCATION_DISTANCE;
+	int diff_x;
+	Get_sample_size_up_down(image_size, image1_sample_size, diff_x);
+	
+	
 	cv::Point2i image2_sample_size(image1_sample_size.x + diff_x, image1_sample_size.y);
 
 	int start_row[3] = {src_image1.rows / 4,
-						src_image1.rows / 4 + 2 * NUMBER_OF_INTERVAL_ROWS, 
-						src_image1.rows / 4 + 4 * NUMBER_OF_INTERVAL_ROWS};
+						src_image1.rows / 4 + 2 * image1_sample_size.y, 
+						src_image1.rows / 4 + 4 * image1_sample_size.y};
 
 	//保证 图像2  的采样在1/8   到 7/8  之间
 	int start_col[3] = {	src_image1.cols / 2 - image1_sample_size.x / 2,

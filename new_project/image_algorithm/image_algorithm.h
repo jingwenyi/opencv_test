@@ -66,6 +66,12 @@ public:
 	*/
 	int Optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2i distace, cv::Point2i &left_top, cv::Point2i &right_bottom);
 
+	void Get_sample_size_up_down(cv::Point2i image_size, cv::Point2i &sample_size, int &dis); 
+
+	void Get_sample_size_left_right(cv::Point2i image_size, cv::Point2i &sample_size, int &dis); 
+
+	
+
 
 };
 
