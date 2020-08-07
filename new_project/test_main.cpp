@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 
 	//测试两张 图片的拼接坐标查找
 #if 1
-	for(int i=0; i<27; i++)
+	for(int i=0; i<26; i++)
 	{
 		
 		string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
