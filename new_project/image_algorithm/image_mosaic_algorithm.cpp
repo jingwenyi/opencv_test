@@ -14,9 +14,11 @@ void Image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, dou
 
 void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2i &sample_size, int &dis)
 {
+	dis = 100;
 	if(image_size.x > 4000)
 	{
 		sample_size.x = 1000;
+		dis = 200;
 	}
 	else if(image_size.x > 1500)
 	{
@@ -31,7 +33,6 @@ void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2
 		sample_size.x = 100;
 	}
 
-	dis = 100;
 
 
 	if(image_size.y > 4000)
@@ -64,10 +65,11 @@ void Image_algorithm::Get_sample_size_left_right(cv::Point2i image_size, cv::Poi
 		sample_size.x = 20;
 	}
 
-
+	dis = 100;
 	if(image_size.y > 4000)
 	{
 		sample_size.y = 1000;
+		dis = 200;
 	}
 	else if(image_size.y > 1500)
 	{
@@ -82,7 +84,7 @@ void Image_algorithm::Get_sample_size_left_right(cv::Point2i image_size, cv::Poi
 		sample_size.y = 100;
 	}
 
-	dis = 100;
+	
 }
 
 
@@ -166,10 +168,6 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 		for(int k=0; k<image1_sample_size.x; k++)
 		{
 			base[k] = src_image1.at<uchar>(start_row[i], start_col[i] + k) - src_image1.at<uchar>(start_row[i] + image1_sample_size.y, start_col[i] + k);
-#ifdef DUBUG
-			src_image1.at<uchar>(start_row[i], start_col[i] + k) = 0;
-			src_image1.at<uchar>(start_row[i] + image1_sample_size.y, start_col[i] + k) = 0;
-#endif
 		}
 
 		//找出图像2  的最佳匹配
@@ -217,23 +215,56 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 				}
 			}
 		}
-
-
-		std::cout << "=================" << i << "=============" << std::endl;
-			
 	}
 
+	//块匹配连续性检查
+	int err[3];
+	int err_min = INT_MAX;
+	int err_min_num;
+	for(int i=0; i<3; i++)
+	{
+		err[i] = 0;
+
+		for(int j=0; j<image1_sample_size.y; j++)
+		{
+			for(int k=0; k<image1_sample_size.x; k++)
+			{
+				err[i] += pow(	src_image2.at<uchar>(min_err_idex[i] + j, start_col[i] - diff_x / 2 + min_err_dis[i] + k) - 
+							 	src_image1.at<uchar>(start_row[i] + j, start_col[i] + k), 2);
+			}
+		}
+
+		if(err[i] < err_min)
+		{
+			err_min = err[i];
+			err_min_num = i;
+		}
+	}
+
+	//计算图像之间的拼接位置
+
+	distance.x = min_err_idex[err_min_num] - start_row[err_min_num];
+	
+	//y < 0, 表示向左 移动的像素，y > 0 表示向 右移动的像素
+	distance.y = diff_x / 2 - min_err_dis[err_min_num];
+
 #ifdef DUBUG
+	std::cout <<"err min num:" << err_min_num << ",err min:" << err_min << std::endl;
+
 	for(int i=0; i<3; i++)
 	{
 		std::cout << i <<",min err:" << min_err[i] << ",min err dis:" << min_err_dis[i] << ",min err idex:" << min_err_idex[i] << std::endl;
+
+		for(int j=0; j<image1_sample_size.x; j++)
+		{
+			src_image1.at<uchar>(start_row[i], start_col[i] + j) = 0;
+			src_image1.at<uchar>(start_row[i] + image1_sample_size.y, start_col[i] + j) = 0;
+		
+			src_image2.at<uchar>(min_err_idex[i], start_col[i] - diff_x / 2 + min_err_dis[i] + j) = 0;
+			src_image2.at<uchar>(min_err_idex[i] + image2_sample_size.y, start_col[i] - diff_x / 2 + min_err_dis[i] + j) = 0;
+		}
 	}
-#endif
 
-
-
-
-#ifdef DUBUG
 	static int num_image = 0;
 	std::stringstream ss1, ss2;
 	std::string s1, s2;
