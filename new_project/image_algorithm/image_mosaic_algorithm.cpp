@@ -12,38 +12,37 @@ void Image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, dou
 	cv::warpAffine(src_image, dest_image, r, cv::Size(src_image.cols, src_image.rows));
 }
 
+
+void Image_algorithm::Image_resize(cv::Mat& src_image, cv::Mat& dest_image, cv::Size dsize)
+{
+	cv::resize(src_image, dest_image, dsize,cv::INTER_AREA);
+}
+
+
 void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2i &sample_size, int &dis)
 {
-	dis = 100;
+	dis = image_size.x / 2;
 	if(image_size.x > 4000)
 	{
 		sample_size.x = 1000;
-		dis = 200;
-	}
-	else if(image_size.x > 1500)
-	{
-		sample_size.x = 600;
-	}
-	else if(image_size.x > 800)
-	{
-		sample_size.x = 200;
 	}
 	else
 	{
-		sample_size.x = 100;
+		sample_size.x = image_size.x / 4;
 	}
 
 
 
 	if(image_size.y > 4000)
 	{
-		sample_size.y = 100;
-	}
-	else if(image_size.y > 1500)
-	{
-		sample_size.y = 60;
+		sample_size.y = 300;
 	}
 	else
+	{
+		sample_size.y = image_size.y / 15;
+	}
+
+	if(sample_size.y < 20)
 	{
 		sample_size.y = 20;
 	}
@@ -54,37 +53,27 @@ void Image_algorithm::Get_sample_size_left_right(cv::Point2i image_size, cv::Poi
 {
 	if(image_size.x > 4000)
 	{
-		sample_size.x = 100;
-	}
-	else if(image_size.x > 1500)
-	{
-		sample_size.x = 60;
+		sample_size.x = 300;
 	}
 	else
+	{
+		sample_size.x = image_size.x / 15;
+	}
+
+	if(sample_size.x < 20)
 	{
 		sample_size.x = 20;
 	}
 
-	dis = 100;
+	dis = image_size.y / 2;
 	if(image_size.y > 4000)
 	{
 		sample_size.y = 1000;
-		dis = 200;
-	}
-	else if(image_size.y > 1500)
-	{
-		sample_size.y = 600;
-	}
-	else if(image_size.y > 800)
-	{
-		sample_size.y = 200;
 	}
 	else
 	{
-		sample_size.y = 100;
+		sample_size.y = image_size.y / 4;
 	}
-
-	
 }
 
 
@@ -131,13 +120,12 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 	cv::Point2i image2_sample_size(image1_sample_size.x + diff_x, image1_sample_size.y);
 
 	int start_row[3] = {src_image1.rows / 4,
-						src_image1.rows / 4 + 2 * image1_sample_size.y, 
-						src_image1.rows / 4 + 4 * image1_sample_size.y};
+						src_image1.rows / 4 +  image1_sample_size.y + 10, 
+						src_image1.rows / 4 + 2 * (image1_sample_size.y + 10)};
 
-	//保证 图像2  的采样在1/8   到 7/8  之间
 	int start_col[3] = {	src_image1.cols / 2 - image1_sample_size.x / 2,
-							src_image1.cols / 8 + diff_x / 2,
-							src_image1.cols *7 / 8 - diff_x / 2 - image1_sample_size.x};
+							diff_x / 2,
+							src_image1.cols - diff_x / 2 - image1_sample_size.x};
 
 #ifdef DUBUG
 		std::cout << "image_mosaic_algorithm image1 cols:" << src_image1.cols << ", rows:" << src_image1.rows << std::endl;
@@ -183,7 +171,7 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 
 		int match_image[image2_sample_size.x];
 
-		for(int n=start_row[i]; n<num; n++)
+		for(int n = start_row[i]; n< num + start_row[i]; n++)
 		{
 			for(int j=0; j<image2_sample_size.x; j++)
 			{

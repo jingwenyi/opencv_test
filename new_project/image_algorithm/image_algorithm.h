@@ -70,7 +70,7 @@ public:
 
 	void Get_sample_size_left_right(cv::Point2i image_size, cv::Point2i &sample_size, int &dis); 
 
-	
+	void Image_resize(cv::Mat& src_image, cv::Mat& dest_image, cv::Size dsize);
 
 
 };

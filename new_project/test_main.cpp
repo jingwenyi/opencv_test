@@ -110,16 +110,42 @@ int main(int argc, char **argv)
 	//AB:91.7618, CD:284.542
 	cout << "yaw AB avg:" << yaw_AB_avg << ",yaw CD avg:" << yaw_CD_avg << endl;
 
+	
+#if 0
+	//把图片进行缩放
+	for(int i=0; i<27; i++)
+	{
+		string strFile = "/home/wenyi/workspace/test_photo/";
+		strFile += string(image_name[i]);
+
+		Mat image = imread(strFile.c_str());
+		Mat image_resize;
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		image_algorithm->Image_resize(image, image_resize,  Size(image.cols/8, image.rows/8));
+
+		string strName = "./resize_image/";
+		strName += string(image_name[i]);
+
+		imwrite(strName.c_str(), image_resize);
+	}
+
+	cout << "image resize ok" << endl;
+#endif
+
 #if 0
 
 	//旋转AB 航线上的所有图片
 	
 	for(int i = 0; i < 27; i++)
 	{
-		string strFile = "/home/wenyi/workspace/test_photo/";
+		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/resize_image/";
 		strFile += string(image_name[i]);
-
-		cout << strFile << endl;
 
 		Mat image = imread(strFile.c_str());
 		Mat image_rotate;
@@ -137,10 +163,13 @@ int main(int argc, char **argv)
 
 		imwrite(strName.c_str(), image_rotate);
 	}
+
+	cout << "image rotate ok" << endl;
 #endif
 
-	//测试两张 图片的拼接坐标查找
+	
 #if 1
+	//测试两张 图片的拼接坐标查找
 	for(int i=0; i<26; i++)
 	{
 		
