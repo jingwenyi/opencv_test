@@ -19,6 +19,27 @@ void Image_algorithm::Image_resize(cv::Mat& src_image, cv::Mat& dest_image, cv::
 }
 
 
+void Image_algorithm::Image_cut(cv::Mat& src_image, cv::Mat& dest_image, enum Image_mosaic_head head, int cut_size)
+{
+	if(head == UP)
+	{
+		dest_image = src_image(cv::Range(cut_size, src_image.rows), cv::Range(0, src_image.cols));
+	}
+	else if(head == DOWN)
+	{
+		dest_image = src_image(cv::Range(0, src_image.rows - cut_size), cv::Range(0, src_image.cols));
+	}
+	else if(head == LEFT)
+	{
+		dest_image = src_image(cv::Range(0, src_image.rows), cv::Range(cut_size, src_image.cols));
+	}
+	else if(head == RIGHT)
+	{
+		dest_image = src_image(cv::Range(0, src_image.rows), cv::Range(0, src_image.cols - cut_size));
+	}
+}
+
+
 void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2i &sample_size, int &dis)
 {
 	dis = image_size.x / 2;
@@ -30,8 +51,6 @@ void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2
 	{
 		sample_size.x = image_size.x / 4;
 	}
-
-
 
 	if(image_size.y > 4000)
 	{
@@ -231,10 +250,11 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 
 	//计算图像之间的拼接位置
 
-	distance.x = min_err_idex[err_min_num] - start_row[err_min_num];
+	//y 始终大于0
+	distance.y = min_err_idex[err_min_num] - start_row[err_min_num];
 	
-	//y < 0, 表示向左 移动的像素，y > 0 表示向 右移动的像素
-	distance.y = diff_x / 2 - min_err_dis[err_min_num];
+	//x < 0, 表示向左 移动的像素，x > 0 表示向 右移动的像素
+	distance.x = diff_x / 2 - min_err_dis[err_min_num];
 
 #ifdef DUBUG
 	std::cout <<"err min num:" << err_min_num << ",err min:" << err_min << std::endl;
