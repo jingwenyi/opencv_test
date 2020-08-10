@@ -198,6 +198,30 @@ int main(int argc, char **argv)
 	
 		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
 
+#if 1
+	//对两张图片进行拼接
+
+		Mat dest_image;
+		Point2i left_top, right_bottom;
+		image_algorithm->Image_optimize_seam(src_image1, src_image2, dest_image, point_test,
+										IMAGE_MOSAIC::Image_algorithm::UP, left_top, right_bottom);
+
+		static int num_image = 0;
+		stringstream ss1;
+		string s1;
+		string strName1 = "./dest_image/";
+		ss1 << num_image;
+		ss1 >> s1;
+		num_image++;
+		strName1 += s1;
+		strName1 += ".jpg";
+
+
+		cout << "strName1" << strName1 << endl;
+		
+		imwrite(strName1.c_str(), dest_image);
+#endif
+
 	}
 
 
