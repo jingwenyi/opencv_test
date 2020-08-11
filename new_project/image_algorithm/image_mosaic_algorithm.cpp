@@ -317,7 +317,7 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 
 
 int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2i distance,
-															enum Image_mosaic_head head, cv::Point2i &left_top, cv::Point2i &right_bottom)
+															enum Image_mosaic_head head, cv::Point2i &image1_vertex, cv::Point2i &image2_vertex)
 {
 	//为目标图片申请空间	
 	dest_image.create(src_image1.rows + std::abs(distance.y), src_image1.cols + std::abs(distance.x), CV_8UC3);
@@ -341,11 +341,23 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 		{
 			image1.copyTo(dest_image(cv::Rect(std::abs(distance.x), image2.rows, image1.cols, image1.rows)));
 			image2.copyTo(dest_image(cv::Rect(0, 0, image2.cols, image2.rows)));
+
+			image1_vertex.x = abs(distance.x);
+			image1_vertex.y = distance.y;
+
+			image2_vertex.x = 0;
+			image2_vertex.y = 0;
 		}
 		else
 		{
 			image1.copyTo(dest_image(cv::Rect(0, image2.rows, image1.cols, image1.rows)));
 			image2.copyTo(dest_image(cv::Rect(distance.x, 0, image2.cols, image2.rows)));
+
+			image1_vertex.x = 0;
+			image1_vertex.y = distance.y;
+
+			image2_vertex.x = distance.x;
+			image2_vertex.y = 0;
 		}
 
 		//接口优化

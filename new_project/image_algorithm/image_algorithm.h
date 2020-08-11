@@ -65,7 +65,7 @@ public:
 	**  成功返回 OK,  失败返回 ERR
 	*/
 	int Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2i distance,
-											enum Image_mosaic_head head, cv::Point2i &left_top, cv::Point2i &right_bottom);
+											enum Image_mosaic_head head, cv::Point2i &image1_vertex, cv::Point2i &image2_vertex);
 
 	void Get_sample_size_up_down(cv::Point2i image_size, cv::Point2i &sample_size, int &dis); 
 

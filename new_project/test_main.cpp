@@ -169,6 +169,13 @@ int main(int argc, char **argv)
 
 	
 #if 1
+	//为地图申请一张画布
+	//图片现在是994 X 663, 画布大小设置为1500 x 5000
+	Mat map_test(5000, 1500,CV_8UC3);
+	map_test.setTo(0);
+
+	Point2i last_image_vertex;
+
 	//测试两张 图片的拼接坐标查找
 	for(int i=0; i<26; i++)
 	{
@@ -178,18 +185,27 @@ int main(int argc, char **argv)
 		strFile1 += string(image_name[i]);
 		strFile2 += string(image_name[i+1]);
 
-		Mat src_image1 = imread(strFile1.c_str());
 		Mat src_image2 = imread(strFile2.c_str());
-
-		if(src_image1.empty())
-		{
-			cout << "failed to load:" << strFile1 << endl;
-			return -1;
-		}
 
 		if(src_image2.empty())
 		{
 			cout << "failed to load:" << strFile2 << endl;
+			return -1;
+		}
+
+
+		Mat src_image1;
+		if(i==0){
+		 	src_image1= imread(strFile1.c_str());
+		}
+		else
+		{
+			src_image1 = map_test(Range(last_image_vertex.y, last_image_vertex.y + src_image2.rows), Range(last_image_vertex.x, last_image_vertex.x + src_image2.cols));
+		}
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile1 << endl;
 			return -1;
 		}
 
@@ -199,12 +215,12 @@ int main(int argc, char **argv)
 		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
 
 #if 1
-	//对两张图片进行拼接
+		//对两张图片进行拼接
 
 		Mat dest_image;
-		Point2i left_top, right_bottom;
+		Point2i image1_vertex, image2_vertex;
 		image_algorithm->Image_optimize_seam(src_image1, src_image2, dest_image, point_test,
-										IMAGE_MOSAIC::Image_algorithm::UP, left_top, right_bottom);
+										IMAGE_MOSAIC::Image_algorithm::UP, image1_vertex, image2_vertex);
 
 		static int num_image = 0;
 		stringstream ss1;
@@ -220,6 +236,38 @@ int main(int argc, char **argv)
 		cout << "strName1" << strName1 << endl;
 		
 		imwrite(strName1.c_str(), dest_image);
+
+#if 1
+		//把拼接的图片贴到画布上
+		//这里需要计算和维护图片的顶点坐标在画布上位置
+
+		if(i == 0)
+		{
+			last_image_vertex.x = map_test.cols / 2 - src_image1.cols / 2;
+			last_image_vertex.y = map_test.rows - src_image1.rows;
+			//把第一张图片拷贝到地图上
+			src_image1.copyTo(map_test(Rect(last_image_vertex.x , last_image_vertex.y, src_image1.cols, src_image1.rows)));
+		}
+
+		//通过传出的第一张图片在dest_image  中的位置，计算dest 在map_test 中的开始坐标
+		Point2i dest_image_vertex;
+		dest_image_vertex.x = last_image_vertex.x - image1_vertex.x;
+		dest_image_vertex.y = last_image_vertex.y - image1_vertex.y;
+
+		//裁减掉dest_image 图片下边的1/6
+		Mat tmp_image;
+		image_algorithm->Image_cut(dest_image, tmp_image, IMAGE_MOSAIC::Image_algorithm::DOWN, src_image1.rows/6);
+
+		//拷贝 dest_image 到map_test 中
+		tmp_image.copyTo(map_test(Rect(dest_image_vertex.x, dest_image_vertex.y, tmp_image.cols, tmp_image.rows)));
+
+		//计算第二张图片在map_test 中的坐标
+		last_image_vertex.x = dest_image_vertex.x + image2_vertex.x;
+		last_image_vertex.y = dest_image_vertex.y + image2_vertex.y;
+#endif
+
+
+		
 #endif
 
 	}
@@ -227,6 +275,8 @@ int main(int argc, char **argv)
 
 
 #endif
+
+	imwrite("map.jpg", map_test);
 
 
 	cout << "-----------ok-------------" << endl;
