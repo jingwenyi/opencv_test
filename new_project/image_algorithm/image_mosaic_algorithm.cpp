@@ -18,22 +18,21 @@ void Image_algorithm::Image_resize(cv::Mat& src_image, cv::Mat& dest_image, cv::
 	cv::resize(src_image, dest_image, dsize,cv::INTER_AREA);
 }
 
-//  裁剪的方向正好和拼接的方向相反
 void Image_algorithm::Image_cut(cv::Mat& src_image, cv::Mat& dest_image, enum Image_mosaic_head head, int cut_size)
 {
-	if(head == DOWN)
+	if(head == UP)
 	{
 		dest_image = src_image(cv::Range(cut_size, src_image.rows), cv::Range(0, src_image.cols));
 	}
-	else if(head == UP)
+	else if(head == DOWN)
 	{
 		dest_image = src_image(cv::Range(0, src_image.rows - cut_size), cv::Range(0, src_image.cols));
 	}
-	else if(head == RIGHT)
+	else if(head == LEFT)
 	{
 		dest_image = src_image(cv::Range(0, src_image.rows), cv::Range(cut_size, src_image.cols));
 	}
-	else if(head == LEFT)
+	else if(head == RIGHT)
 	{
 		dest_image = src_image(cv::Range(0, src_image.rows), cv::Range(0, src_image.cols - cut_size));
 	}
@@ -320,30 +319,65 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2i distance,
 															enum Image_mosaic_head head, cv::Point2i &left_top, cv::Point2i &right_bottom)
 {
-	//裁剪掉 src_image2  的下方的 1/6  ，目的是去掉旋转带来的黑边
-	cv::Mat image2;
-	if(head == UP || head == DOWN)
-	{
-		Image_cut(src_image2, image2, head, src_image2.rows/6);
-	}
-	else
-	{
-		Image_cut(src_image2, image2, head, src_image2.cols/6);
-	}
-	
 	//为目标图片申请空间	
 	dest_image.create(src_image1.rows + std::abs(distance.y), src_image1.cols + std::abs(distance.x), CV_8UC3);
+	dest_image.setTo(0);
+
+	//裁剪掉 src_image2  的下方的 1/6  ，目的是去掉旋转带来的黑边
+	cv::Mat image1,image2;
+
+	if(head == UP)
+	{
+		int cut_size = src_image2.rows/6;
+		int image1_cut_size = src_image1.rows - (dest_image.rows - (src_image2.rows - cut_size));
+		Image_cut(src_image1, image1, UP, image1_cut_size);
+		Image_cut(src_image2, image2, DOWN, cut_size);
+
+		// y  > 0 , 恒成立
+		// x > 0, 表示image2  相对于image1 右移
+		// x < 0, 表示image2  相对于image1 左移
+
+		if(distance.x < 0)
+		{
+			image1.copyTo(dest_image(cv::Rect(std::abs(distance.x), image2.rows -1, image1.cols, image1.rows)));
+			image2.copyTo(dest_image(cv::Rect(0, 0, image2.cols, image2.rows)));
+		}
+		else
+		{
+			image1.copyTo(dest_image(cv::Rect(0, image2.rows -1, image1.cols, image1.rows)));
+			image2.copyTo(dest_image(cv::Rect(distance.x, 0, image2.cols, image2.rows)));
+		}
+		
+	}
+	else if(head == DOWN)
+	{
+		
+	}
+	else if(head == LEFT)
+	{
+		
+	}
+	else if(head == RIGHT)
+	{
+		
+	}
+	
+	
+	
 
 #ifdef DUBUG
 	std::cout << "dest image cols:" << dest_image.cols << ", rows:" << dest_image.rows << std::endl;
+	std::cout << "image1     cols:" << image1.cols << ", rows:" << image1.rows << std::endl;
 	std::cout << "image2     cols:" << image2.cols << ", rows:" << image2.rows << std::endl;
 #endif
 
+
+#if 0
 	if(head == UP)
 	{
 		// y  > 0 , 恒成立
 		// x > 0, 表示image2  相对于image1 右移
-		// x < 0, 表示image2  相对于image1 左移
+		// x < 0, 表示image2  相对于image1 左移	
 		if(distance.x < 0){
 			left_top.x = std::abs(distance.x);
 			left_top.y = distance.y;
@@ -360,6 +394,46 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 
 		right_bottom.x = left_top.x + src_image1.cols;
 		right_bottom.y = left_top.y + src_image1.rows;
+#if 0
+		//接口优化
+
+		int w = 100;
+		int dst_rows_start = image2.rows - 1;
+		int dst_cols_start = 0;
+		int img1_rows_start = src_image1.rows - (dest_image.rows - image2.rows) - 1;
+		int img1_cols_start = distance.x < 0 ? std::abs(distance.x) : 0;
+		int img2_rows_start = image2.rows - 1;
+		int img2_cols_start = distance.x < 0 ? 0 : distance.x;
+
+		float alpha = 1;//img1中像素的权重
+	
+		for(int i=0; i<w; i++)//rows
+		{
+			uchar* p = src_image1.ptr<uchar>(img1_rows_start - i);
+			uchar* t = image2.ptr<uchar>(img2_rows_start - i);
+        	uchar* d = dest_image.ptr<uchar>(dst_rows_start - i);
+
+			for(int j=0; j<dest_image.cols - std::abs(distance.x); j++)
+			{
+				//如果遇到img2 中无像素的黑点，则完全拷贝img1 中的数据
+				if(t[(img2_cols_start + j) * 3] == 0 &&
+					t[(img2_cols_start + j) * 3 + 1] == 0 &&
+					t[(img2_cols_start + j) * 3 + 2] == 0)
+				{
+					alpha = 1.0f;
+				}
+				else
+				{
+					alpha = ((float)w - (float)i) / (float)w;
+				}
+
+
+				d[(dst_cols_start + j) * 3] = p[(img1_cols_start + j) * 3] * alpha + t[(img2_cols_start + j) * 3] * (1 - alpha);
+				d[(dst_cols_start + j) * 3 + 1] = p[(img1_cols_start + j) * 3 + 1] * alpha + t[(img2_cols_start + j) * 3 + 1] * (1 - alpha);
+				d[(dst_cols_start + j) * 3 + 2] = p[(img1_cols_start + j) * 3 + 2] * alpha + t[(img2_cols_start + j) * 3 + 2] * (1 - alpha);
+			}		
+		}
+#endif
 	}
 	else if(head == DOWN)
 	{
@@ -374,7 +448,7 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 		
 	}
 
-
+#endif
 	
 	return OK;
 }
