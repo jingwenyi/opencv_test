@@ -339,15 +339,52 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 
 		if(distance.x < 0)
 		{
-			image1.copyTo(dest_image(cv::Rect(std::abs(distance.x), image2.rows -1, image1.cols, image1.rows)));
+			image1.copyTo(dest_image(cv::Rect(std::abs(distance.x), image2.rows, image1.cols, image1.rows)));
 			image2.copyTo(dest_image(cv::Rect(0, 0, image2.cols, image2.rows)));
 		}
 		else
 		{
-			image1.copyTo(dest_image(cv::Rect(0, image2.rows -1, image1.cols, image1.rows)));
+			image1.copyTo(dest_image(cv::Rect(0, image2.rows, image1.cols, image1.rows)));
 			image2.copyTo(dest_image(cv::Rect(distance.x, 0, image2.cols, image2.rows)));
 		}
-		
+
+		//接口优化
+		int w = (src_image1.rows + src_image2.rows - dest_image.rows) / 2;
+		int image1_start_row = image1_cut_size - w;
+		int image2_start_row = image2.rows - w;
+		int dest_start_row = image2_start_row;
+		int dest_start_col = std::abs(distance.x);
+		int optimize_size = dest_image.cols - 2 * std::abs(distance.x);
+		int image1_start_col;
+		int image2_start_col;
+
+		float alpha = 1.0f;//src_image2  中像素的权重
+
+		if(distance.x < 0)
+		{
+			image1_start_col = 0;
+			image2_start_col = std::abs(distance.x);
+		}
+		else
+		{
+			image1_start_col = std::abs(distance.x);
+			image2_start_col = 0;
+		}
+
+		for(int i=0; i<w; i++)
+		{
+			alpha = (float)(w - i) / (float)w;
+			for(int j=0; j<optimize_size; j++)
+			{
+				cv::Scalar color1 = src_image1.at<cv::Vec3b>(image1_start_row + i, image1_start_col + j);
+				cv::Scalar color2 = src_image2.at<cv::Vec3b>(image2_start_row + i, image2_start_col + j);
+				cv::Scalar color3;
+				color3(0) = color1(0) * (1 - alpha) + color2(0) * alpha;
+				color3(1) = color1(1) * (1 - alpha) + color2(1) * alpha;
+				color3(2) = color1(2) * (1 - alpha) + color2(2) * alpha;
+				dest_image.at<cv::Vec3b>(dest_start_row + i, dest_start_col + j) = cv::Vec3b(color3(0), color3(1), color3(2));
+			}
+		}
 	}
 	else if(head == DOWN)
 	{
@@ -371,85 +408,6 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 	std::cout << "image2     cols:" << image2.cols << ", rows:" << image2.rows << std::endl;
 #endif
 
-
-#if 0
-	if(head == UP)
-	{
-		// y  > 0 , 恒成立
-		// x > 0, 表示image2  相对于image1 右移
-		// x < 0, 表示image2  相对于image1 左移	
-		if(distance.x < 0){
-			left_top.x = std::abs(distance.x);
-			left_top.y = distance.y;
-
-			src_image1.copyTo(dest_image(cv::Rect(left_top.x, left_top.y, src_image1.cols, src_image1.rows)));
-			image2.copyTo(dest_image(cv::Rect(0,0, image2.cols, image2.rows)));
-    	}else{
-    		left_top.x = 0;
-			left_top.y = distance.y;
-
-			src_image1.copyTo(dest_image(cv::Rect(left_top.x, left_top.y, src_image1.cols, src_image1.rows)));
-			image2.copyTo(dest_image(cv::Rect(distance.x, 0, image2.cols, image2.rows)));
-		}
-
-		right_bottom.x = left_top.x + src_image1.cols;
-		right_bottom.y = left_top.y + src_image1.rows;
-#if 0
-		//接口优化
-
-		int w = 100;
-		int dst_rows_start = image2.rows - 1;
-		int dst_cols_start = 0;
-		int img1_rows_start = src_image1.rows - (dest_image.rows - image2.rows) - 1;
-		int img1_cols_start = distance.x < 0 ? std::abs(distance.x) : 0;
-		int img2_rows_start = image2.rows - 1;
-		int img2_cols_start = distance.x < 0 ? 0 : distance.x;
-
-		float alpha = 1;//img1中像素的权重
-	
-		for(int i=0; i<w; i++)//rows
-		{
-			uchar* p = src_image1.ptr<uchar>(img1_rows_start - i);
-			uchar* t = image2.ptr<uchar>(img2_rows_start - i);
-        	uchar* d = dest_image.ptr<uchar>(dst_rows_start - i);
-
-			for(int j=0; j<dest_image.cols - std::abs(distance.x); j++)
-			{
-				//如果遇到img2 中无像素的黑点，则完全拷贝img1 中的数据
-				if(t[(img2_cols_start + j) * 3] == 0 &&
-					t[(img2_cols_start + j) * 3 + 1] == 0 &&
-					t[(img2_cols_start + j) * 3 + 2] == 0)
-				{
-					alpha = 1.0f;
-				}
-				else
-				{
-					alpha = ((float)w - (float)i) / (float)w;
-				}
-
-
-				d[(dst_cols_start + j) * 3] = p[(img1_cols_start + j) * 3] * alpha + t[(img2_cols_start + j) * 3] * (1 - alpha);
-				d[(dst_cols_start + j) * 3 + 1] = p[(img1_cols_start + j) * 3 + 1] * alpha + t[(img2_cols_start + j) * 3 + 1] * (1 - alpha);
-				d[(dst_cols_start + j) * 3 + 2] = p[(img1_cols_start + j) * 3 + 2] * alpha + t[(img2_cols_start + j) * 3 + 2] * (1 - alpha);
-			}		
-		}
-#endif
-	}
-	else if(head == DOWN)
-	{
-		
-	}
-	else if(head == LEFT)
-	{
-
-	}
-	else if(head == RIGHT)
-	{
-		
-	}
-
-#endif
-	
 	return OK;
 }
 
