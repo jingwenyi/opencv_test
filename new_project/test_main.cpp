@@ -185,6 +185,14 @@ int main(int argc, char **argv)
 		strFile1 += string(image_name[i]);
 		strFile2 += string(image_name[i+1]);
 
+		Mat src_image1 = imread(strFile1.c_str());
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile1 << endl;
+			return -1;
+		}
+
 		Mat src_image2 = imread(strFile2.c_str());
 
 		if(src_image2.empty())
@@ -194,20 +202,23 @@ int main(int argc, char **argv)
 		}
 
 
-		Mat src_image1;
-		if(i==0){
-		 	src_image1= imread(strFile1.c_str());
+		
+		Mat src_image1_tmp;
+		if(i > 0)
+		{
+			src_image1_tmp = map_test(Range(last_image_vertex.y, last_image_vertex.y + src_image2.rows), Range(last_image_vertex.x, last_image_vertex.x + src_image2.cols));
+			if(src_image1_tmp.empty())
+			{
+				cout << "failed to load:" << strFile2 << endl;
+				return -1;
+			}
 		}
 		else
 		{
-			src_image1 = map_test(Range(last_image_vertex.y, last_image_vertex.y + src_image2.rows), Range(last_image_vertex.x, last_image_vertex.x + src_image2.cols));
+			src_image1_tmp = src_image1;
 		}
 
-		if(src_image1.empty())
-		{
-			cout << "failed to load:" << strFile1 << endl;
-			return -1;
-		}
+		
 
 		Point2i point_test;
 		image_algorithm->Image_mosaic_algorithm(src_image1, src_image2, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
@@ -219,7 +230,7 @@ int main(int argc, char **argv)
 
 		Mat dest_image;
 		Point2i image1_vertex, image2_vertex;
-		image_algorithm->Image_optimize_seam(src_image1, src_image2, dest_image, point_test,
+		image_algorithm->Image_optimize_seam(src_image1_tmp, src_image2, dest_image, point_test,
 										IMAGE_MOSAIC::Image_algorithm::UP, image1_vertex, image2_vertex);
 
 		static int num_image = 0;
