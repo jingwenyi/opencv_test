@@ -302,12 +302,18 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 
 int Image_algorithm::Image_mosaic_down_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance)
 {
-	return OK;
+#ifdef DUBUG
+	std::cout << "please use Image_mosaic_up_algorithm!!!" << std::endl;
+#endif
+	return ERR;
 }
 
 int Image_algorithm::Image_mosaic_left_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance)
 {
-	return OK;
+#ifdef DUBUG
+		std::cout << "please use Image_mosaic_right_algorithm!!!" << std::endl;
+#endif
+	return ERR;
 }
 
 int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance)
@@ -400,11 +406,17 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 	}
 	else if(head == DOWN)
 	{
-		
+#ifdef DUBUG
+		std::cout << "please use UP!!!" << std::endl;
+#endif
+		return ERR;
 	}
 	else if(head == LEFT)
 	{
-		
+#ifdef DUBUG
+		std::cout << "please use RIGHT!!!" << std::endl;
+#endif
+		return ERR;
 	}
 	else if(head == RIGHT)
 	{

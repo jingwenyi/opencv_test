@@ -353,8 +353,46 @@ int main(int argc, char **argv)
 	imwrite("map.jpg", map_test);
 
 	cout << "--------------the first fly line is ok------------" << endl;
-
+#if 0
 	map_test.setTo(0);
+#else
+	//拼接第一条航线的最后一张和第二条航线的第一张图片
+	//并并计算第二条航线第一张图片的位置
+	//这里第二条航线在第一条航线的右边，所有事左右拼接
+	do{
+		string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		strFile1 += string(image_name[26]);
+
+		Mat src_image1 = imread(strFile1.c_str());
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile1 << endl;
+			return -1;
+		}
+
+
+		string strFile2 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		strFile2 += string(image_name2[0]);
+
+		Mat src_image2 = imread(strFile2.c_str());
+
+		if(src_image2.empty())
+		{
+			cout << "failed to load:" << strFile2 << endl;
+			return -1;
+		}
+
+		Point2i point_test;
+		image_algorithm->Image_mosaic_algorithm(src_image1, src_image2, IMAGE_MOSAIC::Image_algorithm::RIGHT,point_test);
+	
+		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+	}while(0);
+
+#endif
+
+	return 0;
 
 #if 1
 	//开始拼接第二条航线
