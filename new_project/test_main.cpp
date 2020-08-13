@@ -110,6 +110,15 @@ int main(int argc, char **argv)
 	//AB:91.7618, CD:284.542
 	cout << "yaw AB avg:" << yaw_AB_avg << ",yaw CD avg:" << yaw_CD_avg << endl;
 
+	//为了拼接两条航线的图片，理论上两条航线应该平行
+	//这里的两条航线不平行，也可能是固定翼飞行的时候
+	//由于风力的影响导致
+
+	yaw_AB_avg = (yaw_AB_avg + (yaw_CD_avg - 180)) / 2;
+	yaw_CD_avg = yaw_AB_avg + 180;
+
+	cout << "new yaw AB avg:" << yaw_AB_avg <<", new yaw CD avg:" << yaw_CD_avg << endl;
+
 	
 #if 0
 	//把图片进行缩放
@@ -135,14 +144,37 @@ int main(int argc, char **argv)
 		imwrite(strName.c_str(), image_resize);
 	}
 
+	for(int i=0; i<29; i++)
+	{
+		string strFile = "/home/wenyi/workspace/test_photo/";
+		strFile += string(image_name2[i]);
+
+		Mat image = imread(strFile.c_str());
+		Mat image_resize;
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		image_algorithm->Image_resize(image, image_resize,  Size(image.cols/8, image.rows/8));
+
+		string strName = "./resize_image/";
+		strName += string(image_name2[i]);
+
+		imwrite(strName.c_str(), image_resize);
+	}
+
 	cout << "image resize ok" << endl;
 #endif
+
 
 #if 0
 
 	//旋转AB 航线上的所有图片
 	
-	for(int i = 0; i < 27; i++)
+	for(int i=0; i<27; i++)
 	{
 		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/resize_image/";
 		strFile += string(image_name[i]);
@@ -164,14 +196,39 @@ int main(int argc, char **argv)
 		imwrite(strName.c_str(), image_rotate);
 	}
 
+	//旋转CD 航线上的所有图片
+	for(int i=0; i<29; i++)
+	{
+		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/resize_image/";
+		strFile += string(image_name2[i]);
+
+		Mat image = imread(strFile.c_str());
+		Mat image_rotate;
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		image_algorithm->Image_rotate(image, image_rotate,  yaw_CD_avg - yaw_CD[i]);
+
+		string strName = "./rotate_image/";
+		strName += string(image_name2[i]);
+
+		imwrite(strName.c_str(), image_rotate);
+	}
+
 	cout << "image rotate ok" << endl;
 #endif
 
+
 	
+
 #if 1
 	//为地图申请一张画布
-	//图片现在是994 X 663, 画布大小设置为1500 x 5000
-	Mat map_test(5000, 1500,CV_8UC3);
+	//图片现在是994 X 663, 画布大小设置为5000 x 4000
+	Mat map_test(5000, 4000,CV_8UC3);
 	map_test.setTo(0);
 
 	Point2i last_image_vertex;
