@@ -239,6 +239,7 @@ int main(int argc, char **argv)
 	map_test.setTo(0);
 
 	Point2i last_image_vertex;
+	int num_image = 0;
 
 	//测试两张 图片的拼接坐标查找
 	for(int i=0; i<26; i++)
@@ -297,7 +298,6 @@ int main(int argc, char **argv)
 		image_algorithm->Image_optimize_seam(src_image1_tmp, src_image2, dest_image, point_test,
 										IMAGE_MOSAIC::Image_algorithm::UP, image1_vertex, image2_vertex);
 
-		static int num_image = 0;
 		stringstream ss1;
 		string s1;
 		string strName1 = "./dest_image/";
@@ -351,10 +351,63 @@ int main(int argc, char **argv)
 
 #endif
 
-	cout << "the first fly line is ok" << endl;
+	cout << "--------------the first fly line is ok------------" << endl;
 
 #if 1
-	//
+	//开始拼接第二条航线
+	//第二条航线经过旋转后，在下方进行拼接
+	for(int i=0; i<28; i++)
+	{
+		string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		string strFile2 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		strFile1 += string(image_name2[i]);
+		strFile2 += string(image_name2[i+1]);
+
+		Mat src_image1 = imread(strFile1.c_str());
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile1 << endl;
+			return -1;
+		}
+
+		Mat src_image2 = imread(strFile2.c_str());
+
+		if(src_image2.empty())
+		{
+			cout << "failed to load:" << strFile2 << endl;
+			return -1;
+		}
+
+		Point2i point_test;
+		image_algorithm->Image_mosaic_algorithm(src_image2, src_image1, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
+	
+		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+
+		//对两张图片进行拼接
+
+		Mat dest_image;
+		Point2i image1_vertex, image2_vertex;
+		image_algorithm->Image_optimize_seam(src_image2, src_image1, dest_image, point_test,
+										IMAGE_MOSAIC::Image_algorithm::UP, image2_vertex, image1_vertex);
+
+		stringstream ss1;
+		string s1;
+		string strName1 = "./dest_image/";
+		ss1 << num_image;
+		ss1 >> s1;
+		num_image++;
+		strName1 += s1;
+		strName1 += ".jpg";
+
+
+		cout << "strName1" << strName1 << endl;
+		
+		imwrite(strName1.c_str(), dest_image);
+
+		
+	}
 
 
 

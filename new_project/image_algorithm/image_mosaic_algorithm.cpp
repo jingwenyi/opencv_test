@@ -53,11 +53,11 @@ void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2
 
 	if(image_size.y > 4000)
 	{
-		sample_size.y = 300;
+		sample_size.y = 500;
 	}
 	else
 	{
-		sample_size.y = image_size.y / 15;
+		sample_size.y = image_size.y / 10;
 	}
 
 	if(sample_size.y < 20)
@@ -71,11 +71,11 @@ void Image_algorithm::Get_sample_size_left_right(cv::Point2i image_size, cv::Poi
 {
 	if(image_size.x > 4000)
 	{
-		sample_size.x = 300;
+		sample_size.x = 500;
 	}
 	else
 	{
-		sample_size.x = image_size.x / 15;
+		sample_size.x = image_size.x / 10;
 	}
 
 	if(sample_size.x < 20)
@@ -264,11 +264,11 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 
 		for(int j=0; j<image1_sample_size.x; j++)
 		{
-			src_image1.at<uchar>(start_row[i], start_col[i] + j) = 0;
-			src_image1.at<uchar>(start_row[i] + image1_sample_size.y, start_col[i] + j) = 0;
+			src_image1.at<uchar>(start_row[i], start_col[i] + j) = 255;
+			src_image1.at<uchar>(start_row[i] + image1_sample_size.y, start_col[i] + j) = 255;
 		
-			src_image2.at<uchar>(min_err_idex[i], start_col[i] - diff_x / 2 + min_err_dis[i] + j) = 0;
-			src_image2.at<uchar>(min_err_idex[i] + image2_sample_size.y, start_col[i] - diff_x / 2 + min_err_dis[i] + j) = 0;
+			src_image2.at<uchar>(min_err_idex[i], start_col[i] - diff_x / 2 + min_err_dis[i] + j) = 255;
+			src_image2.at<uchar>(min_err_idex[i] + image2_sample_size.y, start_col[i] - diff_x / 2 + min_err_dis[i] + j) = 255;
 		}
 	}
 
