@@ -144,6 +144,7 @@ int main(int argc, char **argv)
 		imwrite(strName.c_str(), image_resize);
 	}
 
+	// CD 航线的图片需要旋转180 度， 才能跟AB 拼接
 	for(int i=0; i<29; i++)
 	{
 		string strFile = "/home/wenyi/workspace/test_photo/";
@@ -160,14 +161,18 @@ int main(int argc, char **argv)
 
 		image_algorithm->Image_resize(image, image_resize,  Size(image.cols/8, image.rows/8));
 
+		Mat image_tmp;
+		image_algorithm->Image_rotate(image_resize, image_tmp, 180);
+
 		string strName = "./resize_image/";
 		strName += string(image_name2[i]);
 
-		imwrite(strName.c_str(), image_resize);
+		imwrite(strName.c_str(), image_tmp);
 	}
 
 	cout << "image resize ok" << endl;
 #endif
+
 
 
 #if 0
@@ -196,7 +201,9 @@ int main(int argc, char **argv)
 		imwrite(strName.c_str(), image_rotate);
 	}
 
-	//旋转CD 航线上的所有图片
+	//旋转CD  航线上的所有图片
+	//由于CD  航线上的图片已经旋转了180  度
+	//计算角度的时候需要减去180 度
 	for(int i=0; i<29; i++)
 	{
 		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/resize_image/";
@@ -211,7 +218,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-		image_algorithm->Image_rotate(image, image_rotate,  yaw_CD_avg - yaw_CD[i]);
+		image_algorithm->Image_rotate(image, image_rotate,  yaw_AB_avg - (yaw_CD[i] - 180));
 
 		string strName = "./rotate_image/";
 		strName += string(image_name2[i]);
@@ -339,6 +346,15 @@ int main(int argc, char **argv)
 #endif
 
 	}
+
+
+
+#endif
+
+	cout << "the first fly line is ok" << endl;
+
+#if 1
+	//
 
 
 
