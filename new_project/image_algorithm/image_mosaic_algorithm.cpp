@@ -443,7 +443,7 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 	//计算图像之间的拼接位置
 
 	// x 始终大于0， 第二张图像右移 
-	distance.x = start_row[err_min_num] - min_err_idex[err_min_num];
+	distance.x = start_col[err_min_num] - min_err_idex[err_min_num];
 
 	// y < 0  表示相对左 图像，右边图像上移
 	// y > 0  表示相对左图像， 右边图像下移
@@ -501,15 +501,17 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image2, cv::Mat& dest_image, cv::Point2i distance,
 															enum Image_mosaic_head head, cv::Point2i &image1_vertex, cv::Point2i &image2_vertex)
 {
-	//为目标图片申请空间	
-	dest_image.create(src_image1.rows + std::abs(distance.y), src_image1.cols + std::abs(distance.x), CV_8UC3);
-	dest_image.setTo(0);
-
-	//裁剪掉 src_image2  的下方的 1/6  ，目的是去掉旋转带来的黑边
-	cv::Mat image1,image2;
+	
 
 	if(head == UP)
 	{
+		//为目标图片申请空间	
+		dest_image.create(src_image1.rows + std::abs(distance.y), src_image1.cols + std::abs(distance.x), CV_8UC3);
+		dest_image.setTo(0);
+
+		//裁剪掉 src_image2  的下方的 1/6  ，目的是去掉旋转带来的黑边
+		cv::Mat image1,image2;
+
 		int cut_size = src_image2.rows/6;
 		int image1_cut_size = src_image1.rows - (dest_image.rows - (src_image2.rows - cut_size));
 		Image_cut(src_image1, image1, UP, image1_cut_size);
@@ -596,17 +598,87 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 	}
 	else if(head == RIGHT)
 	{
-		
-	}
-	
-	
-	
+		//为目标图片申请空间	
+		dest_image.create(src_image1.rows + std::abs(distance.y), src_image1.cols + std::abs(distance.x), CV_8UC3);
+		dest_image.setTo(0);
 
-#ifdef DUBUG
-	std::cout << "dest image cols:" << dest_image.cols << ", rows:" << dest_image.rows << std::endl;
-	std::cout << "image1     cols:" << image1.cols << ", rows:" << image1.rows << std::endl;
-	std::cout << "image2     cols:" << image2.cols << ", rows:" << image2.rows << std::endl;
-#endif
+		//裁剪掉 src_image2  的左边 的 1/6  ，目的是去掉旋转带来的黑边
+		cv::Mat image1,image2;
+
+		int cut_size = src_image2.cols/6;
+		int image1_cut_size = src_image1.cols - (dest_image.cols - (src_image2.cols - cut_size));
+		Image_cut(src_image1, image1, RIGHT, image1_cut_size);
+		Image_cut(src_image2, image2, LEFT, cut_size);
+
+		// x 始终大于0， 第二张图像右移 
+		// y < 0  表示相对左 图像，右边图像上移
+		// y > 0  表示相对左图像， 右边图像下移
+
+		if(distance.y < 0)
+		{
+			
+			image1.copyTo(dest_image(cv::Rect(0, std::abs(distance.y), image1.cols, image1.rows)));
+			image2.copyTo(dest_image(cv::Rect(std::abs(distance.x) + cut_size, 0, image2.cols, image2.rows)));
+
+			image1_vertex.x = 0;
+			image1_vertex.y = std::abs(distance.y);
+
+			image2_vertex.x = std::abs(distance.x);
+			image2_vertex.y = 0;
+		}
+		else
+		{
+			image1.copyTo(dest_image(cv::Rect(0, 0, image1.cols, image1.rows)));
+			image2.copyTo(dest_image(cv::Rect(std::abs(distance.x) + cut_size, distance.y, image2.cols, image2.rows)));
+
+			image1_vertex.x = 0;
+			image1_vertex.y = 0;
+
+			image2_vertex.x = std::abs(distance.x);
+			image2_vertex.y = distance.y;
+		}
+
+		//拼图接口优化
+		int w = (src_image1.cols + src_image2.cols - dest_image.cols) / 2;
+		int image1_start_row;
+		int image2_start_row;
+		int dest_start_row;
+		int optimize_size = dest_image.rows - 2 * std::abs(distance.y);
+		int image1_start_col = image1.cols;
+		int image2_start_col = cut_size;
+		int dest_start_col = image1_start_col;
+
+		if(distance.y < 0)
+		{
+			image1_start_row = 0;
+			
+			image2_start_row = std::abs(distance.y);
+		}
+		else
+		{
+			image1_start_row = distance.y;
+			image2_start_row = 0;
+		}
+
+		dest_start_row = image1_start_row;
+
+		float alpha = 1.0f;//src_image1  中像素的权重
+
+		for(int i=0; i<w; i++)
+		{
+			alpha = (float)(w - i) / (float)w;
+			for(int j=0; j<optimize_size; j++)
+			{
+				cv::Scalar color1 = src_image1.at<cv::Vec3b>(image1_start_row + j, image1_start_col + i);
+				cv::Scalar color2 = src_image2.at<cv::Vec3b>(image2_start_row + j, image2_start_col + i);
+				cv::Scalar color3;
+				color3(0) = color1(0) * alpha + color2(0) * (1 - alpha);
+				color3(1) = color1(1) * alpha + color2(1) * (1 - alpha);
+				color3(2) = color1(2) * alpha + color2(2) * (1 - alpha);
+				dest_image.at<cv::Vec3b>(dest_start_row + j, dest_start_col + i) = cv::Vec3b(color3(0), color3(1), color3(2));
+			}
+		}
+	}
 
 	return OK;
 }
