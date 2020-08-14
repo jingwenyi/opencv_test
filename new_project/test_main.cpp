@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 
 	
 
-#if 1
+#if 0
 	//为地图申请一张画布
 	//图片现在是994 X 663, 画布大小设置为7000 x 5000
 	Mat map_test(7000, 5000,CV_8UC3);
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 	
 		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
 
-#if 1
+#if 0
 		//对两张图片进行拼接
 
 		Mat dest_image;
@@ -347,10 +347,9 @@ int main(int argc, char **argv)
 
 	}
 
-
-
-#endif
 	imwrite("map.jpg", map_test);
+#endif
+	
 
 	cout << "--------------the first fly line is ok------------" << endl;
 #if 0
@@ -358,7 +357,7 @@ int main(int argc, char **argv)
 #else
 	//拼接第一条航线的最后一张和第二条航线的第一张图片
 	//并并计算第二条航线第一张图片的位置
-	//这里第二条航线在第一条航线的右边，所有事左右拼接
+	//这里第二条航线在第一条航线的右边，所有是 左右拼接
 	do{
 		string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
 		strFile1 += string(image_name[26]);
@@ -388,13 +387,33 @@ int main(int argc, char **argv)
 	
 		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
 
+
+		//对两张图片进行拼接
+
+		Mat dest_image;
+		Point2i image1_vertex, image2_vertex;
+		image_algorithm->Image_optimize_seam(src_image1, src_image2, dest_image, point_test,
+										IMAGE_MOSAIC::Image_algorithm::RIGHT, image1_vertex, image2_vertex);
+
+		stringstream ss1;
+		string s1;
+		string strName1 = "./dest_image/";
+		ss1 << 0;//num_image;
+		ss1 >> s1;
+		//num_image++;
+		strName1 += s1;
+		strName1 += ".jpg";
+
+
+		cout << "strName1" << strName1 << endl;
+		
+		imwrite(strName1.c_str(), dest_image);
+
 	}while(0);
 
 #endif
 
-	return 0;
-
-#if 1
+#if 0
 	//开始拼接第二条航线
 	//第二条航线经过旋转后，在下方进行拼接
 	for(int i=0; i<28; i++)
@@ -493,11 +512,11 @@ int main(int argc, char **argv)
 		
 	}
 
-
+	imwrite("map1.jpg", map_test);
 
 #endif
 
-	imwrite("map1.jpg", map_test);
+	
 
 
 	cout << "-----------ok-------------" << endl;
