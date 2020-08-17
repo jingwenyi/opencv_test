@@ -445,7 +445,7 @@ int main(int argc, char **argv)
 
 #endif
 
-#if 0
+#if 1
 	//开始拼接第二条航线
 	//第二条航线经过旋转后，在下方进行拼接
 	for(int i=0; i<28; i++)
@@ -472,19 +472,14 @@ int main(int argc, char **argv)
 		}
 
 		Mat src_image1_tmp;
-		if(i > 0)
+		
+		src_image1_tmp = map_test(Range(last_image_vertex.y, last_image_vertex.y + src_image2.rows), Range(last_image_vertex.x, last_image_vertex.x + src_image2.cols));
+		if(src_image1_tmp.empty())
 		{
-			src_image1_tmp = map_test(Range(last_image_vertex.y, last_image_vertex.y + src_image2.rows), Range(last_image_vertex.x, last_image_vertex.x + src_image2.cols));
-			if(src_image1_tmp.empty())
-			{
-				cout << "failed to load:" << strFile2 << endl;
-				return -1;
-			}
+			cout << "failed to load:" << strFile2 << endl;
+			return -1;
 		}
-		else
-		{
-			src_image1_tmp = src_image1;
-		}
+		
 
 		Point2i point_test;
 		image_algorithm->Image_mosaic_algorithm(src_image2, src_image1, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
@@ -515,12 +510,6 @@ int main(int argc, char **argv)
 
 #if 1
 		//拼接第二条航线的图片
-		
-		if(i == 0)
-		{
-			//把第一张图片拷贝到地图上，拷贝的位置暂时放到第一条航线最后一张图片处
-			src_image1.copyTo(map_test(Rect(last_image_vertex.x , last_image_vertex.y, src_image1.cols, src_image1.rows)));
-		}
 
 		//通过传出的第一张图片在dest_image  中的位置，计算dest 在map_test 中的开始坐标
 		Point2i dest_image_vertex;
