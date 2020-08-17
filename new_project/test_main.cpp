@@ -524,11 +524,11 @@ int main(int argc, char **argv)
 		Mat tmp_image;
 		image_algorithm->Image_cut(dest_image, tmp_image, IMAGE_MOSAIC::Image_algorithm::DOWN, src_image1.rows/6);
 #else
-		//²Ã¼ôµôdest image Í¼Æ¬ÏÂ±ßµÄ1/4, ×ó±ßµÄ1/3
+		//²Ã¼ôµôdest image Í¼Æ¬ÏÂ±ßµÄ1/6, ×ó±ßµÄ1/4
 		Mat tmp_image;
-		tmp_image = dest_image(Range(0, dest_image.rows - dest_image.rows/4), Range(dest_image.cols / 3, dest_image.cols));
+		tmp_image = dest_image(Range(0, dest_image.rows - dest_image.rows / 6), Range(dest_image.cols / 4, dest_image.cols));
 
-		dest_image_vertex.x += dest_image.cols / 3;
+		dest_image_vertex.x += dest_image.cols / 4;
 #endif
 
 		//¿½±´ tmp_image µ½map_test ÖÐ
