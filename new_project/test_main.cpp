@@ -529,6 +529,42 @@ int main(int argc, char **argv)
 		tmp_image = dest_image(Range(0, dest_image.rows - dest_image.rows / 6), Range(dest_image.cols / 4, dest_image.cols));
 
 		dest_image_vertex.x += dest_image.cols / 4;
+
+
+		
+		//接口优化
+		int w = tmp_image.cols / 4;
+		//image1  为 map
+		int image1_start_row = dest_image_vertex.y;
+		int image1_start_col = dest_image_vertex.x;
+		
+		//image2 为tmp_image
+		int image2_start_row  = 0;
+		int image2_start_col = 0;
+		
+		//tmp_image 为dest
+		int dest_start_row = 0;
+		int dest_start_col = 0;
+
+		float alpha = 1.0f;//map  中像素的权重
+
+		for(int j=0; j<tmp_image.rows; j++)
+		{
+			for(int k=0; k<w; k++)
+			{
+				alpha = (float)(w - k) / (float)w;
+				Scalar color1 = map_test.at<Vec3b>(image1_start_row + j, image1_start_col + k);
+				Scalar color2 = tmp_image.at<Vec3b>(image2_start_row + j, image2_start_col + k);
+
+				Scalar color3;
+				color3(0) = color1(0) * alpha + color2(0) * (1 - alpha);
+				color3(1) = color1(1) * alpha + color2(1) * (1 - alpha);
+				color3(2) = color1(2) * alpha + color2(2) * (1 - alpha);
+
+				tmp_image.at<Vec3b>(dest_start_row + j, dest_start_col + k) = Vec3b(color3(0), color3(1), color3(2));
+			}
+		}
+		
 #endif
 
 		//拷贝 tmp_image 到map_test 中

@@ -5,6 +5,10 @@ namespace IMAGE_MOSAIC
 
 #define  DUBUG
 
+#ifdef DUBUG
+static int num_image = 0;
+#endif
+
 void Image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, double angle)
 {
 	cv::Point2f pt(src_image.cols/2, src_image.rows/2);
@@ -272,7 +276,6 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 		}
 	}
 
-	static int num_image = 0;
 	std::stringstream ss1, ss2;
 	std::string s1, s2;
 	std::string strName1 = "./gray_image/";
@@ -466,8 +469,7 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 			src_image2.at<uchar>(start_row[i]- diff_y / 2 + min_err_dis[i] + j, min_err_idex[i] - image2_sample_size.x) = 255;
 		}
 	}
-	
-	static int num_image = 0;
+
 	std::stringstream ss1, ss2;
 	std::string s1, s2;
 	std::string strName1 = "./gray_image/";
