@@ -425,19 +425,27 @@ int main(int argc, char **argv)
 		dest_image_vertex.x = last_image_vertex.x - image1_vertex.x;
 		dest_image_vertex.y = last_image_vertex.y - image1_vertex.y;
 
-
-		//拷贝 dest_image 到map_test 中
-		dest_image.copyTo(map_test(Rect(dest_image_vertex.x, dest_image_vertex.y, dest_image.cols, dest_image.rows)));
-
+		
 		//计算第二张图片在map_test 中的坐标
 		last_image_vertex.x = dest_image_vertex.x + image2_vertex.x;
 		last_image_vertex.y = dest_image_vertex.y + image2_vertex.y;
 
+#if 1
+		//裁剪掉dest image 图片下边的1/4, 左边的1/3
+		Mat tmp_image;
+		tmp_image = dest_image(Range(0, dest_image.rows - dest_image.rows/4), Range(dest_image.cols / 3, dest_image.cols));
+
+		dest_image_vertex.x += dest_image.cols / 3;
+
+		//拷贝 dest_image 到map_test 中
+		tmp_image.copyTo(map_test(Rect(dest_image_vertex.x, dest_image_vertex.y, tmp_image.cols, tmp_image.rows)));
+#endif
+		
 	}while(0);
 
 #endif
 
-#if 1
+#if 0
 	//开始拼接第二条航线
 	//第二条航线经过旋转后，在下方进行拼接
 	for(int i=0; i<28; i++)
@@ -519,27 +527,34 @@ int main(int argc, char **argv)
 		dest_image_vertex.x = last_image_vertex.x - image1_vertex.x;
 		dest_image_vertex.y = last_image_vertex.y - image1_vertex.y;
 
-		//裁减掉dest_image 图片下边的1/6
-		Mat tmp_image;
-		image_algorithm->Image_cut(dest_image, tmp_image, IMAGE_MOSAIC::Image_algorithm::DOWN, src_image1.rows/6);
-
-		//拷贝 dest_image 到map_test 中
-		tmp_image.copyTo(map_test(Rect(dest_image_vertex.x, dest_image_vertex.y, tmp_image.cols, tmp_image.rows)));
-
 		//计算第二张图片在map_test 中的坐标
 		last_image_vertex.x = dest_image_vertex.x + image2_vertex.x;
 		last_image_vertex.y = dest_image_vertex.y + image2_vertex.y;
+#if 0
+		//裁减掉dest_image 图片下边的1/6
+		Mat tmp_image;
+		image_algorithm->Image_cut(dest_image, tmp_image, IMAGE_MOSAIC::Image_algorithm::DOWN, src_image1.rows/6);
+#else
+		//裁剪掉dest image 图片下边的1/4, 左边的1/3
+		Mat tmp_image;
+		tmp_image = dest_image(Range(0, dest_image.rows - dest_image.rows/4), Range(dest_image.cols / 3, dest_image.cols));
 
+		dest_image_vertex.x += dest_image.cols / 3;
+#endif
+
+		//拷贝 tmp_image 到map_test 中
+		tmp_image.copyTo(map_test(Rect(dest_image_vertex.x, dest_image_vertex.y, tmp_image.cols, tmp_image.rows)));
 
 #endif
 
 		
 	}
 
-	imwrite("map1.jpg", map_test);
+	
 
 #endif
 
+	imwrite("map1.jpg", map_test);
 	
 
 
