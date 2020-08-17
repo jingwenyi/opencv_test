@@ -486,13 +486,15 @@ int main(int argc, char **argv)
 	
 		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
 
+		point_test.x = -point_test.x;
+
 
 		//对两张图片进行拼接
 
 		Mat dest_image;
 		Point2i image1_vertex, image2_vertex;
-		image_algorithm->Image_optimize_seam(src_image2, src_image1_tmp, dest_image, point_test,
-										IMAGE_MOSAIC::Image_algorithm::UP, image2_vertex, image1_vertex);
+		image_algorithm->Image_optimize_seam(src_image1_tmp, src_image2, dest_image, point_test,
+										IMAGE_MOSAIC::Image_algorithm::DOWN, image1_vertex, image2_vertex);
 
 		stringstream ss1;
 		string s1;

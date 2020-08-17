@@ -590,10 +590,84 @@ int Image_algorithm::Image_optimize_seam(cv::Mat& src_image1, cv::Mat& src_image
 	}
 	else if(head == DOWN)
 	{
-#ifdef DUBUG
-		std::cout << "please use UP!!!" << std::endl;
+		//为目标图片申请空间	
+		dest_image.create(src_image1.rows + std::abs(distance.y), src_image1.cols + std::abs(distance.x), CV_8UC3);
+		dest_image.setTo(0);
+
+		//裁剪掉 src_image2  的上方 的 1/6  ，目的是去掉旋转带来的黑边
+		cv::Mat image1,image2;
+
+		int cut_size = src_image2.rows/6;
+		int image1_cut_size = src_image1.rows - (dest_image.rows - (src_image2.rows - cut_size));
+		Image_cut(src_image1, image1, DOWN, image1_cut_size);
+		Image_cut(src_image2, image2, UP, cut_size);
+
+
+		// y  > 0 , 恒成立
+		// x > 0, 表示image2  相对于image1 右移
+		// x < 0, 表示image2  相对于image1 左移
+
+		if(distance.x < 0)
+		{
+			image1.copyTo(dest_image(cv::Rect(std::abs(distance.x), 0, image1.cols, image1.rows)));
+			image2.copyTo(dest_image(cv::Rect(0, image1.rows, image2.cols, image2.rows)));
+
+			image1_vertex.x = std::abs(distance.x);
+			image1_vertex.y = 0;
+
+			image2_vertex.x = 0;
+			image2_vertex.y = distance.y;
+		}
+		else
+		{
+			image1.copyTo(dest_image(cv::Rect(0, 0, image1.cols, image1.rows)));
+			image2.copyTo(dest_image(cv::Rect(distance.x, image1.rows, image2.cols, image2.rows)));
+
+			image1_vertex.x = 0;
+			image1_vertex.y = 0;
+
+			image2_vertex.x = distance.x;
+			image2_vertex.y = distance.y;
+		}
+#if 1
+		//接口优化
+		int w = (src_image1.rows + src_image2.rows - dest_image.rows) / 2;
+		int image1_start_row = image1.rows;;
+		int image2_start_row = cut_size;
+		int dest_start_row = image1_start_row;
+		int dest_start_col = std::abs(distance.x);
+		int optimize_size = dest_image.cols - 2 * std::abs(distance.x);
+		int image1_start_col;
+		int image2_start_col;
+
+		float alpha = 1.0f;//src_image1  中像素的权重
+
+		if(distance.x < 0)
+		{
+			image1_start_col = 0;
+			image2_start_col = std::abs(distance.x);
+		}
+		else
+		{
+			image1_start_col = distance.x;
+			image2_start_col = 0;
+		}
+
+		for(int i=0; i<w; i++)
+		{
+			alpha = (float)(w - i) / (float)w;
+			for(int j=0; j<optimize_size; j++)
+			{
+				cv::Scalar color1 = src_image1.at<cv::Vec3b>(image1_start_row + i, image1_start_col + j);
+				cv::Scalar color2 = src_image2.at<cv::Vec3b>(image2_start_row + i, image2_start_col + j);
+				cv::Scalar color3;
+				color3(0) = color1(0) * alpha + color2(0) * (1 - alpha);
+				color3(1) = color1(1) * alpha + color2(1) * (1 - alpha);
+				color3(2) = color1(2) * alpha + color2(2) * (1 - alpha);
+				dest_image.at<cv::Vec3b>(dest_start_row + i, dest_start_col + j) = cv::Vec3b(color3(0), color3(1), color3(2));
+			}
+		}
 #endif
-		return ERR;
 	}
 	else if(head == LEFT)
 	{
