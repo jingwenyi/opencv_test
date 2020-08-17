@@ -61,7 +61,7 @@ void Image_algorithm::Get_sample_size_up_down(cv::Point2i image_size, cv::Point2
 	}
 	else
 	{
-		sample_size.y = image_size.y / 10;
+		sample_size.y = image_size.y / 15;
 	}
 
 	if(sample_size.y < 20)
@@ -79,7 +79,7 @@ void Image_algorithm::Get_sample_size_left_right(cv::Point2i image_size, cv::Poi
 	}
 	else
 	{
-		sample_size.x = image_size.x / 10;
+		sample_size.x = image_size.x / 15;
 	}
 
 	if(sample_size.x < 20)
@@ -141,28 +141,30 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 	
 	cv::Point2i image2_sample_size(image1_sample_size.x + diff_x, image1_sample_size.y);
 
-	int start_row[3] = {src_image1.rows / 4,
+	int start_row[4] = {src_image1.rows / 4,
 						src_image1.rows / 4 +  image1_sample_size.y + 10, 
-						src_image1.rows / 4 + 2 * (image1_sample_size.y + 10)};
+						src_image1.rows / 4 + 2 * (image1_sample_size.y + 10),
+						src_image1.rows / 4 + 3 * (image1_sample_size.y + 10)};
 
-	int start_col[3] = {	src_image1.cols / 2 - image1_sample_size.x / 2,
+	int start_col[4] = {	src_image1.cols / 2 - image1_sample_size.x / 2,
 							diff_x / 2,
-							src_image1.cols - diff_x / 2 - image1_sample_size.x};
+							src_image1.cols - diff_x / 2 - image1_sample_size.x,
+							src_image1.cols / 2 - image1_sample_size.x / 2};
 
 #ifdef DUBUG
 		std::cout << "image_mosaic_algorithm image1 cols:" << src_image1.cols << ", rows:" << src_image1.rows << std::endl;
 		std::cout << "image1_sample_size x:" << image1_sample_size.x << ", y:" << image1_sample_size.y << std::endl;
 		std::cout << "diff_x:" << diff_x << std::endl;
 		std::cout << "image2_sample_size x:" << image2_sample_size.x << ", y:" << image2_sample_size.y << std::endl;
-		std::cout << "start row, 1:" << start_row[0] << ", 2:" << start_row[1] << ", 3:" << start_row[2] << std::endl;
-		std::cout << "start col, 1:" << start_col[0] << ", 2:" << start_col[1] << ", 3:" << start_col[2] << std::endl;
+		std::cout << "start row, 1:" << start_row[0] << ", 2:" << start_row[1] << ", 3:" << start_row[2]  << ", 4:" << start_row[3]<< std::endl;
+		std::cout << "start col, 1:" << start_col[0] << ", 2:" << start_col[1] << ", 3:" << start_col[2] << ", 4" << start_row[3] << std::endl;
 #endif
 
-	int min_err[3];
-	int min_err_idex[3];
-	int min_err_dis[3];
+	int min_err[4];
+	int min_err_idex[4];
+	int min_err_dis[4];
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		min_err[i] = INT_MAX;
 		min_err_idex[i] = 0;
@@ -170,7 +172,7 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 	}
 
 	//分别查找3 组中最小二乘的位置
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		//计算图像 1  的匹配模板
 		int base[image1_sample_size.x];
@@ -228,10 +230,10 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 	}
 
 	//块匹配连续性检查
-	int err[3];
+	int err[4];
 	int err_min = INT_MAX;
 	int err_min_num;
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		err[i] = 0;
 
@@ -262,7 +264,7 @@ int Image_algorithm::Image_mosaic_up_algorithm(cv::Mat &src_image1, cv::Mat &src
 #ifdef DUBUG
 	std::cout <<"err min num:" << err_min_num << ",err min:" << err_min << std::endl;
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		std::cout << i <<",min err:" << min_err[i] << ",min err dis:" << min_err_dis[i] << ",min err idex:" << min_err_idex[i] << std::endl;
 
@@ -330,29 +332,31 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 
 	cv::Point2i image2_sample_size(image1_sample_size.x, image1_sample_size.y + diff_y);
 
-	int start_row[3] = {src_image1.rows / 2 - image1_sample_size.y / 2,
+	int start_row[4] = {src_image1.rows / 2 - image1_sample_size.y / 2,
 						diff_y / 2,
-						src_image1.rows - diff_y / 2 - image1_sample_size.y};
+						src_image1.rows - diff_y / 2 - image1_sample_size.y,
+						src_image1.rows / 2 - image1_sample_size.y / 2};
 
 
-	int start_col[3]= {	src_image1.cols * 3 / 4, 
+	int start_col[4]= {	src_image1.cols * 3 / 4, 
 						src_image1.cols * 3 / 4 - image1_sample_size.x - 10,
-						src_image1.cols * 3 / 4 - 2 * (image1_sample_size.x + 10)};
+						src_image1.cols * 3 / 4 - 2 * (image1_sample_size.x + 10),
+						src_image1.cols * 3 / 4 - 3 * (image1_sample_size.x + 10)};
 
 #ifdef DUBUG
 	std::cout << "image_mosaic_algorithm image1 cols:" << src_image1.cols << ", rows:" << src_image1.rows << std::endl;
 	std::cout << "image1_sample_size x:" << image1_sample_size.x << ", y:" << image1_sample_size.y << std::endl;
 	std::cout << "diff_y:" << diff_y << std::endl;
 	std::cout << "image2_sample_size x:" << image2_sample_size.x << ", y:" << image2_sample_size.y << std::endl;
-	std::cout << "start row, 1:" << start_row[0] << ", 2:" << start_row[1] << ", 3:" << start_row[2] << std::endl;
-	std::cout << "start col, 1:" << start_col[0] << ", 2:" << start_col[1] << ", 3:" << start_col[2] << std::endl;
+	std::cout << "start row, 1:" << start_row[0] << ", 2:" << start_row[1] << ", 3:" << start_row[2] << ", 4:" << start_row[3] << std::endl;
+	std::cout << "start col, 1:" << start_col[0] << ", 2:" << start_col[1] << ", 3:" << start_col[2] << ", 4:" << start_col[3] << std::endl;
 #endif
 
-	int min_err[3];
-	int min_err_idex[3];
-	int min_err_dis[3];
+	int min_err[4];
+	int min_err_idex[4];
+	int min_err_dis[4];
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		min_err[i] = INT_MAX;
 		min_err_idex[i] = 0;
@@ -360,7 +364,7 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 	}
 
 	//分别查找3  组中最小二乘法位置
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		//计算图像 1  的匹配模板
 		int base[image1_sample_size.y];
@@ -418,12 +422,12 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 	}
 
 	//块匹配连续性检查
-	int err[3];
+	int err[4];
 	int err_min = INT_MAX;
 	int err_min_num;
 
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		err[i] = 0;
 
@@ -455,7 +459,7 @@ int Image_algorithm::Image_mosaic_right_algorithm(cv::Mat &src_image1, cv::Mat &
 #ifdef DUBUG
 	std::cout <<"err min num:" << err_min_num << ",err min:" << err_min << std::endl;
 	
-	for(int i=0; i<3; i++)
+	for(int i=0; i<4; i++)
 	{
 		std::cout << i <<",min err:" << min_err[i] << ",min err dis:" << min_err_dis[i] << ",min err idex:" << min_err_idex[i] << std::endl;
 	

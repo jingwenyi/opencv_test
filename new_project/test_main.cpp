@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 	cout << "new yaw AB avg:" << yaw_AB_avg <<", new yaw CD avg:" << yaw_CD_avg << endl;
 
 	
-#if 0
+#if 1
 	//把图片进行缩放
 	for(int i=0; i<27; i++)
 	{
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 
 
 
-#if 0
+#if 1
 
 	//旋转AB 航线上的所有图片
 	
