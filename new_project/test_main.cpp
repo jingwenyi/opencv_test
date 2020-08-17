@@ -482,11 +482,9 @@ int main(int argc, char **argv)
 		
 
 		Point2i point_test;
-		image_algorithm->Image_mosaic_algorithm(src_image2, src_image1, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
+		image_algorithm->Image_mosaic_algorithm(src_image1, src_image2, IMAGE_MOSAIC::Image_algorithm::DOWN,point_test);
 	
 		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
-
-		point_test.x = -point_test.x;
 
 
 		//对两张图片进行拼接
