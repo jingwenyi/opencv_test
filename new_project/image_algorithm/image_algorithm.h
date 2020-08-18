@@ -74,6 +74,9 @@ public:
 	void Image_resize(cv::Mat& src_image, cv::Mat& dest_image, cv::Size dsize);
 	void Image_cut(cv::Mat& src_image, cv::Mat& dest_image, enum Image_mosaic_head head, int cut_size);
 
+	//根据 图片的roll  和 pitch  对图像进行透视变换
+	void Image_perspective(cv::Mat& src_image, cv::Mat& dest_image, float roll, float pitch);
+
 
 };
 

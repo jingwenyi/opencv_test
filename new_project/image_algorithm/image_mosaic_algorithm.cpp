@@ -9,6 +9,37 @@ namespace IMAGE_MOSAIC
 static int num_image = 0;
 #endif
 
+
+#define PI   3.1415926535897932384626433832795
+
+
+
+void Image_algorithm::Image_perspective(cv::Mat& src_image, cv::Mat& dest_image, float roll, float pitch)
+{
+	float roll_angle_cos = std::cos(roll * PI / 180);
+	float pitch_angle_cos = std::cos(pitch * PI / 180);
+
+	cv::Point2f src_points[] = {
+					cv::Point2f(0, 0),  											// src top left
+					cv::Point2f(src_image.cols - 1, 0),								// src  top right
+					cv::Point2f(0, src_image.rows - 1),								// src bottom left
+					cv::Point2f(src_image.cols - 1, src_image.rows - 1)};			// src bottom right
+
+	cv::Point2f dst_points[] = {
+					cv::Point2f(0,0),
+					cv::Point2f(src_image.cols * roll_angle_cos - 1, 0),
+					cv::Point2f(0, src_image.rows * pitch_angle_cos -1),
+					cv::Point2f(src_image.cols * roll_angle_cos -1, src_image.rows * pitch_angle_cos -1)};
+
+	//获取拉伸矩阵
+	cv::Mat M = cv::getPerspectiveTransform(src_points, dst_points);
+
+	//对图片进行拉伸
+	cv::warpPerspective(src_image, dest_image, M, cv::Size(src_image.cols, src_image.rows), cv::INTER_LINEAR);
+}
+
+
+
 void Image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, double angle)
 {
 	cv::Point2f pt(src_image.cols/2, src_image.rows/2);

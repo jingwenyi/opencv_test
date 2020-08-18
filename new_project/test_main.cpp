@@ -157,11 +157,17 @@ int main(int argc, char **argv)
 
 		image_algorithm->Image_resize(image, image_resize,  Size(image.cols/8, image.rows/8));
 
+		//用roll  和 pitch 对image_resize  进行拉伸处理
+
+		Mat tmp_image;
+		image_algorithm->Image_perspective(image_resize, tmp_image, roll_AB[i], pitch_AB[i]);
+
 		string strName = "./resize_image/";
 		strName += string(image_name[i]);
 
-		imwrite(strName.c_str(), image_resize);
+		imwrite(strName.c_str(), tmp_image);
 	}
+
 
 	// CD 航线的图片需要旋转180 度， 才能跟AB 拼接
 	for(int i=0; i<29; i++)
@@ -180,8 +186,14 @@ int main(int argc, char **argv)
 
 		image_algorithm->Image_resize(image, image_resize,  Size(image.cols/8, image.rows/8));
 
+		
+		//用roll  和 pitch 对image_resize  进行拉伸处理
+		
+		Mat tmp_image1;
+		image_algorithm->Image_perspective(image_resize, tmp_image1, roll_CD[i], pitch_CD[i]);
+
 		Mat image_tmp;
-		image_algorithm->Image_rotate(image_resize, image_tmp, 180);
+		image_algorithm->Image_rotate(tmp_image1, image_tmp, 180);
 
 		string strName = "./resize_image/";
 		strName += string(image_name2[i]);
@@ -191,9 +203,6 @@ int main(int argc, char **argv)
 
 	cout << "image resize ok" << endl;
 #endif
-
-
-return 0;
 
 
 
