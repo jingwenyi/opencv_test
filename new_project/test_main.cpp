@@ -380,6 +380,9 @@ int main(int argc, char **argv)
 
 	imwrite("map.jpg", map_test);
 #endif
+
+	//先对map_test 克隆一个，为了第二行的匹配
+	Mat map_test2 = map_test.clone();
 	
 
 	cout << "--------------the first fly line is ok------------" << endl;
@@ -476,6 +479,9 @@ int main(int argc, char **argv)
 
 #endif
 
+
+
+
 #if 1
 	//开始拼接第二条航线
 	//第二条航线经过旋转后，在下方进行拼接
@@ -512,10 +518,48 @@ int main(int argc, char **argv)
 		}
 		
 
+		//先进行上下匹配
 		Point2i point_test;
 		image_algorithm->Image_mosaic_algorithm(src_image1, src_image2, IMAGE_MOSAIC::Image_algorithm::DOWN,point_test);
 	
 		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+#if 1
+		//在进行左右匹配
+		Point2i image1_vertex1, image2_vertex1;
+		Point2i dest_image_vertex2;
+		//快速获取改幅图片在dest 中的位置
+		image_algorithm->Fast_calc_dest_point( src_image1, point_test, IMAGE_MOSAIC::Image_algorithm::DOWN,
+													image1_vertex1, image2_vertex1);
+
+		dest_image_vertex2.x = last_image_vertex.x - image1_vertex1.x + image2_vertex1.x;
+		dest_image_vertex2.y = last_image_vertex.y - image1_vertex1.y + image2_vertex1.y;
+
+		//获取该张图片
+
+		Mat left_image = map_test2(Range(dest_image_vertex2.y, dest_image_vertex2.y + src_image2.rows),
+									Range(dest_image_vertex2.x, dest_image_vertex2.x + src_image2.cols));
+
+		Point2i point_test2;
+		image_algorithm->Image_fast_mosaic_algorithm(left_image, src_image2, point_test2);
+
+		
+		cout << "+++++++++point_test2 x:" << point_test2.x << ", y:" << point_test2.y << "++++++++++++++" << endl;
+
+
+		if(point_test2.y > -20 && point_test2.y < 20)
+		{
+			if(point_test2.x > -30  && point_test2.x < 30)
+			{
+				point_test.y = point_test.y + point_test2.y;
+			}
+
+			//if(point_test2.x > -20  && point_test2.x < 20)
+			//{
+			//	point_test.x = point_test.x - point_test2.x;
+			//}
+		}
+#endif
 
 
 		//对两张图片进行拼接

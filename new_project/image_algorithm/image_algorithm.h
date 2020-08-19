@@ -77,6 +77,13 @@ public:
 	//根据 图片的roll  和 pitch  对图像进行透视变换
 	void Image_perspective(cv::Mat& src_image, cv::Mat& dest_image, float roll, float pitch);
 
+	// 快速计算目标图片在地图中的位置
+	void Fast_calc_dest_point(cv::Mat& src_image1, cv::Point2i distance,
+										enum Image_mosaic_head head, cv::Point2i &image1_vertex, cv::Point2i &image2_vertex);
+
+	//比较两张重合的图片, 左右的距离，用于两天航线拼接时
+	void Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+
 
 };
 
