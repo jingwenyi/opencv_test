@@ -1,4 +1,6 @@
 #include "image_algorithm.h"
+#include <complex>
+
 
 namespace IMAGE_MOSAIC
 {
@@ -9,15 +11,44 @@ namespace IMAGE_MOSAIC
 static int num_image = 0;
 #endif
 
+#define DEG_TO_RAD      (M_PI / 180.0f)
+#define RAD_TO_DEG      (180.0f / M_PI)
 
-#define PI   3.1415926535897932384626433832795
+// scaling factor from 1e-7 degrees to meters at equater
+// == 1.0e-7 * DEG_TO_RAD * RADIUS_OF_EARTH
+#define LOCATION_SCALING_FACTOR 0.011131884502145034f
+// inverse of LOCATION_SCALING_FACTOR
+#define LOCATION_SCALING_FACTOR_INV 89.83204953368922f
+
+
+float Image_algorithm::Constrain_float(float amt, float low, float high) 
+{
+	return ((amt)<(low)?(low):((amt)>(high)?(high):(amt)));
+}
+
+
+float Image_algorithm::Longitude_scale(const struct Location &loc)
+{
+    float scale = std::cos(loc.lat * 1.0e-7f * DEG_TO_RAD);
+    return Constrain_float(scale, 0.01f, 1.0f);
+}
+
+
+// return distance in meters between two locations
+float Image_algorithm::Get_distance(const struct Location &loc1, const struct Location &loc2)
+{
+    float dlat              = (float)(loc2.lat - loc1.lat);
+    float dlong             = ((float)(loc2.lng - loc1.lng)) * Longitude_scale(loc2);
+	std::complex<double> complex_data (dlat, dlong);
+    return std::norm(complex_data) * LOCATION_SCALING_FACTOR;
+}
 
 
 
 void Image_algorithm::Image_perspective(cv::Mat& src_image, cv::Mat& dest_image, float roll, float pitch)
 {
-	float roll_angle_cos = std::cos(roll * PI / 180);
-	float pitch_angle_cos = std::cos(pitch * PI / 180);
+	float roll_angle_cos = std::cos(roll * M_PI / 180);
+	float pitch_angle_cos = std::cos(pitch * M_PI / 180);
 
 	cv::Point2f src_points[] = {
 					cv::Point2f(0, 0),  											// src top left

@@ -13,6 +13,13 @@
 
 namespace IMAGE_MOSAIC
 {
+
+struct Location {
+    int32_t alt:24;                                     ///< param 2 - Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
+    int32_t lat;                                        ///< param 3 - Latitude * 10**7
+    int32_t lng;                                        ///< param 4 - Longitude * 10**7
+};
+
 class Image_algorithm
 {
 public:
@@ -83,6 +90,12 @@ public:
 
 	//比较两张重合的图片, 左右的距离，用于两天航线拼接时
 	void Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+
+	float Get_distance(const struct Location &loc1, const struct Location &loc2);
+
+	float Longitude_scale(const struct Location &loc);
+
+	float Constrain_float(float amt, float low, float high);
 
 
 };
