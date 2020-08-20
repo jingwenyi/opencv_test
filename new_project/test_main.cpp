@@ -105,6 +105,8 @@ const static char *image_name2[29] = {
 	"DSC00677.JPG"
 
 };
+
+#if 1
 int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
@@ -665,5 +667,72 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+
+#endif
+
+
+#if 0
+//left 方向的拼接测试
+int main(int argc, char **argv)
+{
+
+	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
+
+	string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+	strFile1 += string(image_name[26]);
+
+	Mat src_image1 = imread(strFile1.c_str());
+
+	if(src_image1.empty())
+	{
+		cout << "failed to load:" << strFile1 << endl;
+		return -1;
+	}
+
+
+	string strFile2 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+	strFile2 += string(image_name2[0]);
+
+	Mat src_image2 = imread(strFile2.c_str());
+
+	if(src_image2.empty())
+	{
+		cout << "failed to load:" << strFile2 << endl;
+		return -1;
+	}
+
+
+
+	Point2i point_test;
+	image_algorithm->Image_mosaic_algorithm(src_image2, src_image1, IMAGE_MOSAIC::Image_algorithm::LEFT,point_test);
+	
+	cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+	//对两张图片进行拼接
+
+	Mat dest_image;
+	Point2i image1_vertex, image2_vertex;
+	image_algorithm->Image_optimize_seam(src_image2, src_image1, dest_image, point_test,
+										IMAGE_MOSAIC::Image_algorithm::LEFT, image2_vertex, image1_vertex);
+
+	stringstream ss1;
+	string s1;
+	string strName1 = "./dest_image/";
+	ss1 << 0;
+	ss1 >> s1;
+	strName1 += s1;
+	strName1 += ".jpg";
+
+
+	cout << "strName1" << strName1 << endl;
+		
+	imwrite(strName1.c_str(), dest_image);
+	
+	waitKey();
+
+	return 0;
+}
+
+#endif
 
 
