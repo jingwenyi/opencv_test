@@ -15,9 +15,14 @@ namespace IMAGE_MOSAIC
 {
 
 struct Location {
-    int alt:24;                                     ///< param 2 - Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
-    int lat;                                        ///< param 3 - Latitude * 10**7
-    int lng;                                        ///< param 4 - Longitude * 10**7
+	Location(int _alt, int _lat, int _lng):
+		alt(_alt), lat(_lat), lng(_lng)
+	{
+	}
+	
+    int alt:24;                                     ///Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
+    int lat;                                        /// Latitude * 10**7
+    int lng;                                        ///Longitude * 10**7
 };
 
 class Image_algorithm

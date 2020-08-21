@@ -25,6 +25,36 @@ const static float pitch_AB[] = {-1.71f,	1.24f,		-0.16f,		-1.61f,		-3.86f,		0.36
 								 1.86f,		2.53f,		3.8f,		5.19f,		4.96f,		3.19f,		3.37f,		4.49f,		4.3f,
 								 2.91f,		4.11f,		4.55f,		4.63f,		4.85f,		6.11f,		5.13f,		7.19f,		6.77f};
 
+const static struct IMAGE_MOSAIC::Location  gps_location_AB[] = {
+	IMAGE_MOSAIC::Location(1661.284 	* 	100,	41.3240930316	*	1.0e7,	114.716242598	*	1.0e7),
+	IMAGE_MOSAIC::Location(1662.41 		* 	100,	41.3241013967	*	1.0e7,	114.716795434	*	1.0e7),
+	IMAGE_MOSAIC::Location(1663.425 	* 	100,	41.3241076288	*	1.0e7,	114.717313666	*	1.0e7),
+	IMAGE_MOSAIC::Location(1662.302		*	100,	41.3241124796	*	1.0e7,	114.717815475	*	1.0e7),
+	IMAGE_MOSAIC::Location(1659.247		*	100,	41.3241136619	*	1.0e7,	114.718382046	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.947		*	100,	41.3241072933	*	1.0e7,	114.718908279	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.033		*	100,	41.3240971905	*	1.0e7,	114.71945056	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.396		*	100,	41.3240911417	*	1.0e7,	114.719994238	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.839		*	100,	41.3240843298	*	1.0e7,	114.72053507	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.918		*	100,	41.3240789156	*	1.0e7,	114.721073507	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.02		*	100,	41.3240653305	*	1.0e7,	114.721612697	*	1.0e7),
+	IMAGE_MOSAIC::Location(1654.595		*	100,	41.3240572545	*	1.0e7,	114.722163027	*	1.0e7),
+	IMAGE_MOSAIC::Location(1655.074		*	100,	41.3240675804	*	1.0e7,	114.722724531	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.678		*	100,	41.3240774818	*	1.0e7,	114.723282714	*	1.0e7),
+	IMAGE_MOSAIC::Location(1657.645		*	100,	41.3240820722	*	1.0e7,	114.723829769	*	1.0e7),
+	IMAGE_MOSAIC::Location(1657.499		*	100,	41.3240815304	*	1.0e7,	114.724376005	*	1.0e7),
+	IMAGE_MOSAIC::Location(1657.581		*	100,	41.3240872362	*	1.0e7,	114.72492152	*	1.0e7),
+	IMAGE_MOSAIC::Location(1657.993		*	100,	41.3240913488	*	1.0e7,	114.725460657	*	1.0e7),
+	IMAGE_MOSAIC::Location(1657.894		*	100,	41.3240873672	*	1.0e7,	114.725992663	*	1.0e7),
+	IMAGE_MOSAIC::Location(1657.128		*	100,	41.324081934	*	1.0e7,	114.726525264	*	1.0e7),
+	IMAGE_MOSAIC::Location(1657.06		*	100,	41.324079872	*	1.0e7,	114.727059529	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.932		*	100,	41.3240776387	*	1.0e7,	114.727594152	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.703		*	100,	41.3240739204	*	1.0e7,	114.72813138	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.611		*	100,	41.3240709119	*	1.0e7,	114.72867214	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.386		*	100,	41.3240677552	*	1.0e7,	114.729215299	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.181		*	100,	41.3240671039	*	1.0e7,	114.729760218	*	1.0e7),
+	IMAGE_MOSAIC::Location(1656.495		*	100,	41.3240669368	*	1.0e7,	114.730300246	*	1.0e7)
+};
+
 
 //CD 航线上有29 张图片，对应29 个偏航角
 const static float yaw_CD[] = {	281.47f,	287.41f,	282.65f,	290.22f,	284.3f,		283.5f,		285.75f,	288.84f,	290.7f,		284.89f,
@@ -39,6 +69,37 @@ const static float pitch_CD[] = {3.32f,	5.58f,	5.78f,	4.55f,	5.34f,	4.85f,	3.15f
 								 3.95f,	2.89f,	4.44f,	5.68f,	5.66f,	5.06f,	4.84f,	4.01f,	1.34f,	1.76f,
 								 1.29f,	2.7f,	-0.13f,	3.27f,	4.38f,	0.86f,	2.37f,	1.31f,	3.69f};
 
+const static struct IMAGE_MOSAIC::Location  gps_location_CD[] = {
+		IMAGE_MOSAIC::Location(1658.676	* 	100,	41.3232205156	*	1.0e7,	114.730368742	*	1.0e7),
+		IMAGE_MOSAIC::Location(1657.946	* 	100,	41.323229685	*	1.0e7,	114.729830524	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.802	* 	100,	41.3232266136	*	1.0e7,	114.729326347	*	1.0e7),
+		IMAGE_MOSAIC::Location(1657.899	* 	100,	41.323229404	*	1.0e7,	114.728825886	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.131	* 	100,	41.3232303406	*	1.0e7,	114.728313658	*	1.0e7),
+		IMAGE_MOSAIC::Location(1660.181	* 	100,	41.3232176903	*	1.0e7,	114.727801056	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.754	* 	100,	41.3232106502	*	1.0e7,	114.727276914	*	1.0e7),
+		IMAGE_MOSAIC::Location(1660.669	* 	100,	41.3232178605	*	1.0e7,	114.726770072	*	1.0e7),
+		IMAGE_MOSAIC::Location(1660.223	* 	100,	41.3232219399	*	1.0e7,	114.72624652	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.152	* 	100,	41.3232394106	*	1.0e7,	114.725715129	*	1.0e7),
+		IMAGE_MOSAIC::Location(1660.504	* 	100,	41.3232331906	*	1.0e7,	114.725210417	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.513	* 	100,	41.3232378156	*	1.0e7,	114.724692513	*	1.0e7),
+		IMAGE_MOSAIC::Location(1658.733	* 	100,	41.3232268093	*	1.0e7,	114.724191541	*	1.0e7),
+		IMAGE_MOSAIC::Location(1656.709	* 	100,	41.3232130393	*	1.0e7,	114.723671704	*	1.0e7),
+		IMAGE_MOSAIC::Location(1657.609	* 	100,	41.323218376	*	1.0e7,	114.723158064	*	1.0e7),
+		IMAGE_MOSAIC::Location(1657.931	* 	100,	41.3232201063	*	1.0e7,	114.72265273	*	1.0e7),
+		IMAGE_MOSAIC::Location(1657.629	* 	100,	41.3232268274	*	1.0e7,	114.72212558	*	1.0e7),
+		IMAGE_MOSAIC::Location(1660.35	* 	100,	41.3232271078	*	1.0e7,	114.721619691	*	1.0e7),
+		IMAGE_MOSAIC::Location(1661.705	* 	100,	41.3232268733	*	1.0e7,	114.721083064	*	1.0e7),
+		IMAGE_MOSAIC::Location(1663.221	* 	100,	41.3232196562	*	1.0e7,	114.720574945	*	1.0e7),
+		IMAGE_MOSAIC::Location(1660.39	* 	100,	41.3232234596	*	1.0e7,	114.720036358	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.79	* 	100,	41.3232180549	*	1.0e7,	114.719522996	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.557	* 	100,	41.3232221387	*	1.0e7,	114.719014262	*	1.0e7),
+		IMAGE_MOSAIC::Location(1656.874	* 	100,	41.3232304099	*	1.0e7,	114.7184905 	*	1.0e7),
+		IMAGE_MOSAIC::Location(1657.925	* 	100,	41.3232227082	*	1.0e7,	114.717979467	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.013	* 	100,	41.3232208952	*	1.0e7,	114.717454322	*	1.0e7),
+		IMAGE_MOSAIC::Location(1661.212	* 	100,	41.3232307214	*	1.0e7,	114.716942786	*	1.0e7),
+		IMAGE_MOSAIC::Location(1659.172	* 	100,	41.3232125977	*	1.0e7,	114.716432361	*	1.0e7),
+		IMAGE_MOSAIC::Location(1657.509	* 	100,	41.3232146144	*	1.0e7,	114.715924978	*	1.0e7)
+};
 
 
 // AB  航线上对应的27 张图片名称
@@ -106,7 +167,7 @@ const static char *image_name2[29] = {
 
 };
 
-#if 1
+#if 0
 int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
@@ -730,6 +791,26 @@ int main(int argc, char **argv)
 	
 	waitKey();
 
+	return 0;
+}
+
+#endif
+
+
+
+#if 1
+// gps 坐标位置拼图测试
+int main(int argc, char **argv)
+{
+	for(int i=0; i<27; i++)
+	{
+		cout << "gps alt:" << gps_location_AB[i].alt << ", lat:" << gps_location_AB[i].lat << ", lng:" << gps_location_AB[i].lng << endl;
+	}
+
+
+	cout << "--------------I am ok------------" << endl;
+
+	waitKey();
 	return 0;
 }
 
