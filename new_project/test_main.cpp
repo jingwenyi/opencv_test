@@ -804,13 +804,75 @@ int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 
-	float scale;
+#if 1
+	
+	//把图片进行缩放
+	//由于roll pitch  的影响，导致在拼接两条航线是，会出现错位现象
+	//这里需要用roll  和 pitch 的值对图像进行拉伸
+	for(int i=0; i<27; i++)
+	{
+		string strFile = "/home/wenyi/workspace/test_photo/";
+		strFile += string(image_name[i]);
 
+		Mat image = imread(strFile.c_str());
+		Mat image_resize;
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		image_algorithm->Image_resize(image, image_resize,  Size(image.cols/8, image.rows/8));
+
+		//用roll  和 pitch 对image_resize  进行拉伸处理
+
+		Mat tmp_image;
+		image_algorithm->Image_perspective(image_resize, tmp_image, roll_AB[i], pitch_AB[i]);
+
+		string strName = "./resize_image/";
+		strName += string(image_name[i]);
+
+		imwrite(strName.c_str(), tmp_image);
+	}
+
+	
+	//旋转AB 航线上的所有图片
+	//为了测试的方便，这里旋转的目标角度为90
+		
+	for(int i=0; i<27; i++)
+	{
+		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/resize_image/";
+		strFile += string(image_name[i]);
+	
+		Mat image = imread(strFile.c_str());
+		Mat image_rotate;
+	
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+	
+		image_algorithm->Image_rotate(image, image_rotate,	90 - yaw_AB[i]);
+	
+		string strName = "./rotate_image/";
+		strName += string(image_name[i]);
+	
+		imwrite(strName.c_str(), image_rotate);
+	}
+
+#endif
+
+	cout << "deal with image ok" << endl;
+
+	float scale;
+#if 0
 	for(int i=0; i<27; i++)
 	{
 		cout << "gps alt:" << gps_location_AB[i].alt << ", lat:" << gps_location_AB[i].lat << ", lng:" << gps_location_AB[i].lng << endl;
 	}
-
+#endif
 	// 1、查找两个图片拼接位置
 
 	do{
