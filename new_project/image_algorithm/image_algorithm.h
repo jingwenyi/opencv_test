@@ -15,9 +15,9 @@ namespace IMAGE_MOSAIC
 {
 
 struct Location {
-    int32_t alt:24;                                     ///< param 2 - Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
-    int32_t lat;                                        ///< param 3 - Latitude * 10**7
-    int32_t lng;                                        ///< param 4 - Longitude * 10**7
+    int alt:24;                                     ///< param 2 - Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
+    int lat;                                        ///< param 3 - Latitude * 10**7
+    int lng;                                        ///< param 4 - Longitude * 10**7
 };
 
 class Image_algorithm
@@ -97,7 +97,13 @@ public:
 
 	float Constrain_float(float amt, float low, float high);
 
+	float Get_bearing_cd(const struct Location &loc1, const struct Location &loc2);
 
+	void Location_update(struct Location &loc, float bearing, float distance);
+
+	void Location_offset(struct Location &loc, float ofs_north, float ofs_east);
+
+	bool Is_zero(float a);
 };
 
 }//namespace IMAGE_MOSAIC
