@@ -86,8 +86,7 @@ float Image_algorithm::Get_distance(const struct Location &loc1, const struct Lo
 {
     float dlat              = (float)(loc2.lat - loc1.lat);
     float dlong             = ((float)(loc2.lng - loc1.lng)) * Longitude_scale(loc2);
-	std::complex<double> complex_data (dlat, dlong);
-    return std::norm(complex_data) * LOCATION_SCALING_FACTOR;
+    return std::sqrt(std::pow(dlat, 2)  + std::pow(dlong, 2)) * LOCATION_SCALING_FACTOR;
 }
 
 

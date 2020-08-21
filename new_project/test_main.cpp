@@ -802,10 +802,62 @@ int main(int argc, char **argv)
 // gps 坐标位置拼图测试
 int main(int argc, char **argv)
 {
+	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
+
+	float scale;
+
 	for(int i=0; i<27; i++)
 	{
 		cout << "gps alt:" << gps_location_AB[i].alt << ", lat:" << gps_location_AB[i].lat << ", lng:" << gps_location_AB[i].lng << endl;
 	}
+
+	// 1、查找两个图片拼接位置
+
+	do{
+		string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		string strFile2 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		strFile1 += string(image_name[0]);
+		strFile2 += string(image_name[1]);
+
+		Mat src_image1 = imread(strFile1.c_str());
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile1 << endl;
+			return -1;
+		}
+
+		Mat src_image2 = imread(strFile2.c_str());
+
+		if(src_image2.empty())
+		{
+			cout << "failed to load:" << strFile2 << endl;
+			return -1;
+		}
+
+		
+		Point2i point_test;
+		image_algorithm->Image_mosaic_algorithm(src_image1, src_image2, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
+			
+		cout << "point_test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+
+		//通过拼接位置求出两张求出两个图像中心像素点的距离
+		float image_center_distance = sqrt(pow(point_test.x, 2)  + pow(point_test.y, 2));
+
+		cout << " image center distance:" << image_center_distance << endl;
+
+		//计算第一张和第二张图片的距离和像素的比例尺
+		float gps_center_distance = image_algorithm->Get_distance(gps_location_AB[0], gps_location_AB[1]);
+
+		cout << "gps center distance:" << gps_center_distance << endl;
+
+		
+		scale = gps_center_distance / image_center_distance;
+		
+	}while(0);
+
+	cout << "scale:" << scale << endl;
 
 
 	cout << "--------------I am ok------------" << endl;
