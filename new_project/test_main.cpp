@@ -924,8 +924,8 @@ int main(int argc, char **argv)
 
 	//为地图申请一张画布， y 轴的正 方向为90 度
 	//根据航线的长度，基本可以确定画布的大小范围
-	//图片现在是994 X 663, 画布大小设置为3000 x 2000
-	Mat map_test(3000, 2000,CV_8UC3);
+	//图片现在是994 X 663, 画布大小设置为7000 x 5000
+	Mat map_test(7000, 5000,CV_8UC3);
 	map_test.setTo(0);
 
 	//把第一张图片贴到画布的底部
@@ -961,21 +961,34 @@ int main(int argc, char **argv)
 	image_algorithm->Location_update(map_origin, bearing0, origin_first_image_distance);
 
 	//根据第二张图片的gps 坐标，计算第二张图片的在地图中的位置
-	do{
-		float distance = image_algorithm->Get_distance(map_origin, gps_location_AB[1]) / scale;
-		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_AB[1]);
+	for(int i=1; i<27; i++)
+	{
+		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		
+		strFile += string(image_name[i]);
+		
+
+		Mat src_image = imread(strFile.c_str());
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile1 << endl;
+			return -1;
+		}
+		float distance = image_algorithm->Get_distance(map_origin, gps_location_AB[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_AB[i]);
 
 		cout << "bearing:" << bearing << ", distance:" << distance << endl;
 
 		// 求第二张图片的原点坐标
-		Point2i image2_point;
-		image2_point.x = (int)(distance * sin((bearing - 270) * (M_PI / 180.0f)) - (float)src_image2.cols / 2);
-		image2_point.y = (int)(distance * cos((bearing - 270) * (M_PI / 180.0f)) - (float)src_image2.rows / 2);
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.cols / 2);
+		image_point.y = (int)(distance * cos((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.rows / 2);
 
 		//把第二张图片拼接到地图上
-		src_image2.copyTo(map_test(Rect(image2_point.x, image2_point.y, src_image2.cols, src_image2.rows)));
+		src_image.copyTo(map_test(Rect(image_point.x, image_point.y, src_image.cols, src_image.rows)));
 	
-	}while(0);
+	}
 	
 	
 	imwrite("map.jpg", map_test);
