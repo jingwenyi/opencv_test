@@ -804,7 +804,7 @@ int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 
-#if 1
+#if 0
 	
 	//把图片进行缩放
 	//由于roll pitch  的影响，导致在拼接两条航线是，会出现错位现象
@@ -875,7 +875,7 @@ int main(int argc, char **argv)
 #endif
 	// 1、查找两个图片拼接位置
 
-	do{
+	//do{
 		string strFile1 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
 		string strFile2 = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
 		strFile1 += string(image_name[0]);
@@ -917,10 +917,68 @@ int main(int argc, char **argv)
 		
 		scale = gps_center_distance / image_center_distance;
 		
-	}while(0);
+	//}while(0);
 
 	cout << "scale:" << scale << endl;
 
+
+	//为地图申请一张画布， y 轴的正 方向为90 度
+	//根据航线的长度，基本可以确定画布的大小范围
+	//图片现在是994 X 663, 画布大小设置为3000 x 2000
+	Mat map_test(3000, 2000,CV_8UC3);
+	map_test.setTo(0);
+
+	//把第一张图片贴到画布的底部
+
+	Point2i dest_point; 
+	dest_point.x = map_test.cols / 3 - src_image1.cols / 2;
+	dest_point.y = map_test.rows - 3 * src_image1.rows;
+	
+	//把第一张图片拷贝到地图上
+	src_image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, src_image1.cols, src_image1.rows)));
+
+	//根据第一张图片中心的gps 位置，计算(0, 0) 坐标对应的gps 位置
+	struct IMAGE_MOSAIC::Location map_origin;
+
+	float diff_x = (float)dest_point.x + (float)src_image1.cols / 2.0f;
+	float diff_y = (float)dest_point.y + (float)src_image1.rows / 2.0f;
+
+	float origin_first_image_distance = sqrt(pow(diff_x, 2) + pow(diff_y, 2)) * scale;
+
+	float angle = atan2(diff_x, diff_y) * (180.0f / M_PI);
+
+	cout << "angle:" << angle << ", origin distance:" << origin_first_image_distance << endl;
+
+	//图片 (0, 0) 坐标在第一张图片的中心的方位需要在90 度
+	float bearing0 = angle + 90;
+
+	cout << "bearing:" << bearing0 << endl;
+
+	map_origin.alt = gps_location_AB[0].alt;
+	map_origin.lat = gps_location_AB[0].lat;
+	map_origin.lng = gps_location_AB[0].lng;
+
+	image_algorithm->Location_update(map_origin, bearing0, origin_first_image_distance);
+
+	//根据第二张图片的gps 坐标，计算第二张图片的在地图中的位置
+	do{
+		float distance = image_algorithm->Get_distance(map_origin, gps_location_AB[1]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_AB[1]);
+
+		cout << "bearing:" << bearing << ", distance:" << distance << endl;
+
+		// 求第二张图片的原点坐标
+		Point2i image2_point;
+		image2_point.x = (int)(distance * sin((bearing - 270) * (M_PI / 180.0f)) - (float)src_image2.cols / 2);
+		image2_point.y = (int)(distance * cos((bearing - 270) * (M_PI / 180.0f)) - (float)src_image2.rows / 2);
+
+		//把第二张图片拼接到地图上
+		src_image2.copyTo(map_test(Rect(image2_point.x, image2_point.y, src_image2.cols, src_image2.rows)));
+	
+	}while(0);
+	
+	
+	imwrite("map.jpg", map_test);
 
 	cout << "--------------I am ok------------" << endl;
 

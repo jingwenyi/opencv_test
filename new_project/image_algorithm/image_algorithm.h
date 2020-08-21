@@ -15,7 +15,7 @@ namespace IMAGE_MOSAIC
 {
 
 struct Location {
-	Location(int _alt, int _lat, int _lng):
+	Location(int _alt=0, int _lat=0, int _lng=0):
 		alt(_alt), lat(_lat), lng(_lng)
 	{
 	}
