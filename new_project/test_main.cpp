@@ -806,6 +806,13 @@ int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 
+	
+	float AB_bearing = image_algorithm->Get_bearing_cd(gps_location_AB[0], gps_location_AB[26]);
+	float CD_bearing = image_algorithm->Get_bearing_cd(gps_location_CD[0], gps_location_CD[28]);
+
+	cout << "AB bearing:" << AB_bearing << ", CD bearing:" << CD_bearing << endl;
+
+
 #if 1
 	
 	//把图片进行缩放
@@ -864,6 +871,63 @@ int main(int argc, char **argv)
 		imwrite(strName.c_str(), image_rotate);
 	}
 
+	// CD 航线的图片需要旋转180 度， 才能跟AB 拼接
+	for(int i=0; i<29; i++)
+	{
+		string strFile = "/home/wenyi/workspace/test_photo/";
+		strFile += string(image_name2[i]);
+
+		Mat image = imread(strFile.c_str());
+		Mat image_resize;
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		image_algorithm->Image_resize(image, image_resize,  Size(image.cols/8, image.rows/8));
+
+		
+		//用roll  和 pitch 对image_resize  进行拉伸处理
+		
+		Mat tmp_image1;
+		image_algorithm->Image_perspective(image_resize, tmp_image1, roll_CD[i], pitch_CD[i]);
+
+		Mat image_tmp;
+		image_algorithm->Image_rotate(tmp_image1, image_tmp, 180);
+
+		string strName = "./resize_image/";
+		strName += string(image_name2[i]);
+
+		imwrite(strName.c_str(), image_tmp);
+	}
+
+	//旋转CD  航线上的所有图片
+	//由于CD  航线上的图片已经旋转了180  度
+	//计算角度的时候需要减去180 度
+	for(int i=0; i<29; i++)
+	{
+		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/resize_image/";
+		strFile += string(image_name2[i]);
+
+		Mat image = imread(strFile.c_str());
+		Mat image_rotate;
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		image_algorithm->Image_rotate(image, image_rotate,  90 - (yaw_CD[i] - 180));
+
+		string strName = "./rotate_image/";
+		strName += string(image_name2[i]);
+
+		imwrite(strName.c_str(), image_rotate);
+	}
+
 #endif
 
 	cout << "deal with image ok" << endl;
@@ -916,11 +980,11 @@ int main(int argc, char **argv)
 		float gps_center_distance = image_algorithm->Get_distance(gps_location_AB[0], gps_location_AB[1]);
 #else
 		struct IMAGE_MOSAIC::Location image_location1(gps_location_AB[0].alt, gps_location_AB[0].lat, gps_location_AB[0].lng);
-		struct IMAGE_MOSAIC::Imu_data imu_data1(pitch_AB[0], roll_AB[0], 90);
+		struct IMAGE_MOSAIC::Imu_data imu_data1(pitch_AB[0], roll_AB[0], yaw_AB[0]);
 		image_algorithm->Location_update_baseon_pitch_roll(image_location1, gps_base, imu_data1);
 
 		struct IMAGE_MOSAIC::Location image_location2(gps_location_AB[1].alt, gps_location_AB[1].lat, gps_location_AB[1].lng);
-		struct IMAGE_MOSAIC::Imu_data imu_data2(pitch_AB[1], roll_AB[1], 90);
+		struct IMAGE_MOSAIC::Imu_data imu_data2(pitch_AB[1], roll_AB[1], yaw_AB[1]);
 		image_algorithm->Location_update_baseon_pitch_roll(image_location2, gps_base, imu_data2);
 
 		float gps_center_distance = image_algorithm->Get_distance(image_location1, image_location2);
@@ -968,13 +1032,18 @@ int main(int argc, char **argv)
 	float bearing0 = angle + 90;
 
 	cout << "bearing:" << bearing0 << endl;
-
+#if 0
+	map_origin.alt = gps_location_AB[0].alt;
+	map_origin.lat = gps_location_AB[0].lat;
+	map_origin.lng = gps_location_AB[0].lng;
+#else
 	map_origin.alt = image_location1.alt;
 	map_origin.lat = image_location1.lat;
 	map_origin.lng = image_location1.lng;
+#endif
 
 	image_algorithm->Location_update(map_origin, bearing0, origin_first_image_distance);
-
+#if 1
 	//根据第二张图片的gps 坐标，计算第二张图片的在地图中的位置
 	for(int i=1; i<27; i++)
 	{
@@ -987,7 +1056,7 @@ int main(int argc, char **argv)
 
 		if(src_image1.empty())
 		{
-			cout << "failed to load:" << strFile1 << endl;
+			cout << "failed to load:" << strFile << endl;
 			return -1;
 		}
 #if 0
@@ -996,7 +1065,7 @@ int main(int argc, char **argv)
 #else
 		
 		struct IMAGE_MOSAIC::Location image_location(gps_location_AB[i].alt, gps_location_AB[i].lat, gps_location_AB[i].lng);
-		struct IMAGE_MOSAIC::Imu_data imu_data(pitch_AB[i], roll_AB[i], 90);
+		struct IMAGE_MOSAIC::Imu_data imu_data(pitch_AB[i], roll_AB[i], yaw_AB[i]);
 		image_algorithm->Location_update_baseon_pitch_roll(image_location, gps_base, imu_data);
 		float distance = image_algorithm->Get_distance(map_origin, image_location) / scale;
 		float bearing = image_algorithm->Get_bearing_cd(map_origin, image_location);
@@ -1046,6 +1115,54 @@ int main(int argc, char **argv)
 #endif
 	
 	}
+#endif
+
+
+#if 0
+	// 第二条航线的拼接
+	for(int i=0; i<29; i++)
+	{
+		string strFile = "/home/wenyi/workspace/opencv_test/new_project/build/rotate_image/";
+		
+		strFile += string(image_name2[i]);
+		
+
+		Mat src_image = imread(strFile.c_str());
+
+		if(src_image1.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+#if 0
+		float distance = image_algorithm->Get_distance(map_origin, gps_location_CD[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_CD[i]);
+#else
+
+		struct IMAGE_MOSAIC::Location image_location(gps_location_CD[i].alt, gps_location_CD[i].lat, gps_location_CD[i].lng);
+		struct IMAGE_MOSAIC::Imu_data imu_data(pitch_CD[i], roll_CD[i], yaw_CD[i]);
+		image_algorithm->Location_update_baseon_pitch_roll(image_location, gps_base, imu_data);
+		float distance = image_algorithm->Get_distance(map_origin, image_location) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, image_location);
+#endif
+
+
+		// 求第二张图片的原点坐标
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.cols / 2);
+		image_point.y = (int)(distance * cos((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.rows / 2);
+
+		Mat dest_image;
+		image_algorithm->Image_cut(src_image, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, src_image.rows / 4);
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + src_image.rows / 4, dest_image.cols, dest_image.rows)));
+
+	}
+	
+
+
+
+#endif
 	
 	imwrite("map.jpg", map_test);
 
