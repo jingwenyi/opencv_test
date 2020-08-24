@@ -11,6 +11,8 @@ using namespace std;
 using namespace cv;
 
 
+const static struct IMAGE_MOSAIC::Location gps_base(1350.896 * 100, 41.31896004908 * 1.0e7, 114.72281532399 * 1.0e7);
+
 
 
 //AB 航线上有27 张图片，对应27 个偏航角
@@ -804,7 +806,7 @@ int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 
-#if 0
+#if 1
 	
 	//把图片进行缩放
 	//由于roll pitch  的影响，导致在拼接两条航线是，会出现错位现象
@@ -910,7 +912,19 @@ int main(int argc, char **argv)
 		cout << " image center distance:" << image_center_distance << endl;
 
 		//计算第一张和第二张图片的距离和像素的比例尺
+#if 0
 		float gps_center_distance = image_algorithm->Get_distance(gps_location_AB[0], gps_location_AB[1]);
+#else
+		struct IMAGE_MOSAIC::Location image_location1(gps_location_AB[0].alt, gps_location_AB[0].lat, gps_location_AB[0].lng);
+		struct IMAGE_MOSAIC::Imu_data imu_data1(pitch_AB[0], roll_AB[0], 90);
+		image_algorithm->Location_update_baseon_pitch_roll(image_location1, gps_base, imu_data1);
+
+		struct IMAGE_MOSAIC::Location image_location2(gps_location_AB[1].alt, gps_location_AB[1].lat, gps_location_AB[1].lng);
+		struct IMAGE_MOSAIC::Imu_data imu_data2(pitch_AB[1], roll_AB[1], 90);
+		image_algorithm->Location_update_baseon_pitch_roll(image_location2, gps_base, imu_data2);
+
+		float gps_center_distance = image_algorithm->Get_distance(image_location1, image_location2);
+#endif
 
 		cout << "gps center distance:" << gps_center_distance << endl;
 
@@ -920,6 +934,7 @@ int main(int argc, char **argv)
 	//}while(0);
 
 	cout << "scale:" << scale << endl;
+
 
 
 	//为地图申请一张画布， y 轴的正 方向为90 度
@@ -954,9 +969,9 @@ int main(int argc, char **argv)
 
 	cout << "bearing:" << bearing0 << endl;
 
-	map_origin.alt = gps_location_AB[0].alt;
-	map_origin.lat = gps_location_AB[0].lat;
-	map_origin.lng = gps_location_AB[0].lng;
+	map_origin.alt = image_location1.alt;
+	map_origin.lat = image_location1.lat;
+	map_origin.lng = image_location1.lng;
 
 	image_algorithm->Location_update(map_origin, bearing0, origin_first_image_distance);
 
@@ -975,8 +990,18 @@ int main(int argc, char **argv)
 			cout << "failed to load:" << strFile1 << endl;
 			return -1;
 		}
+#if 0
 		float distance = image_algorithm->Get_distance(map_origin, gps_location_AB[i]) / scale;
 		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_AB[i]);
+#else
+		
+		struct IMAGE_MOSAIC::Location image_location(gps_location_AB[i].alt, gps_location_AB[i].lat, gps_location_AB[i].lng);
+		struct IMAGE_MOSAIC::Imu_data imu_data(pitch_AB[i], roll_AB[i], 90);
+		image_algorithm->Location_update_baseon_pitch_roll(image_location, gps_base, imu_data);
+		float distance = image_algorithm->Get_distance(map_origin, image_location) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, image_location);
+
+#endif
 
 		cout << "bearing:" << bearing << ", distance:" << distance << endl;
 
@@ -986,10 +1011,41 @@ int main(int argc, char **argv)
 		image_point.y = (int)(distance * cos((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.rows / 2);
 
 		//把第二张图片拼接到地图上
-		src_image.copyTo(map_test(Rect(image_point.x, image_point.y, src_image.cols, src_image.rows)));
+#if 1
+		//src_image.copyTo(map_test(Rect(image_point.x, image_point.y, src_image.cols, src_image.rows)));
+		Mat dest_image;
+		image_algorithm->Image_cut(src_image, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, src_image.rows / 6);
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+#else
+		//去掉下边的1/6, 加权融合
+		int w = 100;
+		Mat dest_image;
+		image_algorithm->Image_cut(src_image, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, src_image.rows / 6 + w);
+		int src_start_row = dest_image.rows;
+		int map_start_row = image_point.y + src_start_row;
+		int map_start_col = image_point.x;
+		float alpha = 1.0f;//src_image  中像素的权重
+		for(int j=0; j<w; j++)
+		{
+			alpha = (float)(w-j) / (float)w;
+			for(int k=0; k<src_image.cols; k++)
+			{
+				Scalar color1 = map_test.at<Vec3b>(map_start_row + j, map_start_col + k);
+				Scalar color2 = src_image.at<Vec3b>(src_start_row + j, k);
+
+				Scalar color3;
+				color3(0) = color1(0) * (1 - alpha) + color2(0) * alpha;
+				color3(1) = color1(1) * (1 - alpha) + color2(1) * alpha;
+				color3(2) = color1(2) * (1 - alpha) + color2(2) * alpha;
+
+				map_test.at<Vec3b>(map_start_row + j, map_start_col + k) = Vec3b(color3(0), color3(1), color3(2));
+			}
+		}
+
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+#endif
 	
 	}
-	
 	
 	imwrite("map.jpg", map_test);
 
@@ -1000,5 +1056,7 @@ int main(int argc, char **argv)
 }
 
 #endif
+
+
 
 

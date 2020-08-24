@@ -25,6 +25,17 @@ struct Location {
     int lng;                                        ///Longitude * 10**7
 };
 
+struct Imu_data {
+	Imu_data(float _pitch=0, float _roll=0, float _yaw=0):
+		pitch(_pitch), roll(_roll), yaw(_yaw)
+	{
+	}
+
+	float pitch;
+	float roll;
+	float yaw;
+};
+
 class Image_algorithm
 {
 public:
@@ -109,6 +120,8 @@ public:
 	void Location_offset(struct Location &loc, float ofs_north, float ofs_east);
 
 	bool Is_zero(float a);
+
+	void Location_update_baseon_pitch_roll(struct Location & loc, const struct Location base, const struct Imu_data imu);
 };
 
 }//namespace IMAGE_MOSAIC

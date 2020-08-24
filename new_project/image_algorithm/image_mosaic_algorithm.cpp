@@ -20,6 +20,67 @@ static int num_image = 0;
 // inverse of LOCATION_SCALING_FACTOR
 #define LOCATION_SCALING_FACTOR_INV 89.83204953368922f
 
+
+
+void Image_algorithm::Location_update_baseon_pitch_roll(struct Location & loc, const struct Location base, const struct Imu_data imu)
+{
+
+	//求出当前点跟基站的高度差
+	float height = (float)(loc.alt - base.alt) / 100.0f;
+	
+	float diff_pitch, diff_roll;
+	diff_pitch = std::fabs(height * std::tan(imu.pitch * DEG_TO_RAD));
+	diff_roll = std::fabs(height * std::tan(imu.roll * DEG_TO_RAD));
+
+	float distance = std::sqrt(std::pow(diff_pitch, 2)  + std::pow(diff_roll, 2));
+	float angle = std::atan2(diff_roll, diff_pitch) * RAD_TO_DEG;
+
+	float bearing;
+
+	/*
+	**
+	**                              /|\   pitch
+	**                                |
+	**            roll   <----|
+	**                 
+	**
+	*/
+
+	if(imu.pitch > 0.0f)
+	{
+		if(imu.roll > 0.0f)
+		{
+			bearing = imu.yaw + angle;
+			Location_update(loc, bearing, distance);
+		}
+		else
+		{
+			bearing = imu.yaw - angle;
+			Location_update(loc, bearing, distance);
+		}
+	}
+	else
+	{
+		if(imu.roll > 0.0f)
+		{
+			bearing = (imu.yaw + 180) - angle;
+			Location_update(loc, bearing, distance);
+		}
+		else
+		{
+			bearing = (imu.yaw + 180) + angle;
+			Location_update(loc, bearing, distance);
+		}
+	}
+
+#ifdef DUBUG
+	std::cout << "diff_pitch:" << diff_pitch << ",diff_roll" << diff_roll << std::endl;
+	std::cout <<"distance:" << distance << ",angle:" << angle << ",bearing:" << bearing << std::endl;
+#endif
+	
+}
+
+
 bool Image_algorithm::Is_zero(float a)
 {
 	return std::fabs(a) < 1.0e-6f ? true : false;
