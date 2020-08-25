@@ -1287,7 +1287,7 @@ int main(int argc, char **argv)
 	cout << "scale :" << scale << endl;
 
 	//通过 scale  可以计算地图的大小
-	float map_rows = AB_distance / scale  + 3 * image1.rows;
+	float map_rows = AB_distance / scale  + image1.rows;
 	float map_cols = 6000;
 
 	cout << "map rows:" << map_rows << ", map cols:" << map_cols << endl;
@@ -1295,6 +1295,56 @@ int main(int argc, char **argv)
 	//为地图申请空间
 	Mat map_test(map_rows, map_cols,CV_8UC3);
 	map_test.setTo(0);
+
+
+	//计算地图(0,0) 点的gps 坐标
+	//把第一张图片贴到画布的底部
+	
+	Point2i dest_point; 
+	dest_point.x = map_test.cols / 3 - image1_rotate.cols / 2;
+	dest_point.y = map_test.rows -  image1_rotate.rows;
+		
+	//把第一张图片拷贝到地图上
+	image1_rotate.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1_rotate.cols, image1_rotate.rows)));
+
+
+	struct IMAGE_MOSAIC::Location map_origin;
+	
+	float diff_x = (float)dest_point.x + (float)image1_rotate.cols / 2.0f;
+	float diff_y = (float)dest_point.y + (float)image1_rotate.rows / 2.0f;
+
+	float origin_first_image_distance = sqrt(pow(diff_x, 2) + pow(diff_y, 2)) * scale;
+
+	float tmp_bearing = AB_bearing - atan2(diff_x, diff_y) * (180.0f / M_PI);
+
+	cout << "diff_x:" << diff_x << ",diff_y:" << diff_y << endl;
+	cout << "tmp bearing:" << tmp_bearing << ",origin distance:" << origin_first_image_distance << endl;
+
+	map_origin.alt = image_location1.alt;
+	map_origin.lat = image_location1.lat;
+	map_origin.lng = image_location1.lng;
+
+	image_algorithm->Location_update(map_origin, tmp_bearing, origin_first_image_distance);
+
+	//根据地图(0,0) gps 坐标，贴第二张图片
+	{
+		float distance = image_algorithm->Get_distance(map_origin, image_location2) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, image_location2);
+
+	
+		// 求第二张图片的原点坐标
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
+		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
+
+		Mat dest_image;
+		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image2_rotate.rows / 6);
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+
+	}
+
+	imwrite("map_laset.jpg", map_test);
+	
 
 	cout << "--------------I am ok------------" << endl;
 
