@@ -800,7 +800,7 @@ int main(int argc, char **argv)
 
 
 
-#if 1
+#if 0
 // gps 坐标位置拼图测试
 int main(int argc, char **argv)
 {
@@ -817,7 +817,7 @@ int main(int argc, char **argv)
 	cout << "bearing test:" << bearing_test << endl;
 
 
-#if 0
+#if 1
 	
 	//把图片进行缩放
 	//由于roll pitch  的影响，导致在拼接两条航线是，会出现错位现象
@@ -1191,6 +1191,118 @@ int main(int argc, char **argv)
 
 #endif
 
+
+
+#if 1
+
+// 使用原图拼接
+int main(int argc, char **argv)
+{
+	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
+
+	//AB 航线的航向
+	float AB_bearing = image_algorithm->Get_bearing_cd(gps_location_AB[0], gps_location_AB[26]);
+	//CD  和AB 必须平行
+	float CD_bearing = AB_bearing + 180;
+
+	cout << "AB bearing:" << AB_bearing << ", CD bearing" << CD_bearing << endl;
+
+	float AB_distance = image_algorithm->Get_distance(gps_location_AB[0], gps_location_AB[26]);
+
+	cout << "AB distance:" << AB_distance << endl;
+
+	//读取第一张图片
+	string strFile = "/home/wenyi/workspace/test_photo/";
+	strFile += string(image_name[0]);
+
+	Mat image1 = imread(strFile.c_str());
+
+	if(image1.empty())
+	{
+		cout << "failed to load:" << strFile << endl;
+		return -1;
+	}
+
+	strFile.clear();
+	//读取第二张图片
+	strFile += "/home/wenyi/workspace/test_photo/";
+	strFile += string(image_name[1]);
+
+	Mat image2 = imread(strFile.c_str());
+
+	if(image2.empty())
+	{
+		cout << "failed to load:" << strFile << endl;
+		return -1;
+	}
+
+	//计算第一张和第二张图片的拼接位置
+	//为了提高匹配速度，我们需要把图像缩小
+	//用原图opencv 无法分配那边大的空间
+	float narrow_size = 4.0f;
+	Mat image1_resize, image2_resize;
+	
+	image_algorithm->Image_resize(image1, image1_resize,	Size(image1.cols / narrow_size, image1.rows / narrow_size));
+	image_algorithm->Image_resize(image2, image2_resize,	Size(image2.cols / narrow_size, image2.rows / narrow_size));
+
+	//旋转第一张和第二张图片
+	Mat image1_rotate, image2_rotate;
+	image_algorithm->Image_rotate(image1_resize, image1_rotate,	AB_bearing- yaw_AB[0]);
+	image_algorithm->Image_rotate(image2_resize, image2_rotate,	AB_bearing- yaw_AB[1]);
+
+	
+	
+	Point2i point_test;
+	image_algorithm->Image_mosaic_algorithm(image1_rotate, image2_rotate, IMAGE_MOSAIC::Image_algorithm::UP,point_test);
+
+	cout << "point test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+	//通过第一张和第二张图片中心点的像素距离和位置距离，计算比例尺
+
+	
+	//通过拼接位置求出两张求出两个图像中心像素点的距离
+	float image_center_distance = sqrt(pow(point_test.x, 2)  + pow(point_test.y, 2));
+	
+	cout << " image center distance:" << image_center_distance << endl;
+
+	//通过飞机的姿态计算出相机中间点对于的gps 坐标
+	struct IMAGE_MOSAIC::Location image_location1(gps_location_AB[0].alt, gps_location_AB[0].lat, gps_location_AB[0].lng);
+	struct IMAGE_MOSAIC::Imu_data imu_data1(pitch_AB[0], roll_AB[0], yaw_AB[0]);
+	image_algorithm->Location_update_baseon_pitch_roll(image_location1, gps_base, imu_data1);
+
+	struct IMAGE_MOSAIC::Location image_location2(gps_location_AB[1].alt, gps_location_AB[1].lat, gps_location_AB[1].lng);
+	struct IMAGE_MOSAIC::Imu_data imu_data2(pitch_AB[1], roll_AB[1], yaw_AB[1]);
+	image_algorithm->Location_update_baseon_pitch_roll(image_location2, gps_base, imu_data2);
+
+	float gps_center_distance = image_algorithm->Get_distance(image_location1, image_location2);
+
+
+	cout << "gps center distance:" << gps_center_distance << endl;
+
+
+	float scale;
+		
+	scale = gps_center_distance / image_center_distance;
+
+	cout << "scale :" << scale << endl;
+
+	//通过 scale  可以计算地图的大小
+	float map_rows = AB_distance / scale  + 3 * image1.rows;
+	float map_cols = 6000;
+
+	cout << "map rows:" << map_rows << ", map cols:" << map_cols << endl;
+	
+	//为地图申请空间
+	Mat map_test(map_rows, map_cols,CV_8UC3);
+	map_test.setTo(0);
+
+	cout << "--------------I am ok------------" << endl;
+
+	waitKey();
+	return 0;
+}
+
+#endif
 
 
 
