@@ -812,8 +812,12 @@ int main(int argc, char **argv)
 
 	cout << "AB bearing:" << AB_bearing << ", CD bearing:" << CD_bearing << endl;
 
+	float bearing_test = image_algorithm->Get_bearing_cd(gps_location_AB[26], gps_location_CD[0]);
 
-#if 1
+	cout << "bearing test:" << bearing_test << endl;
+
+
+#if 0
 	
 	//把图片进行缩放
 	//由于roll pitch  的影响，导致在拼接两条航线是，会出现错位现象
@@ -999,6 +1003,13 @@ int main(int argc, char **argv)
 
 	cout << "scale:" << scale << endl;
 
+	/*
+	** 地图的坐标系
+	**            90 /|\ pitch
+	**                    |
+	**    roll          |
+	**	0<------
+	*/
 
 
 	//为地图申请一张画布， y 轴的正 方向为90 度
@@ -1029,7 +1040,7 @@ int main(int argc, char **argv)
 	cout << "angle:" << angle << ", origin distance:" << origin_first_image_distance << endl;
 
 	//图片 (0, 0) 坐标在第一张图片的中心的方位需要在90 度
-	float bearing0 = angle + 90;
+	float bearing0 = 90 - angle;
 
 	cout << "bearing:" << bearing0 << endl;
 #if 0
@@ -1072,12 +1083,12 @@ int main(int argc, char **argv)
 
 #endif
 
-		cout << "bearing:" << bearing << ", distance:" << distance << endl;
+		cout << "---------bearing:" << bearing << ", distance:" << distance << endl;
 
 		// 求第二张图片的原点坐标
 		Point2i image_point;
-		image_point.x = (int)(distance * sin((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.cols / 2);
-		image_point.y = (int)(distance * cos((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.rows / 2);
+		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)src_image.cols / 2);
+		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)src_image.rows / 2);
 
 		//把第二张图片拼接到地图上
 #if 1
@@ -1118,7 +1129,10 @@ int main(int argc, char **argv)
 #endif
 
 
-#if 0
+	cout << "first line ok------------------" << endl;
+
+
+#if 1
 	// 第二条航线的拼接
 	for(int i=0; i<29; i++)
 	{
@@ -1148,14 +1162,17 @@ int main(int argc, char **argv)
 #endif
 
 
+		cout << "---------bearing:" << bearing << ", distance:" << distance << endl;
+
 		// 求第二张图片的原点坐标
 		Point2i image_point;
-		image_point.x = (int)(distance * sin((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.cols / 2);
-		image_point.y = (int)(distance * cos((bearing - 270) * (M_PI / 180.0f)) - (float)src_image.rows / 2);
+		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)src_image.cols / 2);
+		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)src_image.rows / 2);
 
 		Mat dest_image;
-		image_algorithm->Image_cut(src_image, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, src_image.rows / 4);
-		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + src_image.rows / 4, dest_image.cols, dest_image.rows)));
+		//image_algorithm->Image_cut(src_image, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, src_image.rows / 4);
+		dest_image = src_image(cv::Range(src_image.rows / 4, src_image.rows), cv::Range(src_image.cols / 2, src_image.cols));
+		dest_image.copyTo(map_test(Rect(image_point.x + src_image.cols / 2, image_point.y + src_image.rows / 4, dest_image.cols, dest_image.rows)));
 
 	}
 	

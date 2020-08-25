@@ -50,12 +50,12 @@ void Image_algorithm::Location_update_baseon_pitch_roll(struct Location & loc, c
 	{
 		if(imu.roll > 0.0f)
 		{
-			bearing = imu.yaw + angle;
+			bearing = imu.yaw - angle;
 			Location_update(loc, bearing, distance);
 		}
 		else
 		{
-			bearing = imu.yaw - angle;
+			bearing = imu.yaw + angle;
 			Location_update(loc, bearing, distance);
 		}
 	}
@@ -63,12 +63,12 @@ void Image_algorithm::Location_update_baseon_pitch_roll(struct Location & loc, c
 	{
 		if(imu.roll > 0.0f)
 		{
-			bearing = (imu.yaw + 180) - angle;
+			bearing = (imu.yaw + 180) + angle;
 			Location_update(loc, bearing, distance);
 		}
 		else
 		{
-			bearing = (imu.yaw + 180) + angle;
+			bearing = (imu.yaw + 180) - angle;
 			Location_update(loc, bearing, distance);
 		}
 	}
