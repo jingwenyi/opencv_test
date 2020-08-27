@@ -460,6 +460,197 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 
 
 
+void Image_algorithm::Image_fast_mosaic_algorithm2(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance)
+{
+	//需要先转换成灰度图像
+	cv::Mat image1_gray, image2_gray;
+	cv::cvtColor(src_image1, image1_gray, CV_RGB2GRAY);
+	cv::cvtColor(src_image2, image2_gray, CV_RGB2GRAY);
+	
+	cv::Point2i image1_sample_size(image1_gray.cols / 20, image1_gray.rows / 2);
+
+
+	int diff_y  = image1_gray.rows / 4;
+	cv::Point2i image2_sample_size(image1_sample_size.x, image1_sample_size.y + diff_y);
+
+	int start_row[4] = {image1_gray.rows / 2 - image1_sample_size.y / 2,
+						diff_y / 2,
+						image1_gray.rows - diff_y / 2 - image1_sample_size.y,
+						image1_gray.rows / 2 - image1_sample_size.y / 2};
+
+
+	int start_col[4]= {	image1_gray.cols * 2 / 3, 
+						image1_gray.cols * 2 / 3 - image1_sample_size.x - 10,
+						image1_gray.cols * 2 / 3 - 2 * (image1_sample_size.x + 10),
+						image1_gray.cols * 2 / 3 - 3 * (image1_sample_size.x + 10)};
+
+#ifdef DUBUG
+	std::cout << "image_mosaic_algorithm image1 cols:" << src_image1.cols << ", rows:" << src_image1.rows << std::endl;
+	std::cout << "image1_sample_size x:" << image1_sample_size.x << ", y:" << image1_sample_size.y << std::endl;
+	std::cout << "diff_y:" << diff_y << std::endl;
+	std::cout << "image2_sample_size x:" << image2_sample_size.x << ", y:" << image2_sample_size.y << std::endl;
+	std::cout << "start row, 1:" << start_row[0] << ", 2:" << start_row[1] << ", 3:" << start_row[2] << ", 4:" << start_row[3] << std::endl;
+	std::cout << "start col, 1:" << start_col[0] << ", 2:" << start_col[1] << ", 3:" << start_col[2] << ", 4:" << start_col[3] << std::endl;
+#endif
+
+	int min_err[4];
+	int min_err_idex[4];
+	int min_err_dis[4];
+
+	for(int i=0; i<4; i++)
+	{
+		min_err[i] = INT_MAX;
+		min_err_idex[i] = 0;
+		min_err_dis[i] = 0;
+	}
+
+	//分别查找3  组中最小二乘法位置
+	for(int i=0; i<4; i++)
+	{
+		//计算图像 1  的匹配模板
+		int base[image1_sample_size.y];
+
+		for(int k=0; k<image1_sample_size.y; k++)
+		{
+			base[k] = image1_gray.at<uchar>(start_row[i] + k, start_col[i] - image1_sample_size.x) - image1_gray.at<uchar>(start_row[i] + k, start_col[i]);
+		}
+		
+		//找出图像2  的最佳匹配
+		int num = image2_gray.cols;
+		int rows_min_err[num];
+		int rows_min_err_dis[num];
+
+		for(int n=0; n<num; n++)
+		{
+			rows_min_err[n] = INT_MAX;
+			rows_min_err_dis[n] = 0;
+		}
+
+		int match_image[image2_sample_size.y];
+
+		for(int n=0; n<num; n++)
+		{
+			for(int j=0; j<image2_sample_size.y; j++)
+			{
+				match_image[j] = image2_gray.at<uchar>(start_row[i] - diff_y / 2 + j, n) -
+								 image2_gray.at<uchar>(start_row[i] - diff_y / 2 + j, n + image2_sample_size.x);
+			}
+
+			//求每一行和第一张图像的最小二乘的最佳位置和值
+			for(int d=0; d<diff_y; d++)
+			{
+				int err = 0;
+				for(int p=0; p<image1_sample_size.y; p++)
+				{
+					err += std::pow(match_image[p + d] - base[p], 2);
+				}
+
+				
+				if(err < rows_min_err[n])
+				{
+					rows_min_err[n] = err;
+					rows_min_err_dis[n] = d;
+
+					if(rows_min_err[n] < min_err[i])
+					{
+						min_err[i] = rows_min_err[n];
+						min_err_dis[i] = rows_min_err_dis[n];
+						min_err_idex[i] = n;
+					}
+				}
+			}
+		}
+	}
+
+	//块匹配连续性检查
+	int err[4];
+	int err_min = INT_MAX;
+	int err_min_num;
+
+
+	for(int i=0; i<4; i++)
+	{
+		err[i] = 0;
+
+		for(int j=0; j<image1_sample_size.x; j++)
+		{
+			for(int k=0; k<image1_sample_size.y; k++)
+			{
+				err[i] += pow(	image2_gray.at<uchar>(start_row[i]- diff_y / 2 + min_err_dis[i] + k, min_err_idex[i] + j) - 
+							 	image1_gray.at<uchar>(start_row[i] + k, start_col[i] + j), 2);
+			}
+		}
+
+		if(err[i] < err_min)
+		{
+			err_min = err[i];
+			err_min_num = i;
+		}
+	}
+
+	//计算图像之间的拼接位置
+
+	// x > 0 表示第二张图片相对第一张图片右移
+	// x < 0 表示第二张图片相对第一张图片左移
+	distance.x = min_err_idex[err_min_num] - (start_col[err_min_num] - image1_sample_size.x);
+
+	// y > 0  表示第二张图像相对于第一张图像上移
+	// y < 0  表示第二张图像相对于第一张图像下移 
+	distance.y = diff_y /2 - min_err_dis[err_min_num];
+	
+	
+	
+	
+
+#ifdef DUBUG
+
+	std::cout <<"err min num:" << err_min_num << ",err min:" << err_min << std::endl;
+
+	for(int i=0; i<4; i++)
+	{
+		std::cout << i <<",min err:" << min_err[i] << ",min err dis:" << min_err_dis[i] << ",min err idex:" << min_err_idex[i] << std::endl;
+	
+		for(int j=0; j<image1_sample_size.y; j++)
+		{
+			image1_gray.at<uchar>(start_row[i] + j, start_col[i]) = 255;
+			image1_gray.at<uchar>(start_row[i] + j, start_col[i] - image1_sample_size.x) = 255;
+
+			
+			image2_gray.at<uchar>(start_row[i]- diff_y / 2 + min_err_dis[i] + j, min_err_idex[i]) = 255;
+			image2_gray.at<uchar>(start_row[i]- diff_y / 2 + min_err_dis[i] + j, min_err_idex[i] - image2_sample_size.x) = 255;
+		}
+	}
+
+
+	static int num_image1 = 0;
+
+	std::stringstream ss1, ss2;
+	std::string s1, s2;
+	std::string strName1 = "./fast_image/";
+	ss1 << num_image1;
+	ss1 >> s1;
+	num_image1++;
+	strName1 += s1;
+	strName1 += ".jpg";
+
+
+	std::string strName2 = "./fast_image/";
+	ss2 << num_image1;
+	ss2 >> s2;
+	num_image1++;
+	strName2 += s2;
+	strName2 += ".jpg";
+
+	std::cout << "strName1" << strName1 << std::endl;
+	std::cout << "strName2" << strName2 << std::endl;
+
+	cv::imwrite(strName1.c_str(), image1_gray);
+	cv::imwrite(strName2.c_str(), image2_gray);
+	
+#endif
+}
+
+
 
 
 //算法思路:   用4  组块匹配，然后在4  组最佳的里面进行块连续性匹配

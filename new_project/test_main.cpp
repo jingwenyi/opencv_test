@@ -1202,6 +1202,8 @@ int main(int argc, char **argv)
 
 	struct IMAGE_MOSAIC::Location AB_new_gps[27];
 	struct IMAGE_MOSAIC::Location CD_new_gps[29];
+	Point2i AB_point_on_map[27];
+	Point2i CD_point_on_map[29];
 
 	//AB 航线的航向
 	float AB_bearing = image_algorithm->Get_bearing_cd(gps_location_AB[0], gps_location_AB[26]);
@@ -1310,6 +1312,9 @@ int main(int argc, char **argv)
 	Point2i dest_point; 
 	dest_point.x = map_test.cols / 3 - image1_rotate.cols / 2;
 	dest_point.y = map_test.rows -  2 * image1_rotate.rows;
+
+	AB_point_on_map[0].x = dest_point.x;
+	AB_point_on_map[0].y = dest_point.y;
 		
 	//把第一张图片拷贝到地图上
 	image1_rotate.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1_rotate.cols, image1_rotate.rows)));
@@ -1346,19 +1351,15 @@ int main(int argc, char **argv)
 		Point2i image_point;
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
+		AB_point_on_map[1].x = image_point.x;
+		AB_point_on_map[1].y = image_point.y;
 #if 0
 		Mat dest_image;
 		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image2_rotate.rows / 6);
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 #else
 		//去掉下边的1/6, 加权融合
-
-
-		float diff_distance = image_algorithm->Get_distance(AB_new_gps[0], AB_new_gps[1]) / scale;
-		float diff_bearing = AB_bearing - image_algorithm->Get_bearing_cd(AB_new_gps[0], AB_new_gps[1]);
-		float diff_distance_rows = diff_distance * fabs(cos(diff_bearing * (M_PI / 180.0f)));
-
-		int w = (image2_rotate.rows - diff_distance_rows) / 4;
+		int w = (image2_rotate.rows - (AB_point_on_map[0].y - AB_point_on_map[1].y)) / 4;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
 		int cut_size = w + image2_rotate.rows / 2 * fabs(sin((AB_bearing- yaw_AB[1]) * (M_PI / 180.0f))) + 10;
@@ -1394,6 +1395,9 @@ int main(int argc, char **argv)
 #endif
 
 	}
+
+	Mat last_image_rotate = image2_rotate.clone();
+	
 
 #if 1
 	//第一条航线
@@ -1439,15 +1443,52 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
 
-		float diff_distance = image_algorithm->Get_distance(AB_new_gps[i - 1], AB_new_gps[i]) / scale;
-		float diff_bearing = AB_bearing - image_algorithm->Get_bearing_cd(AB_new_gps[i - 1], AB_new_gps[i]);
-		float diff_distance_rows = diff_distance * fabs(cos(diff_bearing * (M_PI / 180.0f)));
+		
 
-#if 1
+#if 0
 		//融合位置修正
-		//float width  =  image_rotate.rows  - diff_distance_rows;
+		float width  =  image_rotate.rows  - diff_distance_rows;
+		//
+
+		Mat sample1_image = last_image_rotate(cv::Range(AB_point_on_map[i - 1] + width / 3, image_rotate.rows - width / 3),
+											cv::Range(image_rotate.cols / 3, image_rotate.cols - image_rotate.cols / 3));
+		Mat sample2_image = image_rotate(cv::Range(image_rotate.rows - width + width / 3, image_rotate.rows - width / 3),
+											cv::Range(image_rotate.cols / 3, image_rotate.cols - image_rotate.cols / 3));
+		//Mat sample2_image = map_test(cv::Range(image_point.y + image_rotate.rows - width + width / 3, image_point.y + image_rotate.rows - width / 3),
+										//cv::Range(image_point.x + image_rotate.cols / 3, image_point.x + image_rotate.cols - image_rotate.cols / 3));
+		
+		Point2i sample_diff;
+		image_algorithm->Image_fast_mosaic_algorithm2(sample2_image, sample1_image, sample_diff);
+
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+
+		image_point.y -= sample_diff.y;
+		image_point.x -= sample_diff.x;
+
+#if 0
+		//根据更新， 更新对应的gps 坐标
+		float x_diff = (float)image_point.x + (float)image_rotate.cols / 2.0f;
+		float y_diff = (float)image_point.y + (float)image_rotate.rows / 2.0f;
+
+		float origin_this_image_distance = sqrt(pow(x_diff, 2) + pow(y_diff, 2)) * scale;
+
+		float bearing_temp = AB_bearing + 180 - atan2(x_diff, y_diff) * (180.0f / M_PI);
+
+		cout << "x_diff:" << x_diff << ",y_diff:" << y_diff << endl;
+		cout << "bearing temp:" << bearing_temp << ",origin distance:" << origin_this_image_distance << endl;
+
+		AB_new_gps[i].alt = map_origin.alt;
+		AB_new_gps[i].lat = map_origin.lat;
+		AB_new_gps[i].lng = map_origin.lng;
+
+		image_algorithm->Location_update(AB_new_gps[i], bearing_temp, origin_this_image_distance);
 
 #endif
+		
+#endif
+
+		AB_point_on_map[i].x = image_point.x;
+		AB_point_on_map[i].y = image_point.y;
 
 
 #if 0
@@ -1456,7 +1497,7 @@ int main(int argc, char **argv)
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 #else
 		//去掉下边的1/6, 加权融合
-		int w  = (image2_rotate.rows - diff_distance_rows) / 4;
+		int w = (image_rotate.rows - (AB_point_on_map[i - 1].y - AB_point_on_map[i].y)) / 4;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
 		int cut_size = w + image_rotate.rows / 2 * fabs(sin((AB_bearing- yaw_AB[i]) * (M_PI / 180.0f))) + 10;
@@ -1472,7 +1513,7 @@ int main(int argc, char **argv)
 		for(int j=0; j<w; j++)
 		{
 			alpha = (float)(w-j) / (float)w;
-			for(int k=0; k<image2_rotate.cols; k++)
+			for(int k=0; k<image_rotate.cols; k++)
 			{
 				Scalar color1 = map_test.at<Vec3b>(map_start_row + j, map_start_col + k);
 				Scalar color2 = image_rotate.at<Vec3b>(src_start_row + j, k);

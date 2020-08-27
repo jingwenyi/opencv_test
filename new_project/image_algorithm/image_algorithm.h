@@ -106,6 +106,7 @@ public:
 
 	//比较两张重合的图片, 左右的距离，用于两天航线拼接时
 	void Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+	void Image_fast_mosaic_algorithm2(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
 
 	float Get_distance(const struct Location &loc1, const struct Location &loc2);
 
