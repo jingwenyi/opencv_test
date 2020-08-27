@@ -74,7 +74,7 @@ void Image_algorithm::Location_update_baseon_pitch_roll(struct Location & loc, c
 	}
 
 #ifdef DUBUG
-	std::cout << "diff_pitch:" << diff_pitch << ",diff_roll" << diff_roll << std::endl;
+	std::cout << "diff_pitch:" << diff_pitch << ",diff_roll:" << diff_roll << std::endl;
 	std::cout <<"distance:" << distance << ",angle:" << angle << ",bearing:" << bearing << std::endl;
 #endif
 	

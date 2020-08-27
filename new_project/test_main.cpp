@@ -1425,16 +1425,16 @@ int main(int argc, char **argv)
 		Point2i image_point;
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
-#if 1
+#if 0
 		Mat dest_image;
 		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6);
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 #else
 		//去掉下边的1/6, 加权融合
-		w = (image_algorithm->Get_distance(AB_new_gps[1], AB_new_gps[0]) / scale ) / 2;
+		w = (image_algorithm->Get_distance(AB_new_gps[i], AB_new_gps[i-1]) / scale ) / 2;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
-		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image2_rotate.rows / 6 + w);
+		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6 + w);
 		int src_start_row = dest_image.rows;
 		int map_start_row = image_point.y + src_start_row;
 		int map_start_col = image_point.x;
@@ -1445,7 +1445,7 @@ int main(int argc, char **argv)
 			for(int k=0; k<image2_rotate.cols; k++)
 			{
 				Scalar color1 = map_test.at<Vec3b>(map_start_row + j, map_start_col + k);
-				Scalar color2 = image2_rotate.at<Vec3b>(src_start_row + j, k);
+				Scalar color2 = image_rotate.at<Vec3b>(src_start_row + j, k);
 
 				Scalar color3;
 				color3(0) = color1(0) * (1 - alpha) + color2(0) * alpha;
