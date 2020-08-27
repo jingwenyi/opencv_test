@@ -1334,7 +1334,7 @@ int main(int argc, char **argv)
 	image_algorithm->Location_update(map_origin, tmp_bearing, origin_first_image_distance);
 
 
-	int w;
+	
 
 	//根据地图(0,0) gps 坐标，贴第二张图片
 	{
@@ -1352,7 +1352,13 @@ int main(int argc, char **argv)
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 #else
 		//去掉下边的1/6, 加权融合
-		w = (image_algorithm->Get_distance(AB_new_gps[1], AB_new_gps[0]) / scale ) / 2;
+
+
+		float diff_distance = image_algorithm->Get_distance(AB_new_gps[0], AB_new_gps[1]) / scale;
+		float diff_bearing = AB_bearing - image_algorithm->Get_bearing_cd(AB_new_gps[0], AB_new_gps[1]);
+		float diff_distance_rows = diff_distance * fabs(cos(diff_bearing * (M_PI / 180.0f)));
+
+		int w = (image2_rotate.rows - diff_distance_rows) / 4;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
 		int cut_size = w + image2_rotate.rows / 2 * fabs(sin((AB_bearing- yaw_AB[1]) * (M_PI / 180.0f))) + 10;
@@ -1433,9 +1439,13 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
 
+		float diff_distance = image_algorithm->Get_distance(AB_new_gps[i - 1], AB_new_gps[i]) / scale;
+		float diff_bearing = AB_bearing - image_algorithm->Get_bearing_cd(AB_new_gps[i - 1], AB_new_gps[i]);
+		float diff_distance_rows = diff_distance * fabs(cos(diff_bearing * (M_PI / 180.0f)));
+
 #if 1
 		//融合位置修正
-		
+		//float width  =  image_rotate.rows  - diff_distance_rows;
 
 #endif
 
@@ -1446,7 +1456,7 @@ int main(int argc, char **argv)
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 #else
 		//去掉下边的1/6, 加权融合
-		w = (image_algorithm->Get_distance(AB_new_gps[i], AB_new_gps[i-1]) / scale ) / 2;
+		int w  = (image2_rotate.rows - diff_distance_rows) / 4;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
 		int cut_size = w + image_rotate.rows / 2 * fabs(sin((AB_bearing- yaw_AB[i]) * (M_PI / 180.0f))) + 10;
