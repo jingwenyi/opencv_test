@@ -1355,7 +1355,14 @@ int main(int argc, char **argv)
 		w = (image_algorithm->Get_distance(AB_new_gps[1], AB_new_gps[0]) / scale ) / 2;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
-		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image2_rotate.rows / 6 + w);
+		int cut_size = w + image2_rotate.rows / 2 * fabs(sin((AB_bearing- yaw_AB[1]) * (M_PI / 180.0f))) + 10;
+		
+		if(cut_size > 2 * w)
+		{
+			cut_size = 2 * w;
+		}
+		
+		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, cut_size);
 		int src_start_row = dest_image.rows;
 		int map_start_row = image_point.y + src_start_row;
 		int map_start_col = image_point.x;
@@ -1425,6 +1432,14 @@ int main(int argc, char **argv)
 		Point2i image_point;
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
+
+#if 1
+		//ÈÚºÏÎ»ÖÃÐÞÕý
+		
+
+#endif
+
+
 #if 0
 		Mat dest_image;
 		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6);
@@ -1434,7 +1449,12 @@ int main(int argc, char **argv)
 		w = (image_algorithm->Get_distance(AB_new_gps[i], AB_new_gps[i-1]) / scale ) / 2;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
-		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6 + w);
+		int cut_size = w + image_rotate.rows / 2 * fabs(sin((AB_bearing- yaw_AB[i]) * (M_PI / 180.0f))) + 10;
+		if(cut_size > 2 * w)
+		{
+			cut_size = 2 * w;
+		}
+		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, cut_size);
 		int src_start_row = dest_image.rows;
 		int map_start_row = image_point.y + src_start_row;
 		int map_start_col = image_point.x;
