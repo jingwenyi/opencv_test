@@ -1200,6 +1200,9 @@ int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_algorithm*  image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 
+	struct IMAGE_MOSAIC::Location AB_new_gps[27];
+	struct IMAGE_MOSAIC::Location CD_new_gps[29];
+
 	//AB 航线的航向
 	float AB_bearing = image_algorithm->Get_bearing_cd(gps_location_AB[0], gps_location_AB[26]);
 	//CD  和AB 必须平行
@@ -1266,15 +1269,19 @@ int main(int argc, char **argv)
 	cout << " image center distance:" << image_center_distance << endl;
 
 	//通过飞机的姿态计算出相机中间点对于的gps 坐标
-	struct IMAGE_MOSAIC::Location image_location1(gps_location_AB[0].alt, gps_location_AB[0].lat, gps_location_AB[0].lng);
+	AB_new_gps[0].alt = gps_location_AB[0].alt;
+	AB_new_gps[0].lat = gps_location_AB[0].lat;
+	AB_new_gps[0].lng = gps_location_AB[0].lng;
 	struct IMAGE_MOSAIC::Imu_data imu_data1(pitch_AB[0], roll_AB[0], yaw_AB[0]);
-	image_algorithm->Location_update_baseon_pitch_roll(image_location1, gps_base, imu_data1);
+	image_algorithm->Location_update_baseon_pitch_roll(AB_new_gps[0], gps_base, imu_data1);
 
-	struct IMAGE_MOSAIC::Location image_location2(gps_location_AB[1].alt, gps_location_AB[1].lat, gps_location_AB[1].lng);
+	AB_new_gps[1].alt = gps_location_AB[1].alt;
+	AB_new_gps[1].lat = gps_location_AB[1].lat;
+	AB_new_gps[1].lng = gps_location_AB[1].lng;
 	struct IMAGE_MOSAIC::Imu_data imu_data2(pitch_AB[1], roll_AB[1], yaw_AB[1]);
-	image_algorithm->Location_update_baseon_pitch_roll(image_location2, gps_base, imu_data2);
+	image_algorithm->Location_update_baseon_pitch_roll(AB_new_gps[1], gps_base, imu_data2);
 
-	float gps_center_distance = image_algorithm->Get_distance(image_location1, image_location2);
+	float gps_center_distance = image_algorithm->Get_distance(AB_new_gps[0], AB_new_gps[1]);
 
 
 	cout << "gps center distance:" << gps_center_distance << endl;
@@ -1302,7 +1309,7 @@ int main(int argc, char **argv)
 	
 	Point2i dest_point; 
 	dest_point.x = map_test.cols / 3 - image1_rotate.cols / 2;
-	dest_point.y = map_test.rows -  image1_rotate.rows;
+	dest_point.y = map_test.rows -  2 * image1_rotate.rows;
 		
 	//把第一张图片拷贝到地图上
 	image1_rotate.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1_rotate.cols, image1_rotate.rows)));
@@ -1320,29 +1327,140 @@ int main(int argc, char **argv)
 	cout << "diff_x:" << diff_x << ",diff_y:" << diff_y << endl;
 	cout << "tmp bearing:" << tmp_bearing << ",origin distance:" << origin_first_image_distance << endl;
 
-	map_origin.alt = image_location1.alt;
-	map_origin.lat = image_location1.lat;
-	map_origin.lng = image_location1.lng;
+	map_origin.alt = AB_new_gps[0].alt;
+	map_origin.lat = AB_new_gps[0].lat;
+	map_origin.lng = AB_new_gps[0].lng;
 
 	image_algorithm->Location_update(map_origin, tmp_bearing, origin_first_image_distance);
 
+
+	int w;
+
 	//根据地图(0,0) gps 坐标，贴第二张图片
 	{
-		float distance = image_algorithm->Get_distance(map_origin, image_location2) / scale;
-		float bearing = image_algorithm->Get_bearing_cd(map_origin, image_location2);
+		float distance = image_algorithm->Get_distance(map_origin, AB_new_gps[1]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, AB_new_gps[1]);
 
 	
 		// 求第二张图片的原点坐标
 		Point2i image_point;
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
-
+#if 0
 		Mat dest_image;
 		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image2_rotate.rows / 6);
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+#else
+		//去掉下边的1/6, 加权融合
+		w = (image_algorithm->Get_distance(AB_new_gps[1], AB_new_gps[0]) / scale ) / 2;
+		cout << "++++w:" << w << endl;
+		Mat dest_image;
+		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image2_rotate.rows / 6 + w);
+		int src_start_row = dest_image.rows;
+		int map_start_row = image_point.y + src_start_row;
+		int map_start_col = image_point.x;
+		float alpha = 1.0f;//src_image  中像素的权重
+		for(int j=0; j<w; j++)
+		{
+			alpha = (float)(w-j) / (float)w;
+			for(int k=0; k<image2_rotate.cols; k++)
+			{
+				Scalar color1 = map_test.at<Vec3b>(map_start_row + j, map_start_col + k);
+				Scalar color2 = image2_rotate.at<Vec3b>(src_start_row + j, k);
+
+				Scalar color3;
+				color3(0) = color1(0) * (1 - alpha) + color2(0) * alpha;
+				color3(1) = color1(1) * (1 - alpha) + color2(1) * alpha;
+				color3(2) = color1(2) * (1 - alpha) + color2(2) * alpha;
+
+				map_test.at<Vec3b>(map_start_row + j, map_start_col + k) = Vec3b(color3(0), color3(1), color3(2));
+			}
+		}
+
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+#endif
 
 	}
 
+#if 1
+	//第一条航线
+	//开始处理第二张之后新来的图片
+	for(int i=2; i<27; i++)
+	{
+
+		//读取图片
+		string strFile = "/home/wenyi/workspace/test_photo/";
+		strFile += string(image_name[i]);
+
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+		
+		//对图片进行缩放
+		Mat image_resize;
+		image_algorithm->Image_resize(image, image_resize,	Size(image.cols / narrow_size, image.rows / narrow_size));
+
+		//对图片进行旋转
+		Mat image_rotate;
+		image_algorithm->Image_rotate(image_resize, image_rotate,	AB_bearing- yaw_AB[i]);
+
+		//通过飞机姿态更新相机gps 位置
+		
+		AB_new_gps[i].alt = gps_location_AB[i].alt;
+		AB_new_gps[i].lat = gps_location_AB[i].lat;
+		AB_new_gps[i].lng = gps_location_AB[i].lng;
+
+
+		struct IMAGE_MOSAIC::Imu_data imu_data(pitch_AB[i], roll_AB[i], yaw_AB[i]);
+		image_algorithm->Location_update_baseon_pitch_roll(AB_new_gps[i], gps_base, imu_data);
+
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+
+		float distance = image_algorithm->Get_distance(map_origin, AB_new_gps[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, AB_new_gps[i]);
+
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
+		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
+#if 1
+		Mat dest_image;
+		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6);
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+#else
+		//去掉下边的1/6, 加权融合
+		w = (image_algorithm->Get_distance(AB_new_gps[1], AB_new_gps[0]) / scale ) / 2;
+		cout << "++++w:" << w << endl;
+		Mat dest_image;
+		image_algorithm->Image_cut(image2_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image2_rotate.rows / 6 + w);
+		int src_start_row = dest_image.rows;
+		int map_start_row = image_point.y + src_start_row;
+		int map_start_col = image_point.x;
+		float alpha = 1.0f;//src_image  中像素的权重
+		for(int j=0; j<w; j++)
+		{
+			alpha = (float)(w-j) / (float)w;
+			for(int k=0; k<image2_rotate.cols; k++)
+			{
+				Scalar color1 = map_test.at<Vec3b>(map_start_row + j, map_start_col + k);
+				Scalar color2 = image2_rotate.at<Vec3b>(src_start_row + j, k);
+
+				Scalar color3;
+				color3(0) = color1(0) * (1 - alpha) + color2(0) * alpha;
+				color3(1) = color1(1) * (1 - alpha) + color2(1) * alpha;
+				color3(2) = color1(2) * (1 - alpha) + color2(2) * alpha;
+
+				map_test.at<Vec3b>(map_start_row + j, map_start_col + k) = Vec3b(color3(0), color3(1), color3(2));
+			}
+		}
+
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+#endif
+		
+	}
+#endif
 	imwrite("map_laset.jpg", map_test);
 	
 
