@@ -1346,9 +1346,9 @@ int main(int argc, char **argv)
 	cout << "diff_x:" << diff_x << ",diff_y:" << diff_y << endl;
 	cout << "tmp bearing:" << tmp_bearing << ",origin distance:" << origin_first_image_distance << endl;
 
-	map_origin.alt = AB_new_gps[0].alt;
-	map_origin.lat = AB_new_gps[0].lat;
-	map_origin.lng = AB_new_gps[0].lng;
+	map_origin.alt = gps_location_AB[0].alt;
+	map_origin.lat = gps_location_AB[0].lat;
+	map_origin.lng = gps_location_AB[0].lng;
 
 	image_algorithm->Location_update(map_origin, tmp_bearing, origin_first_image_distance);
 
@@ -1357,14 +1357,58 @@ int main(int argc, char **argv)
 
 	//根据地图(0,0) gps 坐标，贴第二张图片
 	{
-		float distance = image_algorithm->Get_distance(map_origin, AB_new_gps[1]) / scale;
-		float bearing = image_algorithm->Get_bearing_cd(map_origin, AB_new_gps[1]);
+		float distance = image_algorithm->Get_distance(map_origin, gps_location_AB[1]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_AB[1]);
 
 	
 		// 求第二张图片的原点坐标
 		Point2i image_point;
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
+
+		
+#if 1
+		//融合位置修正
+		float width  =	image2_rotate.rows - (AB_point_on_map[0].y - image_point.y);
+		int sample1_start_rows = image2_rotate.rows - width + width / 3;
+		int sample1_end_rows =	image2_rotate.rows - width / 3;
+		int sample1_start_cols = image2_rotate.cols / 3;
+		int sample1_end_cols = image2_rotate.cols - image2_rotate.cols / 3;
+		
+		Mat sample1_image = image2_rotate(cv::Range(sample1_start_rows, sample1_end_rows),
+													cv::Range(sample1_start_cols, sample1_end_cols));
+		
+		Point2i sample_point;
+		sample_point.x = image_point.x + sample1_start_cols;
+		sample_point.y = image_point.y + sample1_start_rows;
+		int sample2_start_rows = sample_point.y - AB_point_on_map[0].y;
+		int sample2_end_rows = sample2_start_rows + sample1_image.rows;
+		int sample2_start_cols = sample_point.x - AB_point_on_map[0].x;
+		int sample2_end_cols = sample2_start_cols + sample1_image.cols;
+		
+		strFile.clear();
+		strFile = "./rotate_image/";
+		strFile += string(image_name[0]);
+		Mat last_image_rotate = imread(strFile.c_str());
+		if(last_image_rotate.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+		Mat sample2_image = last_image_rotate(Range(sample2_start_rows, sample2_end_rows), Range(sample2_start_cols, sample2_end_cols));
+		
+				
+		Point2i sample_diff;
+		image_algorithm->Image_fast_mosaic_algorithm3(sample2_image, sample1_image, sample_diff);
+		
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+		
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+		
+				
+#endif
+		
 		AB_point_on_map[1].x = image_point.x;
 		AB_point_on_map[1].y = image_point.y;
 #if 0
@@ -1441,21 +1485,11 @@ int main(int argc, char **argv)
 		strFile += string(image_name[i]);
 
 		imwrite(strFile.c_str(), image_rotate);
-
-		//通过飞机姿态更新相机gps 位置
 		
-		AB_new_gps[i].alt = gps_location_AB[i].alt;
-		AB_new_gps[i].lat = gps_location_AB[i].lat;
-		AB_new_gps[i].lng = gps_location_AB[i].lng;
-
-
-		struct IMAGE_MOSAIC::Imu_data imu_data(pitch_AB[i], roll_AB[i], yaw_AB[i]);
-		image_algorithm->Location_update_baseon_pitch_roll(AB_new_gps[i], gps_base, imu_data);
-
 		//根据地图原点gps 坐标，计算该图片的坐标位置
 
-		float distance = image_algorithm->Get_distance(map_origin, AB_new_gps[i]) / scale;
-		float bearing = image_algorithm->Get_bearing_cd(map_origin, AB_new_gps[i]);
+		float distance = image_algorithm->Get_distance(map_origin, gps_location_AB[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_AB[i]);
 
 		Point2i image_point;
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
@@ -1465,8 +1499,8 @@ int main(int argc, char **argv)
 #if 1
 		//融合位置修正
 		float width  =  image_rotate.rows - (AB_point_on_map[i - 1].y - image_point.y);
-		int sample1_start_rows = image_rotate.rows - width + width / 3;
-		int sample1_end_rows =	image_rotate.rows - width / 3;
+		int sample1_start_rows = image_rotate.rows - width + width / 4;
+		int sample1_end_rows =	image_rotate.rows - width / 4;
 		int sample1_start_cols = image_rotate.cols / 3;
 		int sample1_end_cols = image_rotate.cols - image_rotate.cols / 3;
 
@@ -1498,11 +1532,9 @@ int main(int argc, char **argv)
 
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 
-		//if(sample_diff.x > -30 && sample_diff.x < 30 && sample_diff.y > -30 && sample_diff.y < 30)
-		{
-			image_point.y -= sample_diff.y;
-			image_point.x += sample_diff.x;
-		}
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+		
 
 		
 #endif
@@ -1512,7 +1544,7 @@ int main(int argc, char **argv)
 		
 
 
-#if 1
+#if 0
 		Mat dest_image;
 		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6);
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
