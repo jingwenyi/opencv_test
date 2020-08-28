@@ -1255,6 +1255,20 @@ int main(int argc, char **argv)
 	image_algorithm->Image_rotate(image1_resize, image1_rotate,	AB_bearing- yaw_AB[0]);
 	image_algorithm->Image_rotate(image2_resize, image2_rotate,	AB_bearing- yaw_AB[1]);
 
+	strFile.clear();
+	strFile = "./rotate_image/";
+	strFile += string(image_name[0]);
+
+	imwrite(strFile.c_str(), image1_rotate);
+
+	strFile.clear();
+	strFile = "./rotate_image/";
+	strFile += string(image_name[1]);
+
+	imwrite(strFile.c_str(), image2_rotate);
+	
+	
+
 	
 	
 	Point2i point_test;
@@ -1396,7 +1410,6 @@ int main(int argc, char **argv)
 
 	}
 
-	Mat last_image_rotate = image2_rotate.clone();
 	
 
 #if 1
@@ -1423,6 +1436,11 @@ int main(int argc, char **argv)
 		//对图片进行旋转
 		Mat image_rotate;
 		image_algorithm->Image_rotate(image_resize, image_rotate,	AB_bearing- yaw_AB[i]);
+		strFile.clear();
+		strFile = "./rotate_image/";
+		strFile += string(image_name[i]);
+
+		imwrite(strFile.c_str(), image_rotate);
 
 		//通过飞机姿态更新相机gps 位置
 		
@@ -1443,55 +1461,58 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
 		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
 
-		
 
-#if 0
+#if 1
 		//融合位置修正
-		float width  =  image_rotate.rows  - diff_distance_rows;
-		//
+		float width  =  image_rotate.rows - (AB_point_on_map[i - 1].y - image_point.y);
+		int sample1_start_rows = image_rotate.rows - width + width / 3;
+		int sample1_end_rows =	image_rotate.rows - width / 3;
+		int sample1_start_cols = image_rotate.cols / 3;
+		int sample1_end_cols = image_rotate.cols - image_rotate.cols / 3;
 
-		Mat sample1_image = last_image_rotate(cv::Range(AB_point_on_map[i - 1] + width / 3, image_rotate.rows - width / 3),
-											cv::Range(image_rotate.cols / 3, image_rotate.cols - image_rotate.cols / 3));
-		Mat sample2_image = image_rotate(cv::Range(image_rotate.rows - width + width / 3, image_rotate.rows - width / 3),
-											cv::Range(image_rotate.cols / 3, image_rotate.cols - image_rotate.cols / 3));
-		//Mat sample2_image = map_test(cv::Range(image_point.y + image_rotate.rows - width + width / 3, image_point.y + image_rotate.rows - width / 3),
-										//cv::Range(image_point.x + image_rotate.cols / 3, image_point.x + image_rotate.cols - image_rotate.cols / 3));
+		Mat sample1_image = image_rotate(cv::Range(sample1_start_rows, sample1_end_rows),
+											cv::Range(sample1_start_cols, sample1_end_cols));
+
+		Point2i sample_point;
+		sample_point.x = image_point.x + sample1_start_cols;
+		sample_point.y = image_point.y + sample1_start_rows;
+		int sample2_start_rows = sample_point.y - AB_point_on_map[i - 1].y;
+		int sample2_end_rows = sample2_start_rows + sample1_image.rows;
+		int sample2_start_cols = sample_point.x - AB_point_on_map[i - 1].x;
+		int sample2_end_cols = sample2_start_cols + sample1_image.cols;
+
+		strFile.clear();
+		strFile = "./rotate_image/";
+		strFile += string(image_name[i - 1]);
+		Mat last_image_rotate = imread(strFile.c_str());
+		if(last_image_rotate.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+		Mat sample2_image = last_image_rotate(Range(sample2_start_rows, sample2_end_rows), Range(sample2_start_cols, sample2_end_cols));
+
 		
 		Point2i sample_diff;
-		image_algorithm->Image_fast_mosaic_algorithm2(sample2_image, sample1_image, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm3(sample2_image, sample1_image, sample_diff);
 
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 
-		image_point.y -= sample_diff.y;
-		image_point.x -= sample_diff.x;
+		//if(sample_diff.x > -30 && sample_diff.x < 30 && sample_diff.y > -30 && sample_diff.y < 30)
+		{
+			image_point.y -= sample_diff.y;
+			image_point.x += sample_diff.x;
+		}
 
-#if 0
-		//根据更新， 更新对应的gps 坐标
-		float x_diff = (float)image_point.x + (float)image_rotate.cols / 2.0f;
-		float y_diff = (float)image_point.y + (float)image_rotate.rows / 2.0f;
-
-		float origin_this_image_distance = sqrt(pow(x_diff, 2) + pow(y_diff, 2)) * scale;
-
-		float bearing_temp = AB_bearing + 180 - atan2(x_diff, y_diff) * (180.0f / M_PI);
-
-		cout << "x_diff:" << x_diff << ",y_diff:" << y_diff << endl;
-		cout << "bearing temp:" << bearing_temp << ",origin distance:" << origin_this_image_distance << endl;
-
-		AB_new_gps[i].alt = map_origin.alt;
-		AB_new_gps[i].lat = map_origin.lat;
-		AB_new_gps[i].lng = map_origin.lng;
-
-		image_algorithm->Location_update(AB_new_gps[i], bearing_temp, origin_this_image_distance);
-
-#endif
 		
 #endif
 
 		AB_point_on_map[i].x = image_point.x;
 		AB_point_on_map[i].y = image_point.y;
+		
 
 
-#if 0
+#if 1
 		Mat dest_image;
 		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6);
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));

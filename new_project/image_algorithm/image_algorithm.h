@@ -108,6 +108,8 @@ public:
 	void Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
 	void Image_fast_mosaic_algorithm2(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
 
+	void Image_fast_mosaic_algorithm3(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+
 	float Get_distance(const struct Location &loc1, const struct Location &loc2);
 
 	float Longitude_scale(const struct Location &loc);
