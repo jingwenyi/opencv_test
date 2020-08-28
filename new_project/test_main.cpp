@@ -1370,8 +1370,8 @@ int main(int argc, char **argv)
 #if 1
 		//融合位置修正
 		float width  =	image2_rotate.rows - (AB_point_on_map[0].y - image_point.y);
-		int sample1_start_rows = image2_rotate.rows - width + width / 3;
-		int sample1_end_rows =	image2_rotate.rows - width / 3;
+		int sample1_start_rows = image2_rotate.rows - width + width / 5;
+		int sample1_end_rows =	image2_rotate.rows - width / 5;
 		int sample1_start_cols = image2_rotate.cols / 3;
 		int sample1_end_cols = image2_rotate.cols - image2_rotate.cols / 3;
 		
@@ -1499,8 +1499,8 @@ int main(int argc, char **argv)
 #if 1
 		//融合位置修正
 		float width  =  image_rotate.rows - (AB_point_on_map[i - 1].y - image_point.y);
-		int sample1_start_rows = image_rotate.rows - width + width / 4;
-		int sample1_end_rows =	image_rotate.rows - width / 4;
+		int sample1_start_rows = image_rotate.rows - width + width / 5;
+		int sample1_end_rows =	image_rotate.rows - width / 5;
 		int sample1_start_cols = image_rotate.cols / 3;
 		int sample1_end_cols = image_rotate.cols - image_rotate.cols / 3;
 
@@ -1584,6 +1584,15 @@ int main(int argc, char **argv)
 #endif
 		
 	}
+#endif
+
+
+
+#if 1
+	//第二条航线的拼接
+	//for
+
+
 #endif
 	imwrite("map_laset.jpg", map_test);
 	
