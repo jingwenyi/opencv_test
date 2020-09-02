@@ -1593,7 +1593,7 @@ int main(int argc, char **argv)
 	
 #if 1
 	
-	for(int i=0; i<29; i++)
+	for(int i=0; i<26; i++)
 	{
 		//读取图片
 		string strFile = "/home/wenyi/workspace/test_photo/";
@@ -1640,24 +1640,26 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-#if 0
+#if 1
 		//融合位置修正
 		float width  =	image_rotate.rows - (image_point.y - CD_point_on_map[i - 1].y);
-		int sample1_start_rows = image_rotate.rows - width + width / 5;
-		int sample1_end_rows =	image_rotate.rows - width / 5;
-		int sample1_start_cols = image_rotate.cols / 3;
-		int sample1_end_cols = image_rotate.cols - image_rotate.cols / 3;
+		int sample1_start_rows = image_rotate.rows / 6;
+		int sample1_end_rows =	width - width/3;
+		int sample1_start_cols = image_rotate.cols / 4;
+		int sample1_end_cols = image_rotate.cols - image_rotate.cols / 4;
 		
 		Mat sample1_image = image_rotate(cv::Range(sample1_start_rows, sample1_end_rows),
 													cv::Range(sample1_start_cols, sample1_end_cols));
 		
 		Point2i sample_point;
+
 		sample_point.x = image_point.x + sample1_start_cols;
 		sample_point.y = image_point.y + sample1_start_rows;
-		int sample2_start_rows = sample_point.y - AB_point_on_map[i - 1].y;
+		int sample2_start_rows = sample_point.y - CD_point_on_map[i - 1].y;
 		int sample2_end_rows = sample2_start_rows + sample1_image.rows;
-		int sample2_start_cols = sample_point.x - AB_point_on_map[i - 1].x;
+		int sample2_start_cols = sample_point.x - CD_point_on_map[i - 1].x;
 		int sample2_end_cols = sample2_start_cols + sample1_image.cols;
+		
 		
 		strFile.clear();
 		strFile = "./rotate_image/";
@@ -1668,11 +1670,12 @@ int main(int argc, char **argv)
 				cout << "failed to load:" << strFile << endl;
 				return -1;
 		}
+
+
 		Mat sample2_image = last_image_rotate(Range(sample2_start_rows, sample2_end_rows), Range(sample2_start_cols, sample2_end_cols));
-		
 				
 		Point2i sample_diff;
-		image_algorithm->Image_fast_mosaic_algorithm3(sample2_image, sample1_image, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm4(sample2_image, sample1_image, sample_diff);
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
@@ -1684,8 +1687,8 @@ int main(int argc, char **argv)
 		CD_point_on_map[i].y = image_point.y;
 #if 1
 		Mat dest_image;
-		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, image_rotate.rows / 6);
-		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + image_rotate.rows / 6, dest_image.cols, dest_image.rows)));
+		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, image_rotate.rows / 4);
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
 #else
 		//去掉上 边的1/6, 加权融合
 		int w = (image_rotate.rows - (CD_point_on_map[i].y - CD_point_on_map[i - 1].y)) / 4;
