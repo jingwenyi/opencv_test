@@ -1547,7 +1547,6 @@ int main(int argc, char **argv)
 		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::DOWN, image_rotate.rows / 6);
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 #else
-		//去掉下边的1/6, 加权融合
 		int w = (image_rotate.rows - (AB_point_on_map[i - 1].y - AB_point_on_map[i].y)) / 4;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
@@ -1685,25 +1684,24 @@ int main(int argc, char **argv)
 
 		CD_point_on_map[i].x = image_point.x;
 		CD_point_on_map[i].y = image_point.y;
-#if 1
+#if 0
 		Mat dest_image;
 		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, image_rotate.rows / 4);
 		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
 #else
-		//去掉上 边的1/6, 加权融合
 		int w = (image_rotate.rows - (CD_point_on_map[i].y - CD_point_on_map[i - 1].y)) / 4;
 		cout << "++++w:" << w << endl;
 		Mat dest_image;
-		int cut_size = w + image_rotate.rows / 2 * fabs(sin((AB_bearing- yaw_CD[i]) * (M_PI / 180.0f))) + 10;
+		int cut_size = w + image_rotate.rows / 2 * fabs(sin((AB_bearing - yaw_CD[i]) * (M_PI / 180.0f))) + 10;
 		if(cut_size > 2 * w)
 		{
 			cut_size = 2 * w;
 		}
-		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, cut_size);
-		int src_start_row = dest_image.rows;
-		int map_start_row = image_point.y + src_start_row;
+		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, cut_size + w);
+		int src_start_row = cut_size;
+		int map_start_row = image_point.y + cut_size;
 		int map_start_col = image_point.x;
-		float alpha = 1.0f;//src_image	中像素的权重
+		float alpha = 1.0f;//map	中像素的权重
 		for(int j=0; j<w; j++)
 		{
 			alpha = (float)(w-j) / (float)w;
@@ -1713,15 +1711,15 @@ int main(int argc, char **argv)
 				Scalar color2 = image_rotate.at<Vec3b>(src_start_row + j, k);
 		
 				Scalar color3;
-				color3(0) = color1(0) * (1 - alpha) + color2(0) * alpha;
-				color3(1) = color1(1) * (1 - alpha) + color2(1) * alpha;
-				color3(2) = color1(2) * (1 - alpha) + color2(2) * alpha;
+				color3(0) = color1(0) * alpha + color2(0) * (1 - alpha);
+				color3(1) = color1(1) * alpha + color2(1) * (1 - alpha);
+				color3(2) = color1(2) * alpha + color2(2) * (1 - alpha);
 		
 				map_test.at<Vec3b>(map_start_row + j, map_start_col + k) = Vec3b(color3(0), color3(1), color3(2));
 			}
 		}
 		
-		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + cut_size + w, dest_image.cols, dest_image.rows)));
 #endif
 		
 		
