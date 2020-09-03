@@ -1590,6 +1590,8 @@ int main(int argc, char **argv)
 	map_test.setTo(0);
 #else
 	//第一条航线最后一张图片和第二条航线第一张图片进行拼接
+
+	Point2i correct_point;
 	do{
 		//读取图片
 		string strFile = "/home/wenyi/workspace/test_photo/";
@@ -1666,6 +1668,9 @@ int main(int argc, char **argv)
 		image_algorithm->Image_fast_mosaic_algorithm4(sample2_image, sample1_image, sample_diff);
 			
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+
+		correct_point.x = sample_diff.x;
+		correct_point.y = sample_diff.y;
 			
 		image_point.y -= sample_diff.y;
 		image_point.x += sample_diff.x; 
@@ -1676,8 +1681,8 @@ int main(int argc, char **argv)
 
 #if 1
 		Mat dest_image;
-		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::LEFT, image_rotate.cols / 4);
-		dest_image.copyTo(map_test(Rect(image_point.x + image_rotate.cols / 4, image_point.y, dest_image.cols, dest_image.rows)));
+		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::LEFT, image_rotate.cols / 2);
+		dest_image.copyTo(map_test(Rect(image_point.x + image_rotate.cols / 2, image_point.y, dest_image.cols, dest_image.rows)));
 
 #else
 
@@ -1743,6 +1748,10 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+
+		image_point.y -= correct_point.y;
+		image_point.x += correct_point.x; 
+
 #if 1
 		//融合位置修正
 		float width  =	image_rotate.rows - (image_point.y - CD_point_on_map[i - 1].y);
@@ -1793,8 +1802,8 @@ int main(int argc, char **argv)
 		//image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, image_rotate.rows / 4);
 		//dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
 
-		Mat dest_image = image_rotate(Range(image_rotate.rows / 4, image_rotate.rows), Range(image_rotate.cols / 4, image_rotate.cols));
-		dest_image.copyTo(map_test(Rect(image_point.x + image_rotate.cols / 4, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
+		Mat dest_image = image_rotate(Range(image_rotate.rows / 4, image_rotate.rows), Range(image_rotate.cols / 2, image_rotate.cols));
+		dest_image.copyTo(map_test(Rect(image_point.x + image_rotate.cols / 2, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
 #else
 		int w = (image_rotate.rows - (CD_point_on_map[i].y - CD_point_on_map[i - 1].y)) / 4;
 		cout << "++++w:" << w << endl;
