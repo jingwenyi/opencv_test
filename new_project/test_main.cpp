@@ -1674,7 +1674,15 @@ int main(int argc, char **argv)
 		CD_point_on_map[0].y = image_point.y;
 
 
-		image_rotate.copyTo(map_test(Rect(image_point.x, image_point.y, image_rotate.cols, image_rotate.rows)));
+#if 1
+		Mat dest_image;
+		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::LEFT, image_rotate.cols / 4);
+		dest_image.copyTo(map_test(Rect(image_point.x + image_rotate.cols / 4, image_point.y, dest_image.cols, dest_image.rows)));
+
+#else
+
+
+#endif
 		
 		
 	}while(0);
@@ -1780,10 +1788,13 @@ int main(int argc, char **argv)
 
 		CD_point_on_map[i].x = image_point.x;
 		CD_point_on_map[i].y = image_point.y;
-#if 0
-		Mat dest_image;
-		image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, image_rotate.rows / 4);
-		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
+#if 1
+		//Mat dest_image;
+		//image_algorithm->Image_cut(image_rotate, dest_image, IMAGE_MOSAIC::Image_algorithm::UP, image_rotate.rows / 4);
+		//dest_image.copyTo(map_test(Rect(image_point.x, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
+
+		Mat dest_image = image_rotate(Range(image_rotate.rows / 4, image_rotate.rows), Range(image_rotate.cols / 4, image_rotate.cols));
+		dest_image.copyTo(map_test(Rect(image_point.x + image_rotate.cols / 4, image_point.y + image_rotate.rows / 4, dest_image.cols, dest_image.rows)));
 #else
 		int w = (image_rotate.rows - (CD_point_on_map[i].y - CD_point_on_map[i - 1].y)) / 4;
 		cout << "++++w:" << w << endl;
