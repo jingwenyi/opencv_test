@@ -1490,8 +1490,8 @@ int main(int argc, char **argv)
 		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_AB[i]);
 
 		Point2i image_point;
-		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
-		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
+		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image_rotate.cols / 2);
+		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image_rotate.rows / 2);
 
 
 #if 1
@@ -1586,13 +1586,109 @@ int main(int argc, char **argv)
 
 	cout << "the first line is ok---------------------" << endl;
 
+#if 0
 	map_test.setTo(0);
+#else
+	//第一条航线最后一张图片和第二条航线第一张图片进行拼接
+	do{
+		//读取图片
+		string strFile = "/home/wenyi/workspace/test_photo/";
+		strFile += string(image_name2[0]);
 
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		//对图片进行缩放
+		Mat image_resize;
+		image_algorithm->Image_resize(image, image_resize,	Size(image.cols / narrow_size, image.rows / narrow_size));
+
+
+		//对图片进行旋转
+		Mat image_rotate;
+		image_algorithm->Image_rotate(image_resize, image_rotate, AB_bearing - yaw_CD[0]);
+		strFile.clear();
+		strFile = "./rotate_image/";
+		strFile += string(image_name2[0]);
+
+		imwrite(strFile.c_str(), image_rotate);
+
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+		
+		float distance = image_algorithm->Get_distance(map_origin, gps_location_CD[0]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_CD[0]);
+		
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image_rotate.cols / 2);
+
+
+		
+		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image_rotate.rows / 2);
+
+#if 1
+		//融合位置修正
+		float width  =	image_rotate.rows - (image_point.y - AB_point_on_map[26].y);
+		int sample1_start_rows = 0;
+		int sample1_end_rows =	width - width/3;
+		int sample1_start_cols = 0;
+		int sample1_end_cols = image_rotate.cols - image_rotate.cols / 2;
+			
+		Mat sample1_image = image_rotate(cv::Range(sample1_start_rows, sample1_end_rows),
+														cv::Range(sample1_start_cols, sample1_end_cols));
+			
+		Point2i sample_point;
+	
+		sample_point.x = image_point.x + sample1_start_cols;
+		sample_point.y = image_point.y + sample1_start_rows;
+		int sample2_start_rows = sample_point.y - AB_point_on_map[26].y;
+		int sample2_end_rows = sample2_start_rows + sample1_image.rows;
+		int sample2_start_cols = sample_point.x - AB_point_on_map[26].x;
+		int sample2_end_cols = sample2_start_cols + sample1_image.cols;
+			
+			
+		strFile.clear();
+		strFile = "./rotate_image/";
+		strFile += string(image_name[26]);
+		Mat last_image_rotate = imread(strFile.c_str());
+		if(last_image_rotate.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+	
+	
+		Mat sample2_image = last_image_rotate(Range(sample2_start_rows, sample2_end_rows), Range(sample2_start_cols, sample2_end_cols));
+					
+		Point2i sample_diff;
+		image_algorithm->Image_fast_mosaic_algorithm4(sample2_image, sample1_image, sample_diff);
+			
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+			
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x; 
+#endif
+		CD_point_on_map[0].x = image_point.x;
+		CD_point_on_map[0].y = image_point.y;
+
+
+		image_rotate.copyTo(map_test(Rect(image_point.x, image_point.y, image_rotate.cols, image_rotate.rows)));
+		
+		
+	}while(0);
+
+
+#endif
+
+
+	cout << "the second line is start..." << endl;
 
 	
 #if 1
 	
-	for(int i=0; i<26; i++)
+	for(int i=1; i<26; i++)
 	{
 		//读取图片
 		string strFile = "/home/wenyi/workspace/test_photo/";
@@ -1627,8 +1723,8 @@ int main(int argc, char **argv)
 		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_location_CD[i]);
 		
 		Point2i image_point;
-		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.cols / 2);
-		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image2_rotate.rows / 2);
+		image_point.x = (int)(distance * sin((270 - bearing) * (M_PI / 180.0f)) - (float)image_rotate.cols / 2);
+		image_point.y = (int)(distance * cos((270 - bearing) * (M_PI / 180.0f)) - (float)image_rotate.rows / 2);
 
 
 		if(i==0)
