@@ -1749,9 +1749,12 @@ int main(int argc, char **argv)
 		}
 
 
+		//添加第一张图片计算出来的修正量
 		image_point.y -= correct_point.y;
 		image_point.x += correct_point.x; 
 
+
+		//上下融合
 #if 1
 		//融合位置修正
 		float width  =	image_rotate.rows - (image_point.y - CD_point_on_map[i - 1].y);
@@ -1794,6 +1797,58 @@ int main(int argc, char **argv)
 		image_point.y -= sample_diff.y;
 		image_point.x += sample_diff.x;	
 #endif
+
+		//左右融合
+#if 1
+		//融合位置修正
+		width  =	image_rotate.rows - abs((image_point.y - AB_point_on_map[26 - i].y));
+		sample1_start_rows = image_rotate.rows / 2;
+		sample1_end_rows =	image_rotate.rows - image_rotate.rows / 3;
+		sample1_start_cols = image_rotate.cols / 3;
+		sample1_end_cols = image_rotate.cols - image_rotate.cols / 2;
+			
+		Mat sample1_image_left = image_rotate(cv::Range(sample1_start_rows, sample1_end_rows),
+														cv::Range(sample1_start_cols, sample1_end_cols));
+			
+		sample_point;
+	
+		sample_point.x = image_point.x + sample1_start_cols;
+		sample_point.y = image_point.y + sample1_start_rows;
+		sample2_start_rows = sample_point.y - AB_point_on_map[26 - i].y;
+		sample2_end_rows = sample2_start_rows + sample1_image_left.rows;
+		sample2_start_cols = sample_point.x - AB_point_on_map[26 - i].x;
+		sample2_end_cols = sample2_start_cols + sample1_image_left.cols;
+
+		static int idx = 0;
+
+		if(image_point.y - AB_point_on_map[26 - i - idx].y > image_rotate.rows / 2)
+		{
+			idx++;
+			cout << "***************idx:************" << idx << endl;
+		}
+			
+		strFile.clear();
+		strFile = "./rotate_image/";
+		strFile += string(image_name[26 - i - idx]);
+		Mat left_image_rotate = imread(strFile.c_str());
+		if(left_image_rotate.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+	
+	
+		Mat sample2_image_left = left_image_rotate(Range(sample2_start_rows, sample2_end_rows), Range(sample2_start_cols, sample2_end_cols));
+					
+		sample_diff;
+		image_algorithm->Image_fast_mosaic_algorithm4(sample2_image_left, sample1_image_left, sample_diff);
+			
+		cout << "+++++++++ left +++++smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+			
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x; 
+#endif
+
 
 		CD_point_on_map[i].x = image_point.x;
 		CD_point_on_map[i].y = image_point.y;
