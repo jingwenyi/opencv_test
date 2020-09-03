@@ -2002,7 +2002,7 @@ int main(int argc, char **argv)
 #endif
 	
 
-	imwrite("map_laset.jpg", map_test);
+	imwrite("map_last.jpg", map_test);
 	
 
 	cout << "--------------I am ok------------" << endl;
