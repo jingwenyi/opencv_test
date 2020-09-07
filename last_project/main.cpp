@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
+#if 0
 
 	//测试读取gps 和imu 数据
 	string strFile = "/home/wenyi/workspace/DCIM/10000904/image_gps_imu.txt";
@@ -87,6 +88,49 @@ int main(int argc, char **argv)
 
         }
 		
+	}
+#endif
+
+	vector<string>  image_name;
+
+	string strFile = "/home/wenyi/workspace/DCIM/10000904/image_name.txt";
+
+	ifstream f;
+    f.open(strFile.c_str());
+
+	// skip first one lines
+    string s0;
+    getline(f,s0);
+
+	 while(!f.eof())
+    {
+		string s;
+        getline(f,s);
+        if(!s.empty())
+        {
+        	image_name.push_back(s);
+        }
+		
+	}
+
+#if 0
+	for(int i=0; i<image_name.size(); i++)
+	{
+		cout << image_name[i] << endl;
+	}
+#endif
+
+#if 0
+	for(auto name:image_name)
+	{
+		cout << name << endl;
+	}
+
+#endif
+
+	for(auto it = image_name.begin(); it != image_name.end(); ++it)
+	{
+		cout << *it << endl;
 	}
 
 	cout << "I am ok" << endl;
