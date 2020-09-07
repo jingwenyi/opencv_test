@@ -15,9 +15,11 @@ using namespace cv;
 
 int main(int argc, char **argv)
 {
+	vector<string>  image_name;
+	vector<struct IMAGE_MOSAIC::Location> gps_data;
+	vector<struct IMAGE_MOSAIC::Imu_data> imu_data;
+	
 
-#if 0
-	//测试读取所有的图像名称image_name.txt
 	string strFile = "/home/wenyi/workspace/DCIM/10000904/image_name.txt";
 
 	ifstream f;
@@ -33,25 +35,26 @@ int main(int argc, char **argv)
         getline(f,s);
         if(!s.empty())
         {
-        	cout << s << endl;;
+        	image_name.push_back(s);
         }
 		
 	}
-#endif
 
-#if 0
+	f.close();
+	strFile.clear();
 
-	//测试读取gps 和imu 数据
-	string strFile = "/home/wenyi/workspace/DCIM/10000904/image_gps_imu.txt";
 
-	ifstream f;
-    f.open(strFile.c_str());
+	for(auto name:image_name)
+	{
+		cout << name << endl;
+	}
 
+	strFile = "/home/wenyi/workspace/DCIM/10000904/image_gps_imu.txt";
+
+	f.open(strFile.c_str());
 	// skip first one lines
-	string s0;
-	getline(f,s0);
+    getline(f,s0);
 
-	cout << "lat\t" << "lng\t" << "alt\t" << "roll\t" << "pitch\t" << "yaw" << endl;
 	 while(!f.eof())
     {
 		string s;
@@ -83,54 +86,28 @@ int main(int argc, char **argv)
 
 			double yaw;
 			ss >> yaw;
-		
-		cout << setprecision(15) << lat << "\t" <<lng << "\t" << alt << "\t" << roll << "\t" << pitch << "\t" << yaw << endl;
+
+			struct IMAGE_MOSAIC::Location gps(alt * 100, lat * 1.0e7, lng * 1.0e7);
+			gps_data.push_back(gps);
+
+			struct IMAGE_MOSAIC::Imu_data imu(pitch, roll, yaw);
+			imu_data.push_back(imu);
 
         }
 		
 	}
-#endif
+	
+	f.close();
+	strFile.clear();
 
-	vector<string>  image_name;
-
-	string strFile = "/home/wenyi/workspace/DCIM/10000904/image_name.txt";
-
-	ifstream f;
-    f.open(strFile.c_str());
-
-	// skip first one lines
-    string s0;
-    getline(f,s0);
-
-	 while(!f.eof())
-    {
-		string s;
-        getline(f,s);
-        if(!s.empty())
-        {
-        	image_name.push_back(s);
-        }
-		
+	for(auto gps:gps_data)
+	{
+		cout << gps.alt << "\t" << gps.lat << "\t" << gps.lng << endl;
 	}
 
-#if 0
-	for(int i=0; i<image_name.size(); i++)
+	for(auto imu:imu_data)
 	{
-		cout << image_name[i] << endl;
-	}
-#endif
-
-#if 0
-	for(auto name:image_name)
-	{
-		cout << name << endl;
-	}
-
-#endif
-
-	for(auto it = image_name.begin(); it != image_name.end(); ++it)
-	{
-		cout << *it << endl;
+		cout << imu.pitch << "\t" << imu.roll << "\t" <<imu.yaw << endl;
 	}
 
 	cout << "I am ok" << endl;
