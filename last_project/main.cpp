@@ -15,6 +15,41 @@ using namespace cv;
 
 int main(int argc, char **argv)
 {
-	cout << "hello world" << endl;
+	//测试读取所有的图像名称image_name.txt
+	string strFile = "/home/wenyi/workspace/DCIM/10000904/image_name.txt";
+
+	ifstream f;
+    f.open(strFile.c_str());
+
+	// skip first one lines
+    string s0;
+    getline(f,s0);
+
+	 while(!f.eof())
+    {
+		string s;
+        getline(f,s);
+        if(!s.empty())
+        {
+        	cout << s << endl;;
+
+		#if 0
+            stringstream ss;
+            ss << s;
+            double t;
+            string sRGB;
+            ss >> t;
+            vTimestamps.push_back(t);
+            ss >> sRGB;
+            vstrImageFilenames.push_back(sRGB);
+		#endif
+        }
+		
+	}
+	
+	
+	
+
+	cout << "I am ok" << endl;
 	return 0;
 }
