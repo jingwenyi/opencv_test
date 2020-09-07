@@ -52,6 +52,21 @@ public:
 		ERR = 1
 	};
 
+public:  //for function
+
+	float Get_distance(const struct Location &loc1, const struct Location &loc2);
+
+	float Longitude_scale(const struct Location &loc);
+
+	float Constrain_float(float amt, float low, float high);
+
+	float Get_bearing_cd(const struct Location &loc1, const struct Location &loc2);
+
+	void Location_update(struct Location &loc, float bearing, float distance);
+
+	void Location_offset(struct Location &loc, float ofs_north, float ofs_east);
+
+	bool Is_zero(float a);
 };
 
 }//namespace IMAGE_MOSAIC

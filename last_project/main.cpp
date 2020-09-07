@@ -110,6 +110,34 @@ int main(int argc, char **argv)
 		cout << imu.pitch << "\t" << imu.roll << "\t" <<imu.yaw << endl;
 	}
 
+	
+
+	
+	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
+	float plane_bearing;
+
+
+	//用gps 位置坐标，求飞机的航线的航向
+	float last_bearing;
+	for(int i=0; i<gps_data.size() - 1; i++)
+	{
+		
+		float bearing = image_algorithm->Get_bearing_cd(gps_data[i], gps_data[i+1]);
+		if(i>0)
+		{
+			if(fabs(last_bearing - bearing) > 90)
+			{
+				plane_bearing = image_algorithm->Get_bearing_cd(gps_data[0], gps_data[i - 1]);
+				break;
+			}
+		}
+
+		last_bearing = bearing;
+		cout << "i:" << i << ", bearing:" << bearing << endl;
+	}
+
+	cout << "plane bearing:" << plane_bearing << endl;
+
 	cout << "I am ok" << endl;
 	return 0;
 }
