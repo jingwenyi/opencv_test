@@ -90,5 +90,20 @@ float Image_algorithm::Get_distance(const struct Location &loc1, const struct Lo
     return std::sqrt(std::pow(dlat, 2)  + std::pow(dlong, 2)) * LOCATION_SCALING_FACTOR;
 }
 
+
+void Image_algorithm::Image_rotate(cv::Mat& src_image,  cv::Mat& dest_image, double angle)
+{
+	cv::Point2f pt(src_image.cols/2, src_image.rows/2);
+	cv::Mat r = cv::getRotationMatrix2D(pt, angle, 1.0);
+	cv::warpAffine(src_image, dest_image, r, cv::Size(src_image.cols, src_image.rows));
+}
+
+
+void Image_algorithm::Image_resize(cv::Mat& src_image, cv::Mat& dest_image, cv::Size dsize)
+{
+	cv::resize(src_image, dest_image, dsize,cv::INTER_AREA);
+}
+
+
 } //namespace IMAGE_MOSAIC
 

@@ -6,6 +6,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <math.h>
 #include <limits.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "./image_algorithm/image_algorithm.h"
 
 using namespace std;
@@ -136,13 +140,81 @@ int main(int argc, char **argv)
 
 	//通过第一张和第二张图片计算
 
+	
+	//读取第一张图片
+	strFile = "/home/wenyi/workspace/DCIM/10000904/";
+	strFile += image_name[0];
+	
+	Mat image1 = imread(strFile.c_str());
+	
+	if(image1.empty())
+	{
+		cout << "failed to load:" << strFile << endl;
+		return -1;
+	}
+
+	strFile.clear();
+
+	strFile = "/home/wenyi/workspace/DCIM/10000904/";
+	strFile += image_name[1];
+	Mat image2 = imread(strFile.c_str());
+	
+	if(image2.empty())
+	{
+		cout << "failed to load:" << strFile << endl;
+		return -1;
+	}
+
+	strFile.clear();
+	
+	//旋转第一张和第二张图片
+	Mat image1_rotate, image2_rotate;
+	image_algorithm->Image_rotate(image1, image1_rotate, plane_bearing - imu_data[0].yaw);
+	image_algorithm->Image_rotate(image2, image2_rotate, plane_bearing - imu_data[1].yaw);
+
+	//保存旋转后的文件供后面使用
+	string dir = "./image_rotate";
+	if(access(dir.c_str(), 0) == -1)
+	{
+		cout << dir << " is not existing." << endl;
+		cout << "now make it!" << endl;
+		int flag = mkdir(dir.c_str(), 0777);
+
+		if(flag == 0)
+		{
+			cout << "make successfully" << endl;
+		}
+		else
+		{
+			cout << "mkdir error!" << endl;
+			return -1;
+		}
+	}
+	
+	strFile = "./image_rotate/";
+	strFile += image_name[0];
+	imwrite(strFile.c_str(), image1_rotate);
+	strFile.clear();
+	
+	strFile = "./image_rotate/";
+	strFile += image_name[1];
+	imwrite(strFile.c_str(), image2_rotate);
+	strFile.clear();
+	
+#if 0	
+	//为了快速拼接把图片缩小
+	loat narrow_size = 10.0f;
+	Mat image1_resize, image2_resize;
+	
+	image_algorithm->Image_resize(image1, image1_resize,	Size(image1.cols / narrow_size, image1.rows / narrow_size));
+	image_algorithm->Image_resize(image2, image2_resize,	Size(image2.cols / narrow_size, image2.rows / narrow_size));
 
 	//测试申请地图空间
 	Mat map_test(20000, 20000,CV_8UC3);
 	map_test.setTo(0);
 
 	imwrite("map.jpg", map_test);
-
+#endif
 	cout << "I am ok" << endl;
 	return 0;
 }

@@ -53,6 +53,9 @@ public:
 	};
 
 public:  //for function
+	void Image_rotate(cv::Mat& src_image, cv::Mat& dest_image, double angle);
+
+	void Image_resize(cv::Mat& src_image, cv::Mat& dest_image, cv::Size dsize);
 
 	float Get_distance(const struct Location &loc1, const struct Location &loc2);
 
