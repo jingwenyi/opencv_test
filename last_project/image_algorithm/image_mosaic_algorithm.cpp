@@ -241,10 +241,12 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 
 	//计算图像之间的拼接位置
 
-	
+	//y > 0, 表示第二张图片相对于第一张图片上移
+	//y < 0, 表示第二张图片相对于第一张图片下移
 	distance.y = min_err_idex[err_min_num] - start_row[err_min_num];
 	
-	//x < 0, 表示向左 移动的像素，x > 0 表示向 右移动的像素
+	//x > 0, 表示第二张图片相对于第一张图片右移
+	//x < 0 ,表示第二张图片相对于第一张图片左移
 	distance.x = diff_x / 2 - min_err_dis[err_min_num];
 
 #ifdef DUBUG

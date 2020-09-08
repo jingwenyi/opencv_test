@@ -119,6 +119,7 @@ int main(int argc, char **argv)
 	
 	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 	float plane_bearing;
+	float line_distance;
 
 	//用gps 位置坐标，求飞机的航线的航向
 	for(int i=0; i<gps_data.size() - 3; i++)
@@ -132,6 +133,7 @@ int main(int argc, char **argv)
 		if(fabs(bearing2 - bearing1) > 150)
 		{
 			plane_bearing = image_algorithm->Get_bearing_cd(gps_data[0], gps_data[i + 1]);
+			line_distance = image_algorithm->Get_distance(gps_data[0], gps_data[i + 1]);
 			break;
 		}
 	}
@@ -178,24 +180,117 @@ int main(int argc, char **argv)
 	
 	Point2i point_test;
 	image_algorithm->Image_fast_mosaic_algorithm(image1_resize, image2_resize,point_test);
-
-	cout << "point test11 x:" << point_test.x << ", y:" << point_test.y << endl;
 	
 	point_test.x *= narrow_size;
 	point_test.y *= narrow_size;
 
+	int flagx, flagy;
+
+	flagx = point_test.x > 0 ? true:false;
+	flagy = point_test.y > 0 ? true:false;
+
 	cout << "point test x:" << point_test.x << ", y:" << point_test.y << endl;
 
-	//在两张图片的公共块中取一个小块，进行进行对比
+	//由于x < 0, 第二张图片相对于第一张图片左移
+	//由于y < 0, 第二张图片相对于第一张图片下移
+	
+	//通过拼接位置求出两个图像中心像素点的距离
+	float image_center_distance = sqrt(pow(point_test.x, 2)  + pow(point_test.y, 2));
+	float gps_center_distance = image_algorithm->Get_distance(gps_data[0], gps_data[1]);
+
+	//求地图的比例尺
+	float scale;
+		
+	scale = gps_center_distance / image_center_distance;
+
+	cout << "scale :" << scale << endl;
 
 
-#if 0
+	Point2i map_size;
+	map_size.y = line_distance / scale;
+	map_size.y += 3000;
+
+	cout << "map size y:" << map_size.y << endl;
+	
 	//测试申请地图空间
-	Mat map_test(20000, 20000,CV_8UC3);
+	Mat map_test(30000, 30000,CV_8UC3);
 	map_test.setTo(0);
 
-	imwrite("map.jpg", map_test);
+
+	vector<Point2i> photo_on_map;
+
+	//第一张图片贴的位置
+	Point2i dest_point; 
+
+	//拼接第一张图片
+	if(!flagy)
+	{
+		dest_point.x = 2000;
+		dest_point.y = 2000;
+	}
+	else
+	{
+		
+	}
+
+	photo_on_map.push_back(dest_point);
+
+
+	image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1.cols, image1.rows)));
+
+	//通过第一张图片的位置计算map (0,0) 的gps坐标
+	struct IMAGE_MOSAIC::Location map_origin;
+
+
+	float diff_x = (float)dest_point.x + (float)image1.cols / 2.0f;
+	float diff_y = (float)dest_point.y + (float)image1.rows / 2.0f;
+
+	float origin_first_image_distance = sqrt(pow(diff_x, 2) + pow(diff_y, 2)) * scale;
+
+	float tmp_bearing = plane_bearing - atan2(diff_x, diff_y) * (180.0f / M_PI);
+	
+	map_origin.alt = gps_data[0].alt;
+	map_origin.lat = gps_data[0].lat;
+	map_origin.lng = gps_data[0].lng;
+
+	image_algorithm->Location_update(map_origin, tmp_bearing, origin_first_image_distance);
+
+	float distance = image_algorithm->Get_distance(map_origin, gps_data[0]) / scale;
+	float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[0]);
+	cout << "distance:" << distance << ",bearing:" << bearing << endl;
+
+
+	Point2i image_point;
+	image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image1.cols / 2);
+	image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image1.rows / 2);
+
+
+	cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
+
+#if 0
+	do
+	{
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[1]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[1]);
+
+		cout << "distance:" << distance << ",bearing:" << bearing << endl;
+		
+		// 求第二张图片的原点坐标
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.rows / 2);
+
+		photo_on_map.push_back(image_point);
+
+		cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
+
+		
+		//image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
+	}while(0);
 #endif
+
+	imwrite("map.jpg", map_test);
+
 	cout << "I am ok" << endl;
 	return 0;
 }
