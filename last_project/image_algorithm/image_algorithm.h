@@ -70,6 +70,9 @@ public:  //for function
 	void Location_offset(struct Location &loc, float ofs_north, float ofs_east);
 
 	bool Is_zero(float a);
+	
+	void Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance);
+
 };
 
 }//namespace IMAGE_MOSAIC

@@ -47,12 +47,12 @@ int main(int argc, char **argv)
 	f.close();
 	strFile.clear();
 
-
+#if 0
 	for(auto name:image_name)
 	{
 		cout << name << endl;
 	}
-
+#endif
 	strFile = "/home/wenyi/workspace/DCIM/10000904/image_gps_imu.txt";
 
 	f.open(strFile.c_str());
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	
 	f.close();
 	strFile.clear();
-
+#if 0
 	for(auto gps:gps_data)
 	{
 		cout << gps.alt << "\t" << gps.lat << "\t" << gps.lng << endl;
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		cout << imu.pitch << "\t" << imu.roll << "\t" <<imu.yaw << endl;
 	}
 
-	
+#endif
 
 	
 	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
@@ -166,49 +166,30 @@ int main(int argc, char **argv)
 	}
 
 	strFile.clear();
-	
-	//旋转第一张和第二张图片
-	Mat image1_rotate, image2_rotate;
-	image_algorithm->Image_rotate(image1, image1_rotate, plane_bearing - imu_data[0].yaw);
-	image_algorithm->Image_rotate(image2, image2_rotate, plane_bearing - imu_data[1].yaw);
 
-	//保存旋转后的文件供后面使用
-	string dir = "./image_rotate";
-	if(access(dir.c_str(), 0) == -1)
-	{
-		cout << dir << " is not existing." << endl;
-		cout << "now make it!" << endl;
-		int flag = mkdir(dir.c_str(), 0777);
-
-		if(flag == 0)
-		{
-			cout << "make successfully" << endl;
-		}
-		else
-		{
-			cout << "mkdir error!" << endl;
-			return -1;
-		}
-	}
-	
-	strFile = "./image_rotate/";
-	strFile += image_name[0];
-	imwrite(strFile.c_str(), image1_rotate);
-	strFile.clear();
-	
-	strFile = "./image_rotate/";
-	strFile += image_name[1];
-	imwrite(strFile.c_str(), image2_rotate);
-	strFile.clear();
-	
-#if 0	
 	//为了快速拼接把图片缩小
-	loat narrow_size = 10.0f;
+	float narrow_size = 4.0f;
 	Mat image1_resize, image2_resize;
 	
 	image_algorithm->Image_resize(image1, image1_resize,	Size(image1.cols / narrow_size, image1.rows / narrow_size));
 	image_algorithm->Image_resize(image2, image2_resize,	Size(image2.cols / narrow_size, image2.rows / narrow_size));
 
+	//快速求出拼接的大致位置
+	
+	Point2i point_test;
+	image_algorithm->Image_fast_mosaic_algorithm(image1_resize, image2_resize,point_test);
+
+	cout << "point test11 x:" << point_test.x << ", y:" << point_test.y << endl;
+	
+	point_test.x *= narrow_size;
+	point_test.y *= narrow_size;
+
+	cout << "point test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+	//在两张图片的公共块中取一个小块，进行进行对比
+
+
+#if 0
 	//测试申请地图空间
 	Mat map_test(20000, 20000,CV_8UC3);
 	map_test.setTo(0);
