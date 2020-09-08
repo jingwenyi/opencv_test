@@ -118,22 +118,19 @@ int main(int argc, char **argv)
 
 
 	//用gps 位置坐标，求飞机的航线的航向
-	float last_bearing;
-	for(int i=0; i<gps_data.size() - 1; i++)
+	for(int i=0; i<gps_data.size() - 3; i++)
 	{
 		
-		float bearing = image_algorithm->Get_bearing_cd(gps_data[i], gps_data[i+1]);
-		if(i>0)
-		{
-			if(fabs(last_bearing - bearing) > 90)
-			{
-				plane_bearing = image_algorithm->Get_bearing_cd(gps_data[0], gps_data[i - 1]);
-				break;
-			}
-		}
+		float bearing1 = image_algorithm->Get_bearing_cd(gps_data[i], gps_data[i + 1]);
+		float bearing2 = image_algorithm->Get_bearing_cd(gps_data[i + 2], gps_data[i + 3]);
 
-		last_bearing = bearing;
-		cout << "i:" << i << ", bearing:" << bearing << endl;
+		cout << "bearing1:" << bearing1 << ",bearing2:" << bearing2 << endl;
+		
+		if(fabs(bearing2 - bearing1) > 90)
+		{
+			plane_bearing = image_algorithm->Get_bearing_cd(gps_data[0], gps_data[i + 1]);
+			break;
+		}
 	}
 
 	cout << "plane bearing:" << plane_bearing << endl;
