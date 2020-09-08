@@ -116,7 +116,6 @@ int main(int argc, char **argv)
 	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 	float plane_bearing;
 
-
 	//用gps 位置坐标，求飞机的航线的航向
 	for(int i=0; i<gps_data.size() - 3; i++)
 	{
@@ -126,7 +125,7 @@ int main(int argc, char **argv)
 
 		cout << "bearing1:" << bearing1 << ",bearing2:" << bearing2 << endl;
 		
-		if(fabs(bearing2 - bearing1) > 90)
+		if(fabs(bearing2 - bearing1) > 150)
 		{
 			plane_bearing = image_algorithm->Get_bearing_cd(gps_data[0], gps_data[i + 1]);
 			break;
@@ -134,6 +133,15 @@ int main(int argc, char **argv)
 	}
 
 	cout << "plane bearing:" << plane_bearing << endl;
+
+	//通过第一张和第二张图片计算
+
+
+	//测试申请地图空间
+	Mat map_test(20000, 20000,CV_8UC3);
+	map_test.setTo(0);
+
+	imwrite("map.jpg", map_test);
 
 	cout << "I am ok" << endl;
 	return 0;
