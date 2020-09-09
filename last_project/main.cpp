@@ -272,14 +272,89 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.cols / 2);
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.rows / 2);
 
+#if 0
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+
+		width_y = image2.rows - abs(image_point.y - photo_on_map[0].y);
+		width_x = image2.cols - abs(image_point.x - photo_on_map[0].x);
+
+		int w_y = 200;
+		int w_x = 400;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+		
+		if(photo_on_map[0].y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+
+			sample2_start_rows = abs(image_point.y - photo_on_map[0].y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - photo_on_map[0].y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - photo_on_map[0].y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - photo_on_map[0].y) + width_y / 2 + w_y;
+
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+
+
+		if(photo_on_map[0].x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+
+			sample2_start_cols = abs(image_point.x - photo_on_map[0].x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - photo_on_map[0].x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - photo_on_map[0].x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - photo_on_map[0].x) + width_x / 2 + w_x;
+			
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+
+
+		Mat sample1_image = image2(cv::Range(sample1_start_rows, sample1_end_rows),
+													cv::Range(sample1_start_cols, sample1_end_cols));
+		Mat sample2_image = image1(cv::Range(sample2_start_rows, sample2_end_rows),
+													cv::Range(sample2_start_cols, sample2_end_cols));
+
+
+		Point2i sample_diff;
+		image_algorithm->Image_fast_mosaic_algorithm2(sample2_image, sample1_image, sample_diff);
+		
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+		
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+#endif
 		photo_on_map.push_back(image_point);
 
 		cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
 
-		
 		image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
+
 	}while(0);
 
+
+#if 1
+
+	Mat image_last = image2.clone();
 
 	for(int i=2; i<image_name.size(); i++)
 	{
@@ -307,12 +382,94 @@ int main(int argc, char **argv)
 
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 
+
+		
+#if 0
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+
+		width_y = image2.rows - abs(image_point.y - photo_on_map[i - 1].y);
+		width_x = image2.cols - abs(image_point.x - photo_on_map[i - 1].x);
+
+		int w_y = 200;
+		int w_x = 400;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+		
+		if(photo_on_map[i - 1].y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+
+			sample2_start_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2 + w_y;
+
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+
+
+		if(photo_on_map[i - 1].x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+
+			sample2_start_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 + w_x;
+			
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+
+
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+													cv::Range(sample1_start_cols, sample1_end_cols));
+
+		
+		
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+													cv::Range(sample2_start_cols, sample2_end_cols));
+
+
+		Point2i sample_diff;
+		image_algorithm->Image_fast_mosaic_algorithm2(sample2_image, sample1_image, sample_diff);
+		
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+		
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+#endif
+
+
 		photo_on_map.push_back(image_point);
 
 
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
 
+
+		image_last.release();
+		image_last = image.clone();
 	}
+#endif
 
 	cout << "save map, please Wait a few minutes ..." << endl;;
 
