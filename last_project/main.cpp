@@ -213,7 +213,7 @@ int main(int argc, char **argv)
 	cout << "map size y:" << map_size.y << endl;
 	
 	//测试申请地图空间
-	Mat map_test(30000, 30000,CV_8UC3);
+	Mat map_test(38000, 32000,CV_8UC3);
 	map_test.setTo(0);
 
 
@@ -225,8 +225,8 @@ int main(int argc, char **argv)
 	//拼接第一张图片
 	if(!flagy)
 	{
-		dest_point.x = 2000;
-		dest_point.y = 2000;
+		dest_point.x = 22000;
+		dest_point.y = 3500;
 
 		plane_bearing -= 180;
 	}
@@ -235,9 +235,11 @@ int main(int argc, char **argv)
 		
 	}
 
+
+
 	photo_on_map.push_back(dest_point);
 
-
+	cout << "copy the first image." << endl;
 	image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1.cols, image1.rows)));
 
 	//通过第一张图片的位置计算map (0,0) 的gps坐标
@@ -257,6 +259,7 @@ int main(int argc, char **argv)
 
 	image_algorithm->Location_update(map_origin, tmp_bearing, origin_first_image_distance);
 
+	//贴第二张图片
 	do
 	{
 		float distance = image_algorithm->Get_distance(map_origin, gps_data[1]) / scale;
@@ -277,8 +280,46 @@ int main(int argc, char **argv)
 		image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
 	}while(0);
 
+
+	for(int i=2; i<image_name.size(); i++)
+	{
+		//读取图片
+		string strFile = "/home/wenyi/workspace/DCIM/10000904/";
+		strFile += image_name[i];
+
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+		photo_on_map.push_back(image_point);
+
+
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
+
+	}
+
+	cout << "save map, please Wait a few minutes ..." << endl;;
+
 	imwrite("map.jpg", map_test);
 
+
+	waitKey();
 	cout << "I am ok" << endl;
 	return 0;
 }
