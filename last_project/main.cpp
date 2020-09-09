@@ -227,6 +227,8 @@ int main(int argc, char **argv)
 	{
 		dest_point.x = 2000;
 		dest_point.y = 2000;
+
+		plane_bearing -= 180;
 	}
 	else
 	{
@@ -255,19 +257,6 @@ int main(int argc, char **argv)
 
 	image_algorithm->Location_update(map_origin, tmp_bearing, origin_first_image_distance);
 
-	float distance = image_algorithm->Get_distance(map_origin, gps_data[0]) / scale;
-	float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[0]);
-	cout << "distance:" << distance << ",bearing:" << bearing << endl;
-
-
-	Point2i image_point;
-	image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image1.cols / 2);
-	image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image1.rows / 2);
-
-
-	cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
-
-#if 0
 	do
 	{
 		float distance = image_algorithm->Get_distance(map_origin, gps_data[1]) / scale;
@@ -285,9 +274,8 @@ int main(int argc, char **argv)
 		cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
 
 		
-		//image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
+		image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
 	}while(0);
-#endif
 
 	imwrite("map.jpg", map_test);
 
