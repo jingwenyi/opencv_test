@@ -213,7 +213,8 @@ int main(int argc, char **argv)
 	cout << "map size y:" << map_size.y << endl;
 	
 	//测试申请地图空间
-	Mat map_test(38000, 32000,CV_8UC3);
+	//Mat map_test(38000, 32000,CV_8UC3);
+	Mat map_test(15000, 15000,CV_8UC3);
 	map_test.setTo(0);
 
 
@@ -225,9 +226,11 @@ int main(int argc, char **argv)
 	//拼接第一张图片
 	if(!flagy)
 	{
-		dest_point.x = 22000;
-		dest_point.y = 3500;
+		//dest_point.x = 22000;
+		//dest_point.y = 3500;
 
+		dest_point.x = 5000;
+		dest_point.y = 1000;
 		plane_bearing -= 180;
 	}
 	else
@@ -272,7 +275,7 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.cols / 2);
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.rows / 2);
 
-#if 0
+#if 1
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
@@ -281,8 +284,8 @@ int main(int argc, char **argv)
 		width_y = image2.rows - abs(image_point.y - photo_on_map[0].y);
 		width_x = image2.cols - abs(image_point.x - photo_on_map[0].x);
 
-		int w_y = 200;
-		int w_x = 400;
+		int w_y = 1000;
+		int w_x = 2000;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -352,7 +355,7 @@ int main(int argc, char **argv)
 	}while(0);
 
 
-#if 1
+#if 0
 
 	Mat image_last = image2.clone();
 
@@ -384,7 +387,7 @@ int main(int argc, char **argv)
 
 
 		
-#if 0
+#if 1
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
@@ -393,8 +396,8 @@ int main(int argc, char **argv)
 		width_y = image2.rows - abs(image_point.y - photo_on_map[i - 1].y);
 		width_x = image2.cols - abs(image_point.x - photo_on_map[i - 1].x);
 
-		int w_y = 200;
-		int w_x = 400;
+		int w_y = 1000;
+		int w_x = 2000;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
