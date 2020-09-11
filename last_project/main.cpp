@@ -329,7 +329,7 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.cols / 2);
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.rows / 2);
 
-#if 0
+#if 1
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
@@ -338,8 +338,8 @@ int main(int argc, char **argv)
 		width_y = image2.rows - abs(image_point.y - photo_on_map[0].y);
 		width_x = image2.cols - abs(image_point.x - photo_on_map[0].x);
 
-		int w_y = 1500;
-		int w_x = 2000;
+		int w_y = 750;
+		int w_x = 1000;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -439,7 +439,7 @@ int main(int argc, char **argv)
 
 	Mat image_last = image2.clone();
 
-	for(int i=2; i<image_name.size(); i++)
+	for(int i=2; i<20; i++)
 	{
 		//读取图片
 		string strFile = "./resize_image/";
@@ -467,7 +467,7 @@ int main(int argc, char **argv)
 
 
 		
-#if 0
+#if 1
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
@@ -476,8 +476,8 @@ int main(int argc, char **argv)
 		width_y = image2.rows - abs(image_point.y - photo_on_map[i - 1].y);
 		width_x = image2.cols - abs(image_point.x - photo_on_map[i - 1].x);
 
-		int w_y = 1000;
-		int w_x = 2000;
+		int w_y = 750;
+		int w_x = 1000;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
