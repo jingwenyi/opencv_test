@@ -116,10 +116,67 @@ int main(int argc, char **argv)
 
 #endif
 
-	
 	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 	float plane_bearing;
 	float line_distance;
+
+
+#if 0
+	//原图太大对图像进行压缩
+	std::string dir = "./resize_image";
+	if(access(dir.c_str(), 0) == -1)
+	{
+		std::cout << dir << " is not existing." << std::endl;
+		std::cout << "now make it!" << std::endl;
+		int flag = mkdir(dir.c_str(), 0777);
+	
+		if(flag == 0)
+		{
+			std::cout << "make successfully" << std::endl;
+		}
+		else
+		{
+			std::cout << "mkdir error!" << std::endl;
+			return -1;
+		}
+	}
+
+	for(int i=0; i<image_name.size(); i++)
+	{
+		//读取第一张图片
+		strFile.clear();
+		strFile = "/home/wenyi/workspace/DCIM/10000904/";
+		strFile += image_name[i];
+
+
+		Mat image = imread(strFile.c_str());
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		Mat image_resize;
+
+		
+		image_algorithm->Image_resize(image, image_resize,	Size(image.cols / 2, image.rows / 2));
+
+
+		strFile.clear();
+		strFile = "./resize_image/";
+		strFile += string(image_name[i]);
+
+		imwrite(strFile.c_str(), image_resize);
+
+		
+	}
+
+#endif
+
+
+
+	
 
 	//用gps 位置坐标，求飞机的航线的航向
 	for(int i=0; i<gps_data.size() - 3; i++)
@@ -144,7 +201,7 @@ int main(int argc, char **argv)
 
 	
 	//读取第一张图片
-	strFile = "/home/wenyi/workspace/DCIM/10000904/";
+	strFile = "./resize_image/";
 	strFile += image_name[0];
 	
 	Mat image1 = imread(strFile.c_str());
@@ -157,7 +214,7 @@ int main(int argc, char **argv)
 
 	strFile.clear();
 
-	strFile = "/home/wenyi/workspace/DCIM/10000904/";
+	strFile = "./resize_image/";
 	strFile += image_name[1];
 	Mat image2 = imread(strFile.c_str());
 	
@@ -170,7 +227,7 @@ int main(int argc, char **argv)
 	strFile.clear();
 
 	//为了快速拼接把图片缩小
-	float narrow_size = 4.0f;
+	float narrow_size = 2.0f;
 	Mat image1_resize, image2_resize;
 	
 	image_algorithm->Image_resize(image1, image1_resize,	Size(image1.cols / narrow_size, image1.rows / narrow_size));
@@ -213,7 +270,7 @@ int main(int argc, char **argv)
 	cout << "map size y:" << map_size.y << endl;
 	
 	//测试申请地图空间
-	Mat map_test(38000, 32000,CV_8UC3);
+	Mat map_test(24000, 20000,CV_8UC3);
 	map_test.setTo(0);
 
 
@@ -225,8 +282,8 @@ int main(int argc, char **argv)
 	//拼接第一张图片
 	if(!flagy)
 	{
-		dest_point.x = 22000;
-		dest_point.y = 3500;
+		dest_point.x = 13000;
+		dest_point.y = 3000;
 
 		plane_bearing -= 180;
 	}
@@ -272,7 +329,7 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.cols / 2);
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.rows / 2);
 
-#if 1
+#if 0
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
@@ -385,7 +442,7 @@ int main(int argc, char **argv)
 	for(int i=2; i<image_name.size(); i++)
 	{
 		//读取图片
-		string strFile = "/home/wenyi/workspace/DCIM/10000904/";
+		string strFile = "./resize_image/";
 		strFile += image_name[i];
 
 		Mat image = imread(strFile.c_str());
@@ -410,7 +467,7 @@ int main(int argc, char **argv)
 
 
 		
-#if 1
+#if 0
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
