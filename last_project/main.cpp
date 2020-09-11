@@ -213,8 +213,7 @@ int main(int argc, char **argv)
 	cout << "map size y:" << map_size.y << endl;
 	
 	//测试申请地图空间
-	//Mat map_test(38000, 32000,CV_8UC3);
-	Mat map_test(15000, 15000,CV_8UC3);
+	Mat map_test(38000, 32000,CV_8UC3);
 	map_test.setTo(0);
 
 
@@ -226,11 +225,9 @@ int main(int argc, char **argv)
 	//拼接第一张图片
 	if(!flagy)
 	{
-		//dest_point.x = 22000;
-		//dest_point.y = 3500;
+		dest_point.x = 22000;
+		dest_point.y = 3500;
 
-		dest_point.x = 5000;
-		dest_point.y = 1000;
 		plane_bearing -= 180;
 	}
 	else
@@ -284,7 +281,7 @@ int main(int argc, char **argv)
 		width_y = image2.rows - abs(image_point.y - photo_on_map[0].y);
 		width_x = image2.cols - abs(image_point.x - photo_on_map[0].x);
 
-		int w_y = 1000;
+		int w_y = 1500;
 		int w_x = 2000;
 		if(w_y > width_y / 2)
 		{
@@ -337,9 +334,35 @@ int main(int argc, char **argv)
 		Mat sample2_image = image1(cv::Range(sample2_start_rows, sample2_end_rows),
 													cv::Range(sample2_start_cols, sample2_end_cols));
 
+		//对图片进行模仿处理
+		Mat blur_image1, blur_image2;
+#if 0
+		//均值滤波
+		blur(sample1_image, blur_image1, Size(3, 3));
+		blur(sample2_image, blur_image2, Size(3, 3));
+#endif
+
+#if 1
+		//高斯滤波
+		GaussianBlur(sample1_image, blur_image1, Size(3,3),11,11);
+		GaussianBlur(sample2_image, blur_image2, Size(3,3),11,11);
+#endif
+
+#if 0
+		//中值滤波
+		medianBlur(sample1_image, blur_image1,3);
+		medianBlur(sample2_image, blur_image2,3);
+#endif
+
+#if 0
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+#endif
+
 
 		Point2i sample_diff;
-		image_algorithm->Image_fast_mosaic_algorithm2(sample2_image, sample1_image, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
@@ -355,7 +378,7 @@ int main(int argc, char **argv)
 	}while(0);
 
 
-#if 0
+#if 1
 
 	Mat image_last = image2.clone();
 
@@ -452,9 +475,35 @@ int main(int argc, char **argv)
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 													cv::Range(sample2_start_cols, sample2_end_cols));
 
+		//对图片进行模仿处理
+		Mat blur_image1, blur_image2;
+
+#if 0
+		//均值滤波
+		blur(sample1_image, blur_image1, Size(3, 3));
+		blur(sample2_image, blur_image2, Size(3, 3));
+#endif
+
+#if 1
+		//高斯滤波
+		GaussianBlur(sample1_image, blur_image1, Size(3,3),11,11);
+		GaussianBlur(sample2_image, blur_image2, Size(3,3),11,11);
+#endif
+
+#if 0
+		//中值滤波
+		medianBlur(sample1_image, blur_image1,3);
+		medianBlur(sample2_image, blur_image2,3);
+#endif
+
+#if 0
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+#endif
 
 		Point2i sample_diff;
-		image_algorithm->Image_fast_mosaic_algorithm2(sample2_image, sample1_image, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		

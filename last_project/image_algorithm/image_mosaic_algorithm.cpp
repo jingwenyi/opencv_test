@@ -123,7 +123,7 @@ void Image_algorithm::Image_fast_mosaic_algorithm2(cv::Mat &src_image1, cv::Mat 
 	//图像1 和图像2  在x 方向上可能移动的最大距离 diff_x
 	int diff_x;
 	diff_x = image_size.x / 20;
-	image1_sample_size.x = image_size.x / 2;
+	image1_sample_size.x = image_size.x / 4;
 	image1_sample_size.y = image_size.y / 6;
 		
 	cv::Point2i image2_sample_size(image1_sample_size.x + diff_x, image1_sample_size.y);
