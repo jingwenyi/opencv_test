@@ -234,9 +234,25 @@ int main(int argc, char **argv)
 	image_algorithm->Image_resize(image2, image2_resize,	Size(image2.cols / narrow_size, image2.rows / narrow_size));
 
 	//快速求出拼接的大致位置
+
+	//获取第一张图片的下边 1/2  和第二张图的上边1/2 进行比较
+	Mat image1_down, image2_up;
+	image1_down = image1_resize(cv::Range(image1_resize.rows / 2, image1_resize.rows),
+													cv::Range(0, image1_resize.cols));
+
+	image2_up = image2_resize(cv::Range(0, image2_resize.rows / 2),
+													cv::Range(0, image2_resize.cols));
+
+	//对图片进行模仿处理
+	Mat image1_blur, image2_blur;
+	//双边滤波
+	bilateralFilter(image1_down, image1_blur,15,100,3);
+	bilateralFilter(image2_up, image2_blur,15,100,3);
 	
 	Point2i point_test;
-	image_algorithm->Image_fast_mosaic_algorithm(image1_resize, image2_resize,point_test);
+	image_algorithm->Image_fast_mosaic_algorithm(image1_blur, image2_blur,point_test);
+
+	point_test.y -= image1_resize.rows / 2;
 	
 	point_test.x *= narrow_size;
 	point_test.y *= narrow_size;
@@ -247,6 +263,7 @@ int main(int argc, char **argv)
 	flagy = point_test.y > 0 ? true:false;
 
 	cout << "point test x:" << point_test.x << ", y:" << point_test.y << endl;
+
 
 	//由于x < 0, 第二张图片相对于第一张图片左移
 	//由于y < 0, 第二张图片相对于第一张图片下移
@@ -294,10 +311,10 @@ int main(int argc, char **argv)
 
 
 
-	//photo_on_map.push_back(dest_point);
+	photo_on_map[0].push_back(dest_point);
 
 	cout << "copy the first image." << endl;
-	//image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1.cols, image1.rows)));
+	image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1.cols, image1.rows)));
 
 	//通过第一张图片的位置计算map (0,0) 的gps坐标
 	struct IMAGE_MOSAIC::Location map_origin;
@@ -426,13 +443,16 @@ int main(int argc, char **argv)
 		image_point.y -= sample_diff.y;
 		image_point.x += sample_diff.x;
 #endif
-		//photo_on_map.push_back(image_point);
+		photo_on_map[0].push_back(image_point);
 
 		cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
 
-		//image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
+		image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
 
 	}while(0);
+
+
+return 0;
 
 
 #if 1
