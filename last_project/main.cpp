@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 	float line_distance;
 
 
-#if 1
+#if 0
 	//原图太大对图像进行压缩
 	std::string dir = "./resize_image";
 	if(access(dir.c_str(), 0) == -1)
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 	map_test.setTo(0);
 
 
-	vector<Point2i> photo_on_map;
+	vector<vector<Point2i> > photo_on_map(11);
 
 	//第一张图片贴的位置
 	Point2i dest_point; 
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
 
 
 
-	photo_on_map.push_back(dest_point);
+	//photo_on_map.push_back(dest_point);
 
 	cout << "copy the first image." << endl;
 	//image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1.cols, image1.rows)));
@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 		image_point.y -= sample_diff.y;
 		image_point.x += sample_diff.x;
 #endif
-		photo_on_map.push_back(image_point);
+		//photo_on_map.push_back(image_point);
 
 		cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
 
@@ -571,7 +571,7 @@ int main(int argc, char **argv)
 #endif
 
 
-		photo_on_map.push_back(image_point);
+		photo_on_map[0].push_back(image_point);
 
 
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -612,7 +612,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 
 
-		photo_on_map.push_back(image_point);
+		photo_on_map[1].push_back(image_point);
 
 
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -654,7 +654,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 
 
-		photo_on_map.push_back(image_point);
+		photo_on_map[2].push_back(image_point);
 
 
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -698,7 +698,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 	
 	
-		photo_on_map.push_back(image_point);
+		photo_on_map[3].push_back(image_point);
 	
 	
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -742,7 +742,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 		
 		
-		photo_on_map.push_back(image_point);
+		photo_on_map[4].push_back(image_point);
 		
 		
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -786,7 +786,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 			
 			
-		photo_on_map.push_back(image_point);
+		photo_on_map[5].push_back(image_point);
 			
 			
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -828,7 +828,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 				
 				
-		photo_on_map.push_back(image_point);
+		photo_on_map[6].push_back(image_point);
 				
 				
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -869,7 +869,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 					
 					
-		photo_on_map.push_back(image_point);
+		photo_on_map[7].push_back(image_point);
 					
 					
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -910,7 +910,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 						
 						
-		photo_on_map.push_back(image_point);
+		photo_on_map[8].push_back(image_point);
 						
 						
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -952,7 +952,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 							
 							
-		photo_on_map.push_back(image_point);
+		photo_on_map[9].push_back(image_point);
 							
 							
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
@@ -994,7 +994,7 @@ int main(int argc, char **argv)
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 								
 								
-		photo_on_map.push_back(image_point);
+		photo_on_map[10].push_back(image_point);
 								
 								
 		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
