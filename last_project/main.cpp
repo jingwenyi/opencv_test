@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 	float line_distance;
 
 
-#if 0
+#if 1
 	//原图太大对图像进行压缩
 	std::string dir = "./resize_image";
 	if(access(dir.c_str(), 0) == -1)
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
 	cout << "map size y:" << map_size.y << endl;
 	
 	//测试申请地图空间
-	Mat map_test(24000, 20000,CV_8UC3);
+	Mat map_test(16000, 16000,CV_8UC3);
 	map_test.setTo(0);
 
 
@@ -282,8 +282,8 @@ int main(int argc, char **argv)
 	//拼接第一张图片
 	if(!flagy)
 	{
-		dest_point.x = 13000;
-		dest_point.y = 3000;
+		dest_point.x = 11000;
+		dest_point.y = 1500;
 
 		plane_bearing -= 180;
 	}
@@ -297,7 +297,7 @@ int main(int argc, char **argv)
 	photo_on_map.push_back(dest_point);
 
 	cout << "copy the first image." << endl;
-	image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1.cols, image1.rows)));
+	//image1.copyTo(map_test(Rect(dest_point.x , dest_point.y, image1.cols, image1.rows)));
 
 	//通过第一张图片的位置计算map (0,0) 的gps坐标
 	struct IMAGE_MOSAIC::Location map_origin;
@@ -329,7 +329,7 @@ int main(int argc, char **argv)
 		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.cols / 2);
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image2.rows / 2);
 
-#if 1
+#if 0
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
@@ -430,16 +430,18 @@ int main(int argc, char **argv)
 
 		cout << "x:" << image_point.x << ", y:" <<image_point.y << endl;
 
-		image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
+		//image2.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
 
 	}while(0);
 
 
 #if 1
 
+
+	//第一条航线 9 张图片
 	Mat image_last = image2.clone();
 
-	for(int i=2; i<20; i++)
+	for(int i=2; i<11; i++)
 	{
 		//读取图片
 		string strFile = "./resize_image/";
@@ -467,7 +469,7 @@ int main(int argc, char **argv)
 
 
 		
-#if 1
+#if 0
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
@@ -572,13 +574,438 @@ int main(int argc, char **argv)
 		photo_on_map.push_back(image_point);
 
 
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image2.cols, image2.rows)));
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
 
 
 		image_last.release();
 		image_last = image.clone();
 	}
 #endif
+
+
+#if 1
+	//第二条8张图片
+	for(int i=14; i<22; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+
+		photo_on_map.push_back(image_point);
+
+
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+
+
+		image_last.release();
+		image_last = image.clone();
+	}
+
+#endif
+
+
+#if 1
+	//第三条航线8 张图片
+	for(int i=25; i<33; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+
+		photo_on_map.push_back(image_point);
+
+
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+
+
+		image_last.release();
+		image_last = image.clone();
+	}
+
+
+
+#endif
+
+
+#if 1
+	//第四 条航线8 张图片
+	for(int i=36; i<44; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+	
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+	
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+	
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+	
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+	
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+	
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+	
+	
+		photo_on_map.push_back(image_point);
+	
+	
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+	
+	
+		image_last.release();
+		image_last = image.clone();
+	}
+	
+	
+	
+#endif
+
+
+#if 1
+	//第五 条航线8 张图片
+	for(int i=47; i<55; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+		
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+		
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+		
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+		
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+		
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+		
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+		
+		
+		photo_on_map.push_back(image_point);
+		
+		
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		
+		
+		image_last.release();
+		image_last = image.clone();
+	}
+		
+		
+		
+#endif
+
+
+#if 1
+	//第六 条航线8张图片
+	for(int i=58; i<66; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+			
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+			
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+			
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+			
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+			
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+			
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+			
+			
+		photo_on_map.push_back(image_point);
+			
+			
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+			
+			
+		image_last.release();
+		image_last = image.clone();
+	}
+#endif
+
+
+
+#if 1
+	//第七 条航线9 张图片
+	for(int i=68; i<77; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+				
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+				
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+				
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+				
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+				
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+				
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+				
+				
+		photo_on_map.push_back(image_point);
+				
+				
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+				
+				
+		image_last.release();
+		image_last = image.clone();
+	}
+#endif
+
+
+#if 1
+	//第八 条航线8 张图片
+	for(int i=80; i<88; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+					
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+					
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+					
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+					
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+					
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+					
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+					
+					
+		photo_on_map.push_back(image_point);
+					
+					
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+					
+					
+		image_last.release();
+		image_last = image.clone();
+	}
+#endif
+
+
+#if 1
+	//第九 条航线9 张图片
+	for(int i=90; i<99; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+						
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+						
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+						
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+						
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+						
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+						
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+						
+						
+		photo_on_map.push_back(image_point);
+						
+						
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+						
+						
+		image_last.release();
+		image_last = image.clone();
+	}
+#endif
+
+
+
+#if 1
+	//第十条航线8张图片
+	for(int i=102; i<110; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+							
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+							
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+							
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+							
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+							
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+							
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+							
+							
+		photo_on_map.push_back(image_point);
+							
+							
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+							
+							
+		image_last.release();
+		image_last = image.clone();
+	}
+#endif
+
+
+
+#if 1
+	//第十 一条航线9张图片
+	for(int i=112; i<121; i++)
+	{
+		//读取图片
+		string strFile = "./resize_image/";
+		strFile += image_name[i];
+								
+		Mat image = imread(strFile.c_str());
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+								
+		//根据地图原点gps 坐标，计算该图片的坐标位置
+								
+		float distance = image_algorithm->Get_distance(map_origin, gps_data[i]) / scale;
+		float bearing = image_algorithm->Get_bearing_cd(map_origin, gps_data[i]);
+								
+		cout << "i:" << i << ",distance:" << distance << ", bearing:" << bearing << endl;
+								
+		Point2i image_point;
+		image_point.x = (int)(distance * sin((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+								
+		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+								
+								
+		photo_on_map.push_back(image_point);
+								
+								
+		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+								
+								
+		image_last.release();
+		image_last = image.clone();
+	}
+#endif
+
+
 
 	cout << "save map, please Wait a few minutes ..." << endl;;
 
