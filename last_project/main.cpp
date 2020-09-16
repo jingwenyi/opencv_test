@@ -698,7 +698,7 @@ int main(int argc, char **argv)
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
 				
-		//对图片进行模仿处理
+		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 				
 		//双边滤波
@@ -718,8 +718,112 @@ int main(int argc, char **argv)
 						
 		image_point.y -= sample_diff.y;
 		image_point.x += sample_diff.x;
+
+#if 1
+		//左右融合位置修正
+				
+		if(number != 0)
+		{
+			int right_photo = _line_one_number - photo_on_map[1].size();
+			Point2i right_photo_coordinate;
+			right_photo_coordinate.x = photo_on_map[0][right_photo - 1].x;
+			right_photo_coordinate.y = photo_on_map[0][right_photo - 1].y;
+
+
+			width_y = image2.rows - abs(image_point.y - right_photo_coordinate.y);
+			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
+
+
+			w_y = 750;
+			w_x = 1000;
+			if(w_y > width_y / 2)
+			{
+				w_y = width_y / 2 - 10;
+			}
+				
+			if(w_x > width_x / 2)
+			{
+				w_x = width_x / 2 - 10;
+			}
+
+			if(right_photo_coordinate.y < image_point.y)
+			{
+				sample1_start_rows = width_y / 2  - w_y;
+				sample1_end_rows = width_y / 2 + w_y;
+				
+				sample2_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample2_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+			}
+			else
+			{
+				sample1_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample1_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+				
+				sample2_start_rows = width_y / 2  - w_y;
+				sample2_end_rows = width_y / 2 + w_y;
+			}
+				
+				
+			if(right_photo_coordinate.x < image_point.x)
+			{
+				sample1_start_cols = width_x / 2 - w_x;
+				sample1_end_cols = width_x / 2 + w_x;
+				
+				sample2_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample2_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+			}
+			else
+			{
+				sample1_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample1_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+							
+				sample2_start_cols = width_x / 2 - w_x;
+				sample2_end_cols = width_x / 2 + w_x;
+			}
+
+
+			Mat sample1_image_right = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[right_photo - 1];
+
+			Mat right_image = imread(strFile.c_str());
+			
+			if(right_image.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+
+			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+			//对图片进行模仿处理
+			Mat blur_image1_right, blur_image2_right;
+
+			//双边滤波
+			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+
+			Point2i sample_diff_right;
+		
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+
+			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
+			{
+				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
+			}
+						
+			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
+						
+			image_point.y -= sample_diff_right.y;
+			image_point.x += sample_diff_right.x;
+		}
+		
 #endif
 
+#endif
 
 
 		photo_on_map[1].push_back(image_point);
