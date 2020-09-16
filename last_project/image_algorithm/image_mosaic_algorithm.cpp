@@ -222,6 +222,9 @@ void Image_algorithm::Image_fast_mosaic_algorithm2(cv::Mat &src_image1, cv::Mat 
 	int err_min_num;
 	for(int i=0; i<4; i++)
 	{
+		if(std::abs(min_err_idex[i] - start_row[i]) > 50) continue;
+		if(std::abs(diff_x / 2 - min_err_dis[i]) > 50) continue;
+	
 		err[i] = 0;
 	
 		for(int j=0; j<image1_sample_size.y; j++)
@@ -238,6 +241,11 @@ void Image_algorithm::Image_fast_mosaic_algorithm2(cv::Mat &src_image1, cv::Mat 
 			err_min = err[i];
 			err_min_num = i;
 		}
+	}
+
+	if(err_min == INT_MAX)
+	{
+		return;
 	}
 	
 	//计算图像之间的拼接位置

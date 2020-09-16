@@ -437,7 +437,7 @@ int main(int argc, char **argv)
 	}while(0);
 
 
-#if 0
+
 
 
 #if 1
@@ -474,14 +474,14 @@ int main(int argc, char **argv)
 
 
 		
-#if 0
+#if 1
 		//融合位置修正
 		float width_y, width_x;
 		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
 		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
 
-		width_y = image2.rows - abs(image_point.y - photo_on_map[i - 1].y);
-		width_x = image2.cols - abs(image_point.x - photo_on_map[i - 1].x);
+		width_y = image2.rows - abs(image_point.y - photo_on_map[0][i - 1].y);
+		width_x = image2.cols - abs(image_point.x - photo_on_map[0][i - 1].x);
 
 		int w_y = 750;
 		int w_x = 1000;
@@ -495,36 +495,36 @@ int main(int argc, char **argv)
 			w_x = width_x / 2 - 10;
 		}
 		
-		if(photo_on_map[i - 1].y < image_point.y)
+		if(photo_on_map[0][i - 1].y < image_point.y)
 		{
 			sample1_start_rows = width_y / 2  - w_y;
 			sample1_end_rows = width_y / 2 + w_y;
 
-			sample2_start_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2  - w_y;
-			sample2_end_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2 + w_y;
+			sample2_start_rows = abs(image_point.y - photo_on_map[0][i - 1].y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - photo_on_map[0][i - 1].y) + width_y / 2 + w_y;
 		}
 		else
 		{
-			sample1_start_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2  - w_y;
-			sample1_end_rows = abs(image_point.y - photo_on_map[i - 1].y) + width_y / 2 + w_y;
+			sample1_start_rows = abs(image_point.y - photo_on_map[0][i - 1].y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - photo_on_map[0][i - 1].y) + width_y / 2 + w_y;
 
 			sample2_start_rows = width_y / 2  - w_y;
 			sample2_end_rows = width_y / 2 + w_y;
 		}
 
 
-		if(photo_on_map[i - 1].x < image_point.x)
+		if(photo_on_map[0][i - 1].x < image_point.x)
 		{
 			sample1_start_cols = width_x / 2 - w_x;
 			sample1_end_cols = width_x / 2 + w_x;
 
-			sample2_start_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 - w_x;
-			sample2_end_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 + w_x;
+			sample2_start_cols = abs(image_point.x - photo_on_map[0][i - 1].x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - photo_on_map[0][i - 1].x) + width_x / 2 + w_x;
 		}
 		else
 		{
-			sample1_start_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 - w_x;
-			sample1_end_cols = abs(image_point.x - photo_on_map[i - 1].x) + width_x / 2 + w_x;
+			sample1_start_cols = abs(image_point.x - photo_on_map[0][i - 1].x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - photo_on_map[0][i - 1].x) + width_x / 2 + w_x;
 			
 			sample2_start_cols = width_x / 2 - w_x;
 			sample2_end_cols = width_x / 2 + w_x;
@@ -542,29 +542,9 @@ int main(int argc, char **argv)
 		//对图片进行模仿处理
 		Mat blur_image1, blur_image2;
 
-#if 0
-		//均值滤波
-		blur(sample1_image, blur_image1, Size(3, 3));
-		blur(sample2_image, blur_image2, Size(3, 3));
-#endif
-
-#if 1
-		//高斯滤波
-		GaussianBlur(sample1_image, blur_image1, Size(3,3),11,11);
-		GaussianBlur(sample2_image, blur_image2, Size(3,3),11,11);
-#endif
-
-#if 0
-		//中值滤波
-		medianBlur(sample1_image, blur_image1,3);
-		medianBlur(sample2_image, blur_image2,3);
-#endif
-
-#if 0
 		//双边滤波
 		bilateralFilter(sample1_image, blur_image1,15,100,3);
 		bilateralFilter(sample2_image, blur_image2,15,100,3);
-#endif
 
 		Point2i sample_diff;
 		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
@@ -579,13 +559,22 @@ int main(int argc, char **argv)
 		photo_on_map[0].push_back(image_point);
 
 
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		//截掉上边1/4
+		Mat dest_image = image(cv::Range(image.rows / 4, image.rows),
+															cv::Range(0, image.cols));
+		image_point.y += image.rows / 4;
+
+
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 
 
 		image_last.release();
 		image_last = image.clone();
 	}
 #endif
+
+
+#if 0
 
 
 #if 1
