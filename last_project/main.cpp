@@ -574,10 +574,14 @@ int main(int argc, char **argv)
 #endif
 
 
-#if 0
+	cout << "first line is ok--------------------" << endl;
+	
 
 
 #if 1
+	int number = 0;
+	int _line_one_number = photo_on_map[0].size();
+
 	//第二条8张图片
 	for(int i=14; i<22; i++)
 	{
@@ -605,11 +609,128 @@ int main(int argc, char **argv)
 
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
 
+#if 1
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+		
+		Point2i last_photo_coordinate;
+		
+		if(number == 0)
+		{
+			last_photo_coordinate.x = photo_on_map[0][_line_one_number - 1].x;
+			last_photo_coordinate.y = photo_on_map[0][_line_one_number - 1].y;
+		}
+		else
+		{
+			last_photo_coordinate.x = photo_on_map[1][number - 1].x;
+			last_photo_coordinate.y = photo_on_map[1][number - 1].y;
+		}
+				
+		width_y = image2.rows - abs(image_point.y - last_photo_coordinate.y);
+		width_x = image2.cols - abs(image_point.x - last_photo_coordinate.x);
+				
+		int w_y = 750;
+		int w_x = 1000;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+				
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+						
+		if(last_photo_coordinate.y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+				
+			sample2_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+				
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+				
+				
+		if(last_photo_coordinate.x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+				
+			sample2_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+							
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+				
+				
+				
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+				
+						
+						
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+				
+		//对图片进行模仿处理
+		Mat blur_image1, blur_image2;
+				
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+				
+		Point2i sample_diff;
+		if(number == 0)
+		{
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
+
+		}
+		else
+		{
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+		}
+						
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+						
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+#endif
+
+
 
 		photo_on_map[1].push_back(image_point);
+		number++;
 
 
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		//截掉下边的1/4, 截掉右边的1/4
+		int cut_size_up = image.rows / 4;
+		int cut_size_right = image.cols / 4;
+
+		if(number == 0)
+		{
+			cut_size_up = 0;
+		}
+		
+
+		Mat dest_image = image(cv::Range(0, image.rows - cut_size_up),
+															cv::Range(0, image.cols - cut_size_right));
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 
 
 		image_last.release();
@@ -617,6 +738,9 @@ int main(int argc, char **argv)
 	}
 
 #endif
+
+
+#if 0
 
 
 #if 1
