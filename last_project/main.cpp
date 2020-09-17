@@ -418,12 +418,8 @@ int main(int argc, char **argv)
 		bilateralFilter(sample2_image, blur_image2,15,100,3);
 
 		Point2i sample_diff;
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
@@ -553,12 +549,9 @@ int main(int argc, char **argv)
 		bilateralFilter(sample2_image, blur_image2,15,100,3);
 
 		Point2i sample_diff;
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
@@ -712,12 +705,9 @@ int main(int argc, char **argv)
 				
 		Point2i sample_diff;
 		
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		
 						
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 						
@@ -813,12 +803,8 @@ int main(int argc, char **argv)
 
 			Point2i sample_diff_right;
 		
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
 						
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 						
@@ -978,12 +964,9 @@ int main(int argc, char **argv)
 						
 		Point2i sample_diff;
 				
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 		
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		
 								
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 								
@@ -1079,12 +1062,7 @@ int main(int argc, char **argv)
 		
 			Point2i sample_diff_right;
 				
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-		
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 								
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 								
@@ -1255,12 +1233,8 @@ int main(int argc, char **argv)
 						
 		Point2i sample_diff;
 				
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 		
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
 								
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 								
@@ -1356,12 +1330,7 @@ int main(int argc, char **argv)
 		
 			Point2i sample_diff_right;
 				
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-		
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 								
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 								
@@ -1528,12 +1497,7 @@ int main(int argc, char **argv)
 								
 		Point2i sample_diff;
 						
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
-				
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 										
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 										
@@ -1629,12 +1593,7 @@ int main(int argc, char **argv)
 				
 			Point2i sample_diff_right;
 						
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-				
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 										
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 										
@@ -1809,12 +1768,7 @@ int main(int argc, char **argv)
 								
 		Point2i sample_diff;
 						
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
-				
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 										
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 										
@@ -1910,12 +1864,7 @@ int main(int argc, char **argv)
 				
 			Point2i sample_diff_right;
 						
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-				
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 										
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 										
@@ -2076,12 +2025,7 @@ int main(int argc, char **argv)
 										
 		Point2i sample_diff;
 								
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
-						
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 												
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 												
@@ -2177,12 +2121,7 @@ int main(int argc, char **argv)
 						
 			Point2i sample_diff_right;
 								
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-						
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 												
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 												
@@ -2352,12 +2291,7 @@ int main(int argc, char **argv)
 										
 		Point2i sample_diff;
 								
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
-						
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 												
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 												
@@ -2453,12 +2387,7 @@ int main(int argc, char **argv)
 						
 			Point2i sample_diff_right;
 								
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-						
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 												
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 												
@@ -2622,12 +2551,7 @@ int main(int argc, char **argv)
 												
 		Point2i sample_diff;
 										
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
-								
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 														
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 														
@@ -2723,12 +2647,7 @@ int main(int argc, char **argv)
 								
 			Point2i sample_diff_right;
 										
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-								
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 														
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 														
@@ -2898,12 +2817,7 @@ int main(int argc, char **argv)
 												
 		Point2i sample_diff;
 										
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
-								
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 														
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 														
@@ -2999,12 +2913,7 @@ int main(int argc, char **argv)
 								
 			Point2i sample_diff_right;
 										
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-								
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 														
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 														
@@ -3163,12 +3072,7 @@ int main(int argc, char **argv)
 														
 		Point2i sample_diff;
 												
-		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
-										
-		if(sample_diff.x == 0 && sample_diff.y == 0)
-		{
-			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
-		}
+		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
 																
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 																
@@ -3264,12 +3168,7 @@ int main(int argc, char **argv)
 										
 			Point2i sample_diff_right;
 												
-			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
-										
-			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
-			{
-				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
-			}
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
 																
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 																
