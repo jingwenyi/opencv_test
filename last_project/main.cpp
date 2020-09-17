@@ -1683,10 +1683,16 @@ int main(int argc, char **argv)
 
 	cout << "the 5 line is ok--------------" << endl;
 
-#if 0
+
 
 
 #if 1
+	number = 0;
+	_last_line_number = 47;
+	_last_line++;
+	_current_line++;
+	_last_line_number_size = photo_on_map[_last_line - 1].size();
+
 	//第六 条航线8张图片
 	for(int i=58; i<66; i++)
 	{
@@ -1713,12 +1719,231 @@ int main(int argc, char **argv)
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
 			
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+#if 1
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+						
+		Point2i last_photo_coordinate;
+						
+		if(number == 0)
+		{
+			last_photo_coordinate.x = photo_on_map[_last_line - 1][_last_line_number_size - 1].x;
+			last_photo_coordinate.y = photo_on_map[_last_line - 1][_last_line_number_size - 1].y;
+		}
+		else
+		{
+			last_photo_coordinate.x = photo_on_map[_current_line - 1][number - 1].x;
+			last_photo_coordinate.y = photo_on_map[_current_line - 1][number - 1].y;
+		}
+								
+		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
+		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
+								
+		int w_y = 750;
+		int w_x = 1000;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+								
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+										
+		if(last_photo_coordinate.y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+								
+			sample2_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+								
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+								
+								
+		if(last_photo_coordinate.x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+								
+			sample2_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+											
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+								
+								
+								
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+								
+										
+										
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+								
+		//对图片进行模糊处理
+		Mat blur_image1, blur_image2;
+								
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+								
+		Point2i sample_diff;
+						
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+				
+		if(sample_diff.x == 0 && sample_diff.y == 0)
+		{
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
+		}
+										
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+										
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+				
+#if 1
+		//左右融合位置修正
+								
+		if(number != 0)
+		{
+			int right_photo = _last_line_number_size - photo_on_map[_current_line - 1].size();
+			Point2i right_photo_coordinate;
+			right_photo_coordinate.x = photo_on_map[_last_line - 1][right_photo - 1].x;
+			right_photo_coordinate.y = photo_on_map[_last_line - 1][right_photo - 1].y;
+				
+				
+			width_y = image.rows - abs(image_point.y - right_photo_coordinate.y);
+			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
+				
+				
+			w_y = 750;
+			w_x = 1000;
+			if(w_y > width_y / 2)
+			{
+				w_y = width_y / 2 - 10;
+			}
+								
+			if(w_x > width_x / 2)
+			{
+				w_x = width_x / 2 - 10;
+			}
+				
+			if(right_photo_coordinate.y < image_point.y)
+			{
+				sample1_start_rows = width_y / 2  - w_y;
+				sample1_end_rows = width_y / 2 + w_y;
+								
+				sample2_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample2_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+			}
+			else
+			{
+				sample1_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample1_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+								
+				sample2_start_rows = width_y / 2  - w_y;
+				sample2_end_rows = width_y / 2 + w_y;
+			}
+								
+								
+			if(right_photo_coordinate.x < image_point.x)
+			{
+				sample1_start_cols = width_x / 2 - w_x;
+				sample1_end_cols = width_x / 2 + w_x;
+								
+				sample2_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample2_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+			}
+			else
+			{
+				sample1_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample1_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+											
+				sample2_start_cols = width_x / 2 - w_x;
+				sample2_end_cols = width_x / 2 + w_x;
+			}
+				
+				
+			Mat sample1_image_right = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+				
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[_last_line_number + right_photo - 1];
+				
+			Mat right_image = imread(strFile.c_str());
+							
+			if(right_image.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+				
+			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+			//对图片进行模仿处理
+			Mat blur_image1_right, blur_image2_right;
+				
+			//双边滤波
+			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+				
+			Point2i sample_diff_right;
+						
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+				
+			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
+			{
+				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
+			}
+										
+			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
+										
+			image_point.y -= sample_diff_right.y;
+			image_point.x += sample_diff_right.x;
+		}
+						
+#endif
+				
+#endif
+
 			
-			
-		photo_on_map[5].push_back(image_point);
-			
-			
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		photo_on_map[_current_line - 1].push_back(image_point);
+		number++;
+	
+	
+		//截掉下边的1/4, 截掉右边的1/4
+		int cut_size_up = image.rows / 4;
+		int cut_size_right = image.cols / 4;
+
+		if(number == 0)
+		{
+			cut_size_up = 0;
+		}
+		
+
+		Mat dest_image = image(cv::Range(0, image.rows - cut_size_up),
+															cv::Range(0, image.cols - cut_size_right));
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 			
 			
 		image_last.release();
@@ -1726,11 +1951,18 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	cout << "the 6 line is ok -------------------" <<endl;
 
 
 #if 1
-	//第七 条航线9 张图片
-	for(int i=68; i<77; i++)
+	number = 0;
+	_last_line_number = 58;
+	_last_line++;
+	_current_line++;
+	_last_line_number_size = photo_on_map[_last_line - 1].size();
+
+	//第七 条航线8张图片
+	for(int i=68; i<76; i++)
 	{
 		//读取图片
 		string strFile = "./resize_image/";
@@ -1755,12 +1987,237 @@ int main(int argc, char **argv)
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
 				
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+
+#if 1
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+								
+		Point2i last_photo_coordinate;
+								
+		if(number == 0)
+		{
+			last_photo_coordinate.x = photo_on_map[_last_line - 1][_last_line_number_size - 1].x;
+			last_photo_coordinate.y = photo_on_map[_last_line - 1][_last_line_number_size - 1].y;
+		}
+		else
+		{
+			last_photo_coordinate.x = photo_on_map[_current_line - 1][number - 1].x;
+			last_photo_coordinate.y = photo_on_map[_current_line - 1][number - 1].y;
+		}
+										
+		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
+		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
+										
+		int w_y = 750;
+		int w_x = 1000;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+										
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+												
+		if(last_photo_coordinate.y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+										
+			sample2_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+										
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+										
+										
+		if(last_photo_coordinate.x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+										
+			sample2_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+													
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+										
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+										
+												
+												
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+										
+		//对图片进行模糊处理
+		Mat blur_image1, blur_image2;
+										
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+										
+		Point2i sample_diff;
+								
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+						
+		if(sample_diff.x == 0 && sample_diff.y == 0)
+		{
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
+		}
+												
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+												
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+						
+#if 1
+		//左右融合位置修正
+										
+		if(number != 0)
+		{
+			int right_photo = _last_line_number_size - photo_on_map[_current_line - 1].size();
+			Point2i right_photo_coordinate;
+			right_photo_coordinate.x = photo_on_map[_last_line - 1][right_photo - 1].x;
+			right_photo_coordinate.y = photo_on_map[_last_line - 1][right_photo - 1].y;
+						
+						
+			width_y = image2.rows - abs(image_point.y - right_photo_coordinate.y);
+			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
+						
+						
+			w_y = 750;
+			w_x = 1000;
+			if(w_y > width_y / 2)
+			{
+				w_y = width_y / 2 - 10;
+			}
+										
+			if(w_x > width_x / 2)
+			{
+				w_x = width_x / 2 - 10;
+			}
+						
+			if(right_photo_coordinate.y < image_point.y)
+			{
+				sample1_start_rows = width_y / 2  - w_y;
+				sample1_end_rows = width_y / 2 + w_y;
+										
+				sample2_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample2_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+			}
+			else
+			{
+				sample1_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample1_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+										
+				sample2_start_rows = width_y / 2  - w_y;
+				sample2_end_rows = width_y / 2 + w_y;
+			}
+										
+										
+			if(right_photo_coordinate.x < image_point.x)
+			{
+				sample1_start_cols = width_x / 2 - w_x;
+				sample1_end_cols = width_x / 2 + w_x;
+										
+				sample2_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample2_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+			}
+			else
+			{
+				sample1_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample1_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+													
+				sample2_start_cols = width_x / 2 - w_x;
+				sample2_end_cols = width_x / 2 + w_x;
+			}
+						
+						
+			Mat sample1_image_right = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+						
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[_last_line_number  + right_photo - 1];
+						
+			Mat right_image = imread(strFile.c_str());
+									
+			if(right_image.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+						
+			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
+														cv::Range(sample2_start_cols, sample2_end_cols));
+			//对图片进行模仿处理
+			Mat blur_image1_right, blur_image2_right;
+						
+			//双边滤波
+			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+						
+			Point2i sample_diff_right;
+								
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+						
+			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
+			{
+				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
+			}
+												
+			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
+												
+			image_point.y -= sample_diff_right.y;
+			image_point.x += sample_diff_right.x;
+		}
+								
+#endif
+						
+#endif
+
 				
 				
-		photo_on_map[6].push_back(image_point);
-				
-				
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		photo_on_map[_current_line - 1].push_back(image_point);
+		number++;
+
+		//截掉上 边的1/4, 截掉右边的1/4
+		int cut_size_up = image.rows / 4;
+		int cut_size_right = image.cols / 4;
+
+		if(number == 0)
+		{
+			cut_size_up = 0;
+		}
+
+
+		image_point.y += image.rows / 4;
+
+
+	
+
+		Mat dest_image = image(cv::Range(cut_size_up, image.rows),
+													cv::Range(0, image.cols - cut_size_right));
+
+
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 				
 				
 		image_last.release();
@@ -1768,8 +2225,17 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	cout << "the 7 line is ok---------------" << endl;
+
+
 
 #if 1
+	number = 0;
+	_last_line_number = 68;
+	_last_line++;
+	_current_line++;
+	_last_line_number_size = photo_on_map[_last_line - 1].size();
+
 	//第八 条航线8 张图片
 	for(int i=80; i<88; i++)
 	{
@@ -1796,12 +2262,232 @@ int main(int argc, char **argv)
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
 					
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+#if 1
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+								
+		Point2i last_photo_coordinate;
+								
+		if(number == 0)
+		{
+			last_photo_coordinate.x = photo_on_map[_last_line - 1][_last_line_number_size - 1].x;
+			last_photo_coordinate.y = photo_on_map[_last_line - 1][_last_line_number_size - 1].y;
+		}
+		else
+		{
+			last_photo_coordinate.x = photo_on_map[_current_line - 1][number - 1].x;
+			last_photo_coordinate.y = photo_on_map[_current_line - 1][number - 1].y;
+		}
+										
+		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
+		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
+										
+		int w_y = 750;
+		int w_x = 1000;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+										
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+												
+		if(last_photo_coordinate.y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+										
+			sample2_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+										
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+										
+										
+		if(last_photo_coordinate.x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+										
+			sample2_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+													
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+										
+										
+										
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+										
+												
+												
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+										
+		//对图片进行模糊处理
+		Mat blur_image1, blur_image2;
+										
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+										
+		Point2i sample_diff;
+								
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+						
+		if(sample_diff.x == 0 && sample_diff.y == 0)
+		{
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
+		}
+												
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+												
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+						
+#if 1
+		//左右融合位置修正
+										
+		if(number != 0)
+		{
+			int right_photo = _last_line_number_size - photo_on_map[_current_line - 1].size();
+			Point2i right_photo_coordinate;
+			right_photo_coordinate.x = photo_on_map[_last_line - 1][right_photo - 1].x;
+			right_photo_coordinate.y = photo_on_map[_last_line - 1][right_photo - 1].y;
+						
+						
+			width_y = image.rows - abs(image_point.y - right_photo_coordinate.y);
+			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
+						
+						
+			w_y = 750;
+			w_x = 1000;
+			if(w_y > width_y / 2)
+			{
+				w_y = width_y / 2 - 10;
+			}
+										
+			if(w_x > width_x / 2)
+			{
+				w_x = width_x / 2 - 10;
+			}
+						
+			if(right_photo_coordinate.y < image_point.y)
+			{
+				sample1_start_rows = width_y / 2  - w_y;
+				sample1_end_rows = width_y / 2 + w_y;
+										
+				sample2_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample2_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+			}
+			else
+			{
+				sample1_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample1_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+										
+				sample2_start_rows = width_y / 2  - w_y;
+				sample2_end_rows = width_y / 2 + w_y;
+			}
+										
+										
+			if(right_photo_coordinate.x < image_point.x)
+			{
+				sample1_start_cols = width_x / 2 - w_x;
+				sample1_end_cols = width_x / 2 + w_x;
+										
+				sample2_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample2_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+			}
+			else
+			{
+				sample1_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample1_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+													
+				sample2_start_cols = width_x / 2 - w_x;
+				sample2_end_cols = width_x / 2 + w_x;
+			}
+						
+						
+			Mat sample1_image_right = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+						
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[_last_line_number + right_photo - 1];
+						
+			Mat right_image = imread(strFile.c_str());
+									
+			if(right_image.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+						
+			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+			//对图片进行模仿处理
+			Mat blur_image1_right, blur_image2_right;
+						
+			//双边滤波
+			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+						
+			Point2i sample_diff_right;
+								
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+						
+			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
+			{
+				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
+			}
+												
+			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
+												
+			image_point.y -= sample_diff_right.y;
+			image_point.x += sample_diff_right.x;
+		}
+								
+#endif
+						
+#endif
+
 					
 					
-		photo_on_map[7].push_back(image_point);
-					
-					
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		photo_on_map[_current_line - 1].push_back(image_point);
+		number++;
+	
+	
+		//截掉下边的1/4, 截掉右边的1/4
+		int cut_size_up = image.rows / 4;
+		int cut_size_right = image.cols / 4;
+
+		if(number == 0)
+		{
+			cut_size_up = 0;
+		}
+		
+
+		Mat dest_image = image(cv::Range(0, image.rows - cut_size_up),
+															cv::Range(0, image.cols - cut_size_right));
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 					
 					
 		image_last.release();
@@ -1809,10 +2495,20 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	cout << "the 8 line is ok--------------------" << endl;
+
+
 
 #if 1
-	//第九 条航线9 张图片
-	for(int i=90; i<99; i++)
+	
+	number = 0;
+	_last_line_number = 80;
+	_last_line++;
+	_current_line++;
+	_last_line_number_size = photo_on_map[_last_line - 1].size();
+
+	//第九 条航线8 张图片
+	for(int i=90; i<98; i++)
 	{
 		//读取图片
 		string strFile = "./resize_image/";
@@ -1837,12 +2533,236 @@ int main(int argc, char **argv)
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
 						
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+
+#if 1
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+										
+		Point2i last_photo_coordinate;
+										
+		if(number == 0)
+		{
+			last_photo_coordinate.x = photo_on_map[_last_line - 1][_last_line_number_size - 1].x;
+			last_photo_coordinate.y = photo_on_map[_last_line - 1][_last_line_number_size - 1].y;
+		}
+		else
+		{
+			last_photo_coordinate.x = photo_on_map[_current_line - 1][number - 1].x;
+			last_photo_coordinate.y = photo_on_map[_current_line - 1][number - 1].y;
+		}
+												
+		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
+		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
+												
+		int w_y = 750;
+		int w_x = 1000;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+												
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+														
+		if(last_photo_coordinate.y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+												
+			sample2_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+												
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+												
+												
+		if(last_photo_coordinate.x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+												
+			sample2_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+															
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+												
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+												
+														
+														
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+												
+		//对图片进行模糊处理
+		Mat blur_image1, blur_image2;
+												
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+												
+		Point2i sample_diff;
+										
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+								
+		if(sample_diff.x == 0 && sample_diff.y == 0)
+		{
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
+		}
+														
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+														
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+								
+#if 1
+		//左右融合位置修正
+												
+		if(number != 0)
+		{
+			int right_photo = _last_line_number_size - photo_on_map[_current_line - 1].size();
+			Point2i right_photo_coordinate;
+			right_photo_coordinate.x = photo_on_map[_last_line - 1][right_photo - 1].x;
+			right_photo_coordinate.y = photo_on_map[_last_line - 1][right_photo - 1].y;
+								
+								
+			width_y = image2.rows - abs(image_point.y - right_photo_coordinate.y);
+			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
+								
+								
+			w_y = 750;
+			w_x = 1000;
+			if(w_y > width_y / 2)
+			{
+				w_y = width_y / 2 - 10;
+			}
+												
+			if(w_x > width_x / 2)
+			{
+				w_x = width_x / 2 - 10;
+			}
+								
+			if(right_photo_coordinate.y < image_point.y)
+			{
+				sample1_start_rows = width_y / 2  - w_y;
+				sample1_end_rows = width_y / 2 + w_y;
+												
+				sample2_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample2_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+			}
+			else
+			{
+				sample1_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample1_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+												
+				sample2_start_rows = width_y / 2  - w_y;
+				sample2_end_rows = width_y / 2 + w_y;
+			}
+												
+												
+			if(right_photo_coordinate.x < image_point.x)
+			{
+				sample1_start_cols = width_x / 2 - w_x;
+				sample1_end_cols = width_x / 2 + w_x;
+												
+				sample2_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample2_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+			}
+			else
+			{
+				sample1_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample1_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+															
+				sample2_start_cols = width_x / 2 - w_x;
+				sample2_end_cols = width_x / 2 + w_x;
+			}
+								
+								
+			Mat sample1_image_right = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+								
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[_last_line_number  + right_photo - 1];
+								
+			Mat right_image = imread(strFile.c_str());
+											
+			if(right_image.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+								
+			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
+														cv::Range(sample2_start_cols, sample2_end_cols));
+			//对图片进行模仿处理
+			Mat blur_image1_right, blur_image2_right;
+								
+			//双边滤波
+			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+								
+			Point2i sample_diff_right;
+										
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+								
+			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
+			{
+				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
+			}
+														
+			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
+														
+			image_point.y -= sample_diff_right.y;
+			image_point.x += sample_diff_right.x;
+		}
+										
+#endif
+								
+#endif
+
 						
-						
-		photo_on_map[8].push_back(image_point);
-						
-						
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		photo_on_map[_current_line - 1].push_back(image_point);
+		number++;
+
+		//截掉上 边的1/4, 截掉右边的1/4
+		int cut_size_up = image.rows / 4;
+		int cut_size_right = image.cols / 4;
+
+		if(number == 0)
+		{
+			cut_size_up = 0;
+		}
+
+
+		image_point.y += image.rows / 4;
+
+
+	
+
+		Mat dest_image = image(cv::Range(cut_size_up, image.rows),
+													cv::Range(0, image.cols - cut_size_right));
+
+
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 						
 						
 		image_last.release();
@@ -1850,9 +2770,17 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	cout << "the 9 line is ok---------------------" << endl;
+
+
 
 
 #if 1
+	number = 0;
+	_last_line_number = 90;
+	_last_line++;
+	_current_line++;
+	_last_line_number_size = photo_on_map[_last_line - 1].size();
 	//第十条航线8张图片
 	for(int i=102; i<110; i++)
 	{
@@ -1879,12 +2807,232 @@ int main(int argc, char **argv)
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
 							
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+
+#if 1
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+										
+		Point2i last_photo_coordinate;
+										
+		if(number == 0)
+		{
+			last_photo_coordinate.x = photo_on_map[_last_line - 1][_last_line_number_size - 1].x;
+			last_photo_coordinate.y = photo_on_map[_last_line - 1][_last_line_number_size - 1].y;
+		}
+		else
+		{
+			last_photo_coordinate.x = photo_on_map[_current_line - 1][number - 1].x;
+			last_photo_coordinate.y = photo_on_map[_current_line - 1][number - 1].y;
+		}
+												
+		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
+		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
+												
+		int w_y = 750;
+		int w_x = 1000;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+												
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+														
+		if(last_photo_coordinate.y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+												
+			sample2_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+												
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+												
+												
+		if(last_photo_coordinate.x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+												
+			sample2_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+															
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+												
+												
+												
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+												
+														
+														
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+												
+		//对图片进行模糊处理
+		Mat blur_image1, blur_image2;
+												
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+												
+		Point2i sample_diff;
+										
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+								
+		if(sample_diff.x == 0 && sample_diff.y == 0)
+		{
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
+		}
+														
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+														
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+								
+#if 1
+		//左右融合位置修正
+												
+		if(number != 0)
+		{
+			int right_photo = _last_line_number_size - photo_on_map[_current_line - 1].size();
+			Point2i right_photo_coordinate;
+			right_photo_coordinate.x = photo_on_map[_last_line - 1][right_photo - 1].x;
+			right_photo_coordinate.y = photo_on_map[_last_line - 1][right_photo - 1].y;
+								
+								
+			width_y = image.rows - abs(image_point.y - right_photo_coordinate.y);
+			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
+								
+								
+			w_y = 750;
+			w_x = 1000;
+			if(w_y > width_y / 2)
+			{
+				w_y = width_y / 2 - 10;
+			}
+												
+			if(w_x > width_x / 2)
+			{
+				w_x = width_x / 2 - 10;
+			}
+								
+			if(right_photo_coordinate.y < image_point.y)
+			{
+				sample1_start_rows = width_y / 2  - w_y;
+				sample1_end_rows = width_y / 2 + w_y;
+												
+				sample2_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample2_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+			}
+			else
+			{
+				sample1_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample1_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+												
+				sample2_start_rows = width_y / 2  - w_y;
+				sample2_end_rows = width_y / 2 + w_y;
+			}
+												
+												
+			if(right_photo_coordinate.x < image_point.x)
+			{
+				sample1_start_cols = width_x / 2 - w_x;
+				sample1_end_cols = width_x / 2 + w_x;
+												
+				sample2_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample2_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+			}
+			else
+			{
+				sample1_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample1_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+															
+				sample2_start_cols = width_x / 2 - w_x;
+				sample2_end_cols = width_x / 2 + w_x;
+			}
+								
+								
+			Mat sample1_image_right = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+								
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[_last_line_number + right_photo - 1];
+								
+			Mat right_image = imread(strFile.c_str());
+											
+			if(right_image.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+								
+			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+			//对图片进行模仿处理
+			Mat blur_image1_right, blur_image2_right;
+								
+			//双边滤波
+			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+								
+			Point2i sample_diff_right;
+										
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+								
+			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
+			{
+				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
+			}
+														
+			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
+														
+			image_point.y -= sample_diff_right.y;
+			image_point.x += sample_diff_right.x;
+		}
+										
+#endif
+								
+#endif
+
 							
-							
-		photo_on_map[9].push_back(image_point);
-							
-							
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		photo_on_map[_current_line - 1].push_back(image_point);
+		number++;
+	
+	
+		//截掉下边的1/4, 截掉右边的1/4
+		int cut_size_up = image.rows / 4;
+		int cut_size_right = image.cols / 4;
+
+		if(number == 0)
+		{
+			cut_size_up = 0;
+		}
+		
+
+		Mat dest_image = image(cv::Range(0, image.rows - cut_size_up),
+															cv::Range(0, image.cols - cut_size_right));
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 							
 							
 		image_last.release();
@@ -1892,11 +3040,17 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	cout << "the 10 line is ok-------------------------" << endl;
 
 
 #if 1
-	//第十 一条航线9张图片
-	for(int i=112; i<121; i++)
+	number = 0;
+	_last_line_number = 102;
+	_last_line++;
+	_current_line++;
+	_last_line_number_size = photo_on_map[_last_line - 1].size();
+	//第十 一条航线8张图片
+	for(int i=112; i<120; i++)
 	{
 		//读取图片
 		string strFile = "./resize_image/";
@@ -1921,19 +3075,241 @@ int main(int argc, char **argv)
 		image_point.y = (int)(distance * cos((plane_bearing + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
 								
 		cout << "photo point x: " << image_point.x << ", y:" << image_point.y << endl;
+
+#if 1
+		//融合位置修正
+		float width_y, width_x;
+		int sample1_start_rows, sample1_end_rows, sample1_start_cols, sample1_end_cols;
+		int sample2_start_rows, sample2_end_rows, sample2_start_cols, sample2_end_cols;
+												
+		Point2i last_photo_coordinate;
+												
+		if(number == 0)
+		{
+			last_photo_coordinate.x = photo_on_map[_last_line - 1][_last_line_number_size - 1].x;
+			last_photo_coordinate.y = photo_on_map[_last_line - 1][_last_line_number_size - 1].y;
+		}
+		else
+		{
+			last_photo_coordinate.x = photo_on_map[_current_line - 1][number - 1].x;
+			last_photo_coordinate.y = photo_on_map[_current_line - 1][number - 1].y;
+		}
+														
+		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
+		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
+														
+		int w_y = 750;
+		int w_x = 1000;
+		if(w_y > width_y / 2)
+		{
+			w_y = width_y / 2 - 10;
+		}
+														
+		if(w_x > width_x / 2)
+		{
+			w_x = width_x / 2 - 10;
+		}
+																
+		if(last_photo_coordinate.y < image_point.y)
+		{
+			sample1_start_rows = width_y / 2  - w_y;
+			sample1_end_rows = width_y / 2 + w_y;
+														
+			sample2_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample2_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+		}
+		else
+		{
+			sample1_start_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2  - w_y;
+			sample1_end_rows = abs(image_point.y - last_photo_coordinate.y) + width_y / 2 + w_y;
+														
+			sample2_start_rows = width_y / 2  - w_y;
+			sample2_end_rows = width_y / 2 + w_y;
+		}
+														
+														
+		if(last_photo_coordinate.x < image_point.x)
+		{
+			sample1_start_cols = width_x / 2 - w_x;
+			sample1_end_cols = width_x / 2 + w_x;
+														
+			sample2_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample2_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+		}
+		else
+		{
+			sample1_start_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 - w_x;
+			sample1_end_cols = abs(image_point.x - last_photo_coordinate.x) + width_x / 2 + w_x;
+																	
+			sample2_start_cols = width_x / 2 - w_x;
+			sample2_end_cols = width_x / 2 + w_x;
+		}
+														
+		Mat sample1_image = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+														
+																
+																
+		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
+												cv::Range(sample2_start_cols, sample2_end_cols));
+														
+		//对图片进行模糊处理
+		Mat blur_image1, blur_image2;
+														
+		//双边滤波
+		bilateralFilter(sample1_image, blur_image1,15,100,3);
+		bilateralFilter(sample2_image, blur_image2,15,100,3);
+														
+		Point2i sample_diff;
+												
+		image_algorithm->Image_fast_mosaic_algorithm2(blur_image2, blur_image1, sample_diff);
+										
+		if(sample_diff.x == 0 && sample_diff.y == 0)
+		{
+			image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
+		}
+																
+		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
+																
+		image_point.y -= sample_diff.y;
+		image_point.x += sample_diff.x;
+										
+#if 1
+		//左右融合位置修正
+														
+		if(number != 0)
+		{
+			int right_photo = _last_line_number_size - photo_on_map[_current_line - 1].size();
+			Point2i right_photo_coordinate;
+			right_photo_coordinate.x = photo_on_map[_last_line - 1][right_photo - 1].x;
+			right_photo_coordinate.y = photo_on_map[_last_line - 1][right_photo - 1].y;
+										
+										
+			width_y = image2.rows - abs(image_point.y - right_photo_coordinate.y);
+			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
+										
+										
+			w_y = 750;
+			w_x = 1000;
+			if(w_y > width_y / 2)
+			{
+				w_y = width_y / 2 - 10;
+			}
+														
+			if(w_x > width_x / 2)
+			{
+				w_x = width_x / 2 - 10;
+			}
+										
+			if(right_photo_coordinate.y < image_point.y)
+			{
+				sample1_start_rows = width_y / 2  - w_y;
+				sample1_end_rows = width_y / 2 + w_y;
+														
+				sample2_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample2_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+			}
+			else
+			{
+				sample1_start_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2  - w_y;
+				sample1_end_rows = abs(image_point.y - right_photo_coordinate.y) + width_y / 2 + w_y;
+														
+				sample2_start_rows = width_y / 2  - w_y;
+				sample2_end_rows = width_y / 2 + w_y;
+			}
+														
+														
+			if(right_photo_coordinate.x < image_point.x)
+			{
+				sample1_start_cols = width_x / 2 - w_x;
+				sample1_end_cols = width_x / 2 + w_x;
+														
+				sample2_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample2_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+			}
+			else
+			{
+				sample1_start_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 - w_x;
+				sample1_end_cols = abs(image_point.x - right_photo_coordinate.x) + width_x / 2 + w_x;
+																	
+				sample2_start_cols = width_x / 2 - w_x;
+				sample2_end_cols = width_x / 2 + w_x;
+			}
+										
+										
+			Mat sample1_image_right = image(cv::Range(sample1_start_rows, sample1_end_rows),
+												cv::Range(sample1_start_cols, sample1_end_cols));
+										
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[_last_line_number  + right_photo - 1];
+										
+			Mat right_image = imread(strFile.c_str());
+													
+			if(right_image.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+										
+			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
+														cv::Range(sample2_start_cols, sample2_end_cols));
+			//对图片进行模仿处理
+			Mat blur_image1_right, blur_image2_right;
+										
+			//双边滤波
+			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+										
+			Point2i sample_diff_right;
+												
+			image_algorithm->Image_fast_mosaic_algorithm2(blur_image2_right, blur_image1_right, sample_diff_right);
+										
+			if(sample_diff_right.x == 0 && sample_diff_right.y == 0)
+			{
+				image_algorithm->Image_fast_mosaic_algorithm(blur_image2_right, blur_image1_right, sample_diff_right);
+			}
+																
+			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
+																
+			image_point.y -= sample_diff_right.y;
+			image_point.x += sample_diff_right.x;
+		}
+												
+#endif
+										
+#endif
+
 								
-								
-		photo_on_map[10].push_back(image_point);
-								
-								
-		image.copyTo(map_test(Rect(image_point.x, image_point.y, image.cols, image.rows)));
+		photo_on_map[_current_line - 1].push_back(image_point);
+		number++;
+
+		//截掉上 边的1/4, 截掉右边的1/4
+		int cut_size_up = image.rows / 4;
+		int cut_size_right = image.cols / 4;
+
+		if(number == 0)
+		{
+			cut_size_up = 0;
+		}
+
+
+		image_point.y += image.rows / 4;
+
+
+	
+
+		Mat dest_image = image(cv::Range(cut_size_up, image.rows),
+													cv::Range(0, image.cols - cut_size_right));
+
+
+		dest_image.copyTo(map_test(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+						
 								
 								
 		image_last.release();
 		image_last = image.clone();
 	}
-#endif
-
 #endif
 
 	cout << "save map, please Wait a few minutes ..." << endl;;
