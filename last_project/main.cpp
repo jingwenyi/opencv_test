@@ -15,7 +15,8 @@
 using namespace std;
 using namespace cv;
 
-
+#define X_WIDTH		800
+#define Y_WIDTH		500
 
 int main(int argc, char **argv)
 {
@@ -356,8 +357,8 @@ int main(int argc, char **argv)
 		width_y = image2.rows - abs(image_point.y - photo_on_map[0][0].y);
 		width_x = image2.cols - abs(image_point.x - photo_on_map[0][0].x);
 
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -488,8 +489,8 @@ int main(int argc, char **argv)
 		width_y = image2.rows - abs(image_point.y - photo_on_map[0][i - 1].y);
 		width_x = image2.cols - abs(image_point.x - photo_on_map[0][i - 1].x);
 
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -645,8 +646,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 				
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -738,8 +739,8 @@ int main(int argc, char **argv)
 			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
 
 
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -913,8 +914,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 						
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -1004,8 +1005,8 @@ int main(int argc, char **argv)
 			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
 		
 		
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -1188,8 +1189,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 						
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -1281,8 +1282,8 @@ int main(int argc, char **argv)
 			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
 		
 		
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -1463,8 +1464,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 								
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -1554,8 +1555,8 @@ int main(int argc, char **argv)
 			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
 				
 				
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -1742,8 +1743,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 								
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -1835,8 +1836,8 @@ int main(int argc, char **argv)
 			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
 				
 				
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -2011,8 +2012,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 										
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -2102,8 +2103,8 @@ int main(int argc, char **argv)
 			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
 						
 						
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -2285,8 +2286,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 										
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -2378,8 +2379,8 @@ int main(int argc, char **argv)
 			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
 						
 						
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -2557,8 +2558,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 												
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -2648,8 +2649,8 @@ int main(int argc, char **argv)
 			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
 								
 								
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -2831,8 +2832,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 												
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -2924,8 +2925,8 @@ int main(int argc, char **argv)
 			width_x = image.cols - abs(image_point.x - right_photo_coordinate.x);
 								
 								
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
@@ -3098,8 +3099,8 @@ int main(int argc, char **argv)
 		width_y = image.rows - abs(image_point.y - last_photo_coordinate.y);
 		width_x = image.cols - abs(image_point.x - last_photo_coordinate.x);
 														
-		int w_y = 750;
-		int w_x = 1000;
+		int w_y = Y_WIDTH;
+		int w_x = X_WIDTH;
 		if(w_y > width_y / 2)
 		{
 			w_y = width_y / 2 - 10;
@@ -3189,8 +3190,8 @@ int main(int argc, char **argv)
 			width_x = image2.cols - abs(image_point.x - right_photo_coordinate.x);
 										
 										
-			w_y = 750;
-			w_x = 1000;
+			w_y = Y_WIDTH;
+			w_x = X_WIDTH;
 			if(w_y > width_y / 2)
 			{
 				w_y = width_y / 2 - 10;
