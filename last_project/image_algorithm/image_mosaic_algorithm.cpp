@@ -338,15 +338,19 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 	
 	cv::Point2i image2_sample_size(image1_sample_size.x + diff_x, image1_sample_size.y);
 
-	int start_row[4] = {image1_gray.rows / 4,
-						image1_gray.rows / 4 +  image1_sample_size.y + 10, 
-						image1_gray.rows / 4 + 2 * (image1_sample_size.y + 10),
-						image1_gray.rows / 4 + 3 * (image1_sample_size.y + 10)};
+	int start_row[6] = {image1_gray.rows / 4,
+						image1_gray.rows / 4,
+						image1_gray.rows / 4 + image1_sample_size.y + 30, 
+						image1_gray.rows / 4 + image1_sample_size.y + 30,
+						image1_gray.rows / 4 + 2 * (image1_sample_size.y + 30),
+						image1_gray.rows / 4 + 2 * (image1_sample_size.y + 30)};
 
-	int start_col[4] = {	image1_gray.cols / 2 - image1_sample_size.x / 2,
-							diff_x / 2,
-							image1_gray.cols - diff_x / 2 - image1_sample_size.x,
-							image1_gray.cols / 2 - image1_sample_size.x / 2};
+	int start_col[6] = {image1_gray.cols / 3 - image1_sample_size.x / 2,
+						image1_gray.cols * 2 / 3 - image1_sample_size.x / 2,
+						image1_gray.cols / 3 - image1_sample_size.x / 2,
+						image1_gray.cols * 2 / 3 - image1_sample_size.x / 2,
+						image1_gray.cols / 3 - image1_sample_size.x / 2,
+						image1_gray.cols * 2 / 3 - image1_sample_size.x / 2};
 
 #ifdef DUBUG
 	std::cout << "image_mosaic_algorithm image1 cols:" << image1_gray.cols << ", rows:" << image1_gray.rows << std::endl;
@@ -357,11 +361,11 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 	std::cout << "start col, 1:" << start_col[0] << ", 2:" << start_col[1] << ", 3:" << start_col[2] << ", 4" << start_row[3] << std::endl;
 #endif
 
-	int min_err[4];
-	int min_err_idex[4];
-	int min_err_dis[4];
+	int min_err[6];
+	int min_err_idex[6];
+	int min_err_dis[6];
 
-	for(int i=0; i<4; i++)
+	for(int i=0; i<6; i++)
 	{
 		min_err[i] = INT_MAX;
 		min_err_idex[i] = 0;
@@ -369,7 +373,7 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 	}
 
 	//分别查找4 组中最小二乘的位置
-	for(int i=0; i<4; i++)
+	for(int i=0; i<6; i++)
 	{
 		//计算图像 1  的匹配模板
 		int base[image1_sample_size.x];
@@ -428,13 +432,13 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 
 	int err_min_num;
 #if 1
-	int v_dis_x[4];
-	int v_dis_y[4];
+	int v_dis_x[6];
+	int v_dis_y[6];
 	int x_average = 0;
 	int y_average = 0;
-	bool is_bad[4] = {false};
+	bool is_bad[6] = {false};
 
-	for(int i=0; i<4; i++)
+	for(int i=0; i<6; i++)
 	{
 		v_dis_y[i] = min_err_idex[i] - start_row[i];
 		v_dis_x[i] = diff_x / 2 - min_err_dis[i];
@@ -443,15 +447,15 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 		y_average += v_dis_y[i];
 	}
 
-	x_average /= 4;
-	y_average /= 4;
+	x_average /= 6;
+	y_average /= 6;
 
 	//求方差
 
 	std::cout << "==========================" << std::endl;
-	int v[4];
+	int v[6];
 	int v_min = INT_MAX;
-	for(int i=0; i<4; i++)
+	for(int i=0; i<6; i++)
 	{
 		v_dis_x[i] = pow(v_dis_x[i] - x_average, 2);
 		v_dis_y[i] = pow(v_dis_y[i] - y_average, 2);
@@ -471,10 +475,10 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 #else
 
 	//块匹配连续性检查
-	int err[4];
+	int err[6];
 	int err_min = INT_MAX;
 
-	for(int i=0; i<4; i++)
+	for(int i=0; i<6; i++)
 	{
 		err[i] = 0;
 
@@ -508,7 +512,7 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 #ifdef DUBUG
 	std::cout <<"err min num:" << err_min_num << std::endl;
 
-	for(int i=0; i<4; i++)
+	for(int i=0; i<6; i++)
 	{
 		std::cout << i <<",min err:" << min_err[i] << ",min err dis:" << min_err_dis[i] << ",min err idex:" << min_err_idex[i] << std::endl;
 
