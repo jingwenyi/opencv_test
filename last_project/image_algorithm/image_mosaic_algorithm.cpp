@@ -426,10 +426,54 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 		}
 	}
 
+	int err_min_num;
+#if 1
+	int v_dis_x[4];
+	int v_dis_y[4];
+	int x_average = 0;
+	int y_average = 0;
+	bool is_bad[4] = {false};
+
+	for(int i=0; i<4; i++)
+	{
+		v_dis_y[i] = min_err_idex[i] - start_row[i];
+		v_dis_x[i] = diff_x / 2 - min_err_dis[i];
+
+		x_average += v_dis_x[i];
+		y_average += v_dis_y[i];
+	}
+
+	x_average /= 4;
+	y_average /= 4;
+
+	//求方差
+
+	std::cout << "==========================" << std::endl;
+	int v[4];
+	int v_min = INT_MAX;
+	for(int i=0; i<4; i++)
+	{
+		v_dis_x[i] = pow(v_dis_x[i] - x_average, 2);
+		v_dis_y[i] = pow(v_dis_y[i] - y_average, 2);
+
+		v[i] = v_dis_x[i] + v_dis_y[i];
+		//求出最小值
+		if(v[i] < v_min)
+		{
+			v_min = v[i];
+			err_min_num = i;
+			
+		}
+
+		std::cout << "x:"<< i << "," << v_dis_x[i] << ",y:" << v_dis_y[i] << std::endl;
+	}
+
+#else
+
 	//块匹配连续性检查
 	int err[4];
 	int err_min = INT_MAX;
-	int err_min_num;
+
 	for(int i=0; i<4; i++)
 	{
 		err[i] = 0;
@@ -449,6 +493,7 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 			err_min_num = i;
 		}
 	}
+#endif
 
 	//计算图像之间的拼接位置
 
@@ -461,7 +506,7 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 	distance.x = diff_x / 2 - min_err_dis[err_min_num];
 
 #ifdef DUBUG
-	std::cout <<"err min num:" << err_min_num << ",err min:" << err_min << std::endl;
+	std::cout <<"err min num:" << err_min_num << std::endl;
 
 	for(int i=0; i<4; i++)
 	{
