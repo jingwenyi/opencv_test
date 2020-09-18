@@ -332,7 +332,7 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 
 	//图像1 和图像2  在x 方向上可能移动的最大距离 diff_x
 	int diff_x;
-	diff_x = image_size.x / 4;
+	diff_x = image_size.x / 2;
 	image1_sample_size.x = image_size.x / 6;
 	image1_sample_size.y = image_size.y / 10;
 	
@@ -340,10 +340,10 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 
 	int start_row[6] = {image1_gray.rows / 4,
 						image1_gray.rows / 4,
-						image1_gray.rows / 4 + image1_sample_size.y + 30, 
-						image1_gray.rows / 4 + image1_sample_size.y + 30,
-						image1_gray.rows / 4 + 2 * (image1_sample_size.y + 30),
-						image1_gray.rows / 4 + 2 * (image1_sample_size.y + 30)};
+						image1_gray.rows / 4 + image1_sample_size.y + (image_size.y / 10), 
+						image1_gray.rows / 4 + image1_sample_size.y + (image_size.y / 10),
+						image1_gray.rows / 4 + 2 * (image1_sample_size.y + (image_size.y / 10)),
+						image1_gray.rows / 4 + 2 * (image1_sample_size.y + (image_size.y / 10))};
 
 	int start_col[6] = {image1_gray.cols / 3 - image1_sample_size.x / 2,
 						image1_gray.cols * 2 / 3 - image1_sample_size.x / 2,
