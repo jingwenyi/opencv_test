@@ -430,13 +430,11 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 		}
 	}
 
-	int err_min_num;
-#if 1
+	
 	int v_dis_x[6];
 	int v_dis_y[6];
 	int x_average = 0;
 	int y_average = 0;
-	bool is_bad[6] = {false};
 
 	for(int i=0; i<6; i++)
 	{
@@ -455,6 +453,12 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 	std::cout << "==========================" << std::endl;
 	int v[6];
 	int v_min = INT_MAX;
+	int v_min2 = INT_MAX;
+	int v_min3 = INT_MAX;
+	int v_min_n;
+	int v_min2_n;
+	int v_min3_n;
+	
 	for(int i=0; i<6; i++)
 	{
 		v_dis_x[i] = pow(v_dis_x[i] - x_average, 2);
@@ -464,22 +468,51 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 		//求出最小值
 		if(v[i] < v_min)
 		{
-			v_min = v[i];
-			err_min_num = i;
+			v_min3 = v_min2;
+			v_min3_n = v_min2_n;
+
+			v_min2 = v_min;
+			v_min2_n = v_min_n;
+
 			
+			v_min = v[i];
+			v_min_n = i;
+		}
+		else if(v[i] < v_min2)
+		{
+			v_min3 = v_min2;
+			v_min3_n = v_min2_n;
+
+			v_min2 = v[i];
+			v_min2_n = i;
+		}
+		else if(v[i] < v_min3)
+		{
+			v_min3 = v[i];
+			v_min3_n = i;
 		}
 
 		std::cout << "x:"<< i << "," << v_dis_x[i] << ",y:" << v_dis_y[i] << std::endl;
 	}
 
-#else
+	std::cout << "v:" << v_min_n << ",v2:" << v_min2_n << ", v3:" << v_min3_n << std::endl;
+
+	bool is_ok[6] = {false};
+	is_ok[v_min_n] = true;
+	is_ok[v_min2_n] = true;
+	is_ok[v_min3_n] = true;
+	
+	
 
 	//块匹配连续性检查
 	int err[6];
 	int err_min = INT_MAX;
+	int err_min_num;
 
 	for(int i=0; i<6; i++)
 	{
+		if(!is_ok[i]) continue;
+	
 		err[i] = 0;
 
 		for(int j=0; j<image1_sample_size.y; j++)
@@ -497,7 +530,7 @@ void Image_algorithm::Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &
 			err_min_num = i;
 		}
 	}
-#endif
+
 
 	//计算图像之间的拼接位置
 
