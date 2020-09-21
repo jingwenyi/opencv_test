@@ -17,6 +17,7 @@ using namespace cv;
 
 #define X_WIDTH		1500
 #define Y_WIDTH		1000
+#define NARROW_SCALE    5
 
 int main(int argc, char **argv)
 {
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
 	float line_distance;
 
 
-#if 0
+#if 1
 	//原图太大对图像进行压缩
 	std::string dir = "./resize_image";
 	if(access(dir.c_str(), 0) == -1)
@@ -413,8 +414,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 
 		//对图片进行模仿处理
 		Mat blur_image1, blur_image2;
@@ -429,8 +430,8 @@ int main(int argc, char **argv)
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 #endif
 		photo_on_map[0].push_back(image_point);
 
@@ -550,8 +551,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 		
 
 		//对图片进行模仿处理
@@ -568,8 +569,8 @@ int main(int argc, char **argv)
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 #endif
 
 
@@ -712,8 +713,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 				
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -730,8 +731,8 @@ int main(int argc, char **argv)
 						
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 						
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 
 #if 1
 		//左右融合位置修正
@@ -817,8 +818,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 
 			
 			//对图片进行模仿处理
@@ -835,8 +836,8 @@ int main(int argc, char **argv)
 						
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 						
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 		
 #endif
@@ -984,8 +985,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 						
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -1002,8 +1003,8 @@ int main(int argc, char **argv)
 								
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 								
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 		
 #if 1
 		//左右融合位置修正
@@ -1089,8 +1090,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 
 			
 			//对图片进行模仿处理
@@ -1106,8 +1107,8 @@ int main(int argc, char **argv)
 								
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 								
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 				
 #endif
@@ -1267,8 +1268,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 						
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -1284,8 +1285,8 @@ int main(int argc, char **argv)
 								
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 								
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 		
 #if 1
 		//左右融合位置修正
@@ -1371,8 +1372,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
@@ -1387,8 +1388,8 @@ int main(int argc, char **argv)
 								
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 								
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 				
 #endif
@@ -1544,8 +1545,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 								
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -1560,8 +1561,8 @@ int main(int argc, char **argv)
 										
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 										
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 				
 #if 1
 		//左右融合位置修正
@@ -1647,8 +1648,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 				
@@ -1662,8 +1663,8 @@ int main(int argc, char **argv)
 										
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 										
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 						
 #endif
@@ -1827,8 +1828,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 								
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -1843,8 +1844,8 @@ int main(int argc, char **argv)
 										
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 										
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 				
 #if 1
 		//左右融合位置修正
@@ -1930,8 +1931,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
@@ -1946,8 +1947,8 @@ int main(int argc, char **argv)
 										
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 										
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 						
 #endif
@@ -2097,8 +2098,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 										
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -2113,8 +2114,8 @@ int main(int argc, char **argv)
 												
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 												
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 						
 #if 1
 		//左右融合位置修正
@@ -2199,8 +2200,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
@@ -2215,8 +2216,8 @@ int main(int argc, char **argv)
 												
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 												
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 								
 #endif
@@ -2374,8 +2375,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 										
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -2390,8 +2391,8 @@ int main(int argc, char **argv)
 												
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 												
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 						
 #if 1
 		//左右融合位置修正
@@ -2476,8 +2477,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
@@ -2492,8 +2493,8 @@ int main(int argc, char **argv)
 												
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 												
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 								
 #endif
@@ -2646,8 +2647,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 												
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -2662,8 +2663,8 @@ int main(int argc, char **argv)
 														
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 														
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 								
 #if 1
 		//左右融合位置修正
@@ -2748,8 +2749,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 
 			
 			
@@ -2766,8 +2767,8 @@ int main(int argc, char **argv)
 														
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 														
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 										
 #endif
@@ -2926,8 +2927,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 												
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -2942,8 +2943,8 @@ int main(int argc, char **argv)
 														
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 														
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 								
 #if 1
 		//左右融合位置修正
@@ -3029,8 +3030,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 
 			
 			//对图片进行模仿处理
@@ -3046,8 +3047,8 @@ int main(int argc, char **argv)
 														
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 														
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 										
 #endif
@@ -3195,8 +3196,8 @@ int main(int argc, char **argv)
 		//为了提高速度，先对图像进行缩小
 		Mat sample1_image_narrow, sample2_image_narrow;
 
-		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
-		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / NARROW_SCALE, sample1_image.rows / NARROW_SCALE));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / NARROW_SCALE, sample2_image.rows / NARROW_SCALE));
 														
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
@@ -3211,8 +3212,8 @@ int main(int argc, char **argv)
 																
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 																
-		image_point.y -= sample_diff.y * 2;
-		image_point.x += sample_diff.x * 2;
+		image_point.y -= sample_diff.y * NARROW_SCALE;
+		image_point.x += sample_diff.x * NARROW_SCALE;
 										
 #if 1
 		//左右融合位置修正
@@ -3297,8 +3298,8 @@ int main(int argc, char **argv)
 			//为了提高速度，先对图像进行缩小
 			Mat sample1_image_right_narrow, sample2_image_right_narrow;
 
-			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
-			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / NARROW_SCALE, sample1_image_right.rows / NARROW_SCALE));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / NARROW_SCALE, sample2_image_right.rows / NARROW_SCALE));
 
 			
 			//对图片进行模仿处理
@@ -3314,8 +3315,8 @@ int main(int argc, char **argv)
 																
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 																
-			image_point.y -= sample_diff_right.y * 2;
-			image_point.x += sample_diff_right.x * 2;
+			image_point.y -= sample_diff_right.y * NARROW_SCALE;
+			image_point.x += sample_diff_right.x * NARROW_SCALE;
 		}
 												
 #endif
