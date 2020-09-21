@@ -15,8 +15,8 @@
 using namespace std;
 using namespace cv;
 
-#define X_WIDTH		1000
-#define Y_WIDTH		400
+#define X_WIDTH		1500
+#define Y_WIDTH		1000
 
 int main(int argc, char **argv)
 {
