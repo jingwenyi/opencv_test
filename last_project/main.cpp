@@ -410,12 +410,18 @@ int main(int argc, char **argv)
 		Mat sample2_image = image1(cv::Range(sample2_start_rows, sample2_end_rows),
 													cv::Range(sample2_start_cols, sample2_end_cols));
 
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+
 		//对图片进行模仿处理
 		Mat blur_image1, blur_image2;
 
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 
 		Point2i sample_diff;
 		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
@@ -423,8 +429,8 @@ int main(int argc, char **argv)
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 #endif
 		photo_on_map[0].push_back(image_point);
 
@@ -541,12 +547,19 @@ int main(int argc, char **argv)
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 													cv::Range(sample2_start_cols, sample2_end_cols));
 
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
+		
+
 		//对图片进行模仿处理
 		Mat blur_image1, blur_image2;
 
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 
 		Point2i sample_diff;
 		image_algorithm->Image_fast_mosaic_algorithm(blur_image2, blur_image1, sample_diff);
@@ -555,8 +568,8 @@ int main(int argc, char **argv)
 		
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 		
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 #endif
 
 
@@ -695,13 +708,19 @@ int main(int argc, char **argv)
 						
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 				
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 				
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 				
 		Point2i sample_diff;
 		
@@ -711,8 +730,8 @@ int main(int argc, char **argv)
 						
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 						
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 
 #if 1
 		//左右融合位置修正
@@ -794,12 +813,20 @@ int main(int argc, char **argv)
 
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 
 			Point2i sample_diff_right;
 		
@@ -808,8 +835,8 @@ int main(int argc, char **argv)
 						
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 						
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 		
 #endif
@@ -954,13 +981,18 @@ int main(int argc, char **argv)
 								
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 						
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 						
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 						
 		Point2i sample_diff;
 				
@@ -970,8 +1002,8 @@ int main(int argc, char **argv)
 								
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 								
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 		
 #if 1
 		//左右融合位置修正
@@ -1053,12 +1085,20 @@ int main(int argc, char **argv)
 		
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 														cv::Range(sample2_start_cols, sample2_end_cols));
+			
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 		
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 		
 			Point2i sample_diff_right;
 				
@@ -1066,8 +1106,8 @@ int main(int argc, char **argv)
 								
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 								
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 				
 #endif
@@ -1223,13 +1263,19 @@ int main(int argc, char **argv)
 								
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 						
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 						
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 						
 		Point2i sample_diff;
 				
@@ -1238,8 +1284,8 @@ int main(int argc, char **argv)
 								
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 								
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 		
 #if 1
 		//左右融合位置修正
@@ -1321,12 +1367,19 @@ int main(int argc, char **argv)
 		
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 		
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 		
 			Point2i sample_diff_right;
 				
@@ -1334,8 +1387,8 @@ int main(int argc, char **argv)
 								
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 								
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 				
 #endif
@@ -1487,13 +1540,19 @@ int main(int argc, char **argv)
 										
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 								
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 								
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 								
 		Point2i sample_diff;
 						
@@ -1501,8 +1560,8 @@ int main(int argc, char **argv)
 										
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 										
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 				
 #if 1
 		//左右融合位置修正
@@ -1584,12 +1643,18 @@ int main(int argc, char **argv)
 				
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 														cv::Range(sample2_start_cols, sample2_end_cols));
+
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 				
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 				
 			Point2i sample_diff_right;
 						
@@ -1597,8 +1662,8 @@ int main(int argc, char **argv)
 										
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 										
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 						
 #endif
@@ -1758,13 +1823,19 @@ int main(int argc, char **argv)
 										
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 								
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 								
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 								
 		Point2i sample_diff;
 						
@@ -1772,8 +1843,8 @@ int main(int argc, char **argv)
 										
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 										
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 				
 #if 1
 		//左右融合位置修正
@@ -1855,12 +1926,19 @@ int main(int argc, char **argv)
 				
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 				
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 				
 			Point2i sample_diff_right;
 						
@@ -1868,8 +1946,8 @@ int main(int argc, char **argv)
 										
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 										
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 						
 #endif
@@ -2015,13 +2093,19 @@ int main(int argc, char **argv)
 												
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 										
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 										
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 										
 		Point2i sample_diff;
 								
@@ -2029,8 +2113,8 @@ int main(int argc, char **argv)
 												
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 												
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 						
 #if 1
 		//左右融合位置修正
@@ -2112,12 +2196,18 @@ int main(int argc, char **argv)
 						
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 														cv::Range(sample2_start_cols, sample2_end_cols));
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 						
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 						
 			Point2i sample_diff_right;
 								
@@ -2125,8 +2215,8 @@ int main(int argc, char **argv)
 												
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 												
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 								
 #endif
@@ -2166,7 +2256,6 @@ int main(int argc, char **argv)
 #endif
 
 	cout << "the 7 line is ok---------------" << endl;
-
 
 
 #if 1
@@ -2281,13 +2370,19 @@ int main(int argc, char **argv)
 												
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 										
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 										
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 										
 		Point2i sample_diff;
 								
@@ -2295,8 +2390,8 @@ int main(int argc, char **argv)
 												
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 												
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 						
 #if 1
 		//左右融合位置修正
@@ -2378,12 +2473,18 @@ int main(int argc, char **argv)
 						
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 						
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 						
 			Point2i sample_diff_right;
 								
@@ -2391,8 +2492,8 @@ int main(int argc, char **argv)
 												
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 												
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 								
 #endif
@@ -2541,13 +2642,19 @@ int main(int argc, char **argv)
 														
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 												
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 												
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 												
 		Point2i sample_diff;
 										
@@ -2555,8 +2662,8 @@ int main(int argc, char **argv)
 														
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 														
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 								
 #if 1
 		//左右融合位置修正
@@ -2638,12 +2745,20 @@ int main(int argc, char **argv)
 								
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 														cv::Range(sample2_start_cols, sample2_end_cols));
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+
+			
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 								
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 								
 			Point2i sample_diff_right;
 										
@@ -2651,8 +2766,8 @@ int main(int argc, char **argv)
 														
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 														
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 										
 #endif
@@ -2807,13 +2922,19 @@ int main(int argc, char **argv)
 														
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 												
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 												
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 												
 		Point2i sample_diff;
 										
@@ -2821,8 +2942,8 @@ int main(int argc, char **argv)
 														
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 														
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 								
 #if 1
 		//左右融合位置修正
@@ -2904,12 +3025,20 @@ int main(int argc, char **argv)
 								
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 								
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 								
 			Point2i sample_diff_right;
 										
@@ -2917,8 +3046,8 @@ int main(int argc, char **argv)
 														
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 														
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 										
 #endif
@@ -3062,13 +3191,19 @@ int main(int argc, char **argv)
 																
 		Mat sample2_image = image_last(cv::Range(sample2_start_rows, sample2_end_rows),
 												cv::Range(sample2_start_cols, sample2_end_cols));
+
+		//为了提高速度，先对图像进行缩小
+		Mat sample1_image_narrow, sample2_image_narrow;
+
+		image_algorithm->Image_resize(sample1_image, sample1_image_narrow,	Size(sample1_image.cols / 2, sample1_image.rows / 2));
+		image_algorithm->Image_resize(sample2_image, sample2_image_narrow,	Size(sample2_image.cols / 2, sample2_image.rows / 2));
 														
 		//对图片进行模糊处理
 		Mat blur_image1, blur_image2;
 														
 		//双边滤波
-		bilateralFilter(sample1_image, blur_image1,15,100,3);
-		bilateralFilter(sample2_image, blur_image2,15,100,3);
+		bilateralFilter(sample1_image_narrow, blur_image1,15,100,3);
+		bilateralFilter(sample2_image_narrow, blur_image2,15,100,3);
 														
 		Point2i sample_diff;
 												
@@ -3076,8 +3211,8 @@ int main(int argc, char **argv)
 																
 		cout << "------smaple diff x:" << sample_diff.x << ", y:" << sample_diff.y << endl;
 																
-		image_point.y -= sample_diff.y;
-		image_point.x += sample_diff.x;
+		image_point.y -= sample_diff.y * 2;
+		image_point.x += sample_diff.x * 2;
 										
 #if 1
 		//左右融合位置修正
@@ -3159,12 +3294,19 @@ int main(int argc, char **argv)
 										
 			Mat sample2_image_right = right_image(cv::Range(sample2_start_rows, sample2_end_rows),
 														cv::Range(sample2_start_cols, sample2_end_cols));
+			//为了提高速度，先对图像进行缩小
+			Mat sample1_image_right_narrow, sample2_image_right_narrow;
+
+			image_algorithm->Image_resize(sample1_image_right, sample1_image_right_narrow,	Size(sample1_image_right.cols / 2, sample1_image_right.rows / 2));
+			image_algorithm->Image_resize(sample2_image_right, sample2_image_right_narrow,	Size(sample2_image_right.cols / 2, sample2_image_right.rows / 2));
+
+			
 			//对图片进行模仿处理
 			Mat blur_image1_right, blur_image2_right;
 										
 			//双边滤波
-			bilateralFilter(sample1_image_right, blur_image1_right,15,100,3);
-			bilateralFilter(sample2_image_right, blur_image2_right,15,100,3);
+			bilateralFilter(sample1_image_right_narrow, blur_image1_right,15,100,3);
+			bilateralFilter(sample2_image_right_narrow, blur_image2_right,15,100,3);
 										
 			Point2i sample_diff_right;
 												
@@ -3172,8 +3314,8 @@ int main(int argc, char **argv)
 																
 			cout << "++++right+++++++++++++++smaple diff x:" << sample_diff_right.x << ", y:" << sample_diff_right.y << endl;
 																
-			image_point.y -= sample_diff_right.y;
-			image_point.x += sample_diff_right.x;
+			image_point.y -= sample_diff_right.y * 2;
+			image_point.x += sample_diff_right.x * 2;
 		}
 												
 #endif
