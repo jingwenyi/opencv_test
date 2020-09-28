@@ -15,6 +15,61 @@
 using namespace std;
 using namespace cv;
 
+
+//∏µ¿Ô“∂±‰ªª≤‚ ‘
+int main(int argc, char **argv)
+{
+	Mat src, dst;
+    Mat src1, src2, dst1, dst2, hann;
+
+	Mat old_src, old_dst;
+
+    old_src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+    old_dst = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG");
+
+	resize(old_src, src, Size(old_src.cols / 2, old_src.rows / 2), INTER_AREA);
+	resize(old_dst, dst, Size(old_dst.cols / 2, old_dst.rows / 2), INTER_AREA);
+
+	Mat src_blur, dst_blur;
+	//À´±ﬂ¬À≤®
+	bilateralFilter(src, src_blur,15,100,3);
+	bilateralFilter(dst, dst_blur,15,100,3);
+
+	
+    cvtColor(src_blur, src1, COLOR_RGB2GRAY);
+	cvtColor(dst_blur, dst1, COLOR_RGB2GRAY);
+
+    createHanningWindow(hann, src1.size(), CV_64F);
+	createHanningWindow(hann, dst1.size(), CV_64F);
+
+    src1.convertTo(src2, CV_64F);
+    dst1.convertTo(dst2, CV_64F);
+
+    Point2d shift = phaseCorrelate(src2, dst2, hann);
+	//x:38.3277
+	//y:-1078.21
+	cout << "offset_x:" << shift.x << endl << "offset_y:" << shift.y << endl;
+
+
+	Mat destImage( src.rows + abs(shift.y), src.cols + abs(shift.x),CV_8UC3);
+	destImage.setTo(0);
+
+	src.copyTo(destImage(Rect(shift.x, 0, src.cols, src.rows)));
+	dst.copyTo(destImage(Rect(0, abs(shift.y), src.cols, src.rows)));
+
+
+	imwrite("pase_test.jpg", destImage);
+
+
+	waitKey();
+	cout << "I am ok" << endl;
+	return 0;
+}
+
+
+
+#if 0
+
 #define X_WIDTH		1500
 #define Y_WIDTH		1000
 #define NARROW_SCALE    5
@@ -3364,3 +3419,6 @@ int main(int argc, char **argv)
 	cout << "I am ok" << endl;
 	return 0;
 }
+
+
+#endif
