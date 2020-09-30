@@ -16,6 +16,22 @@ using namespace std;
 using namespace cv;
 
 
+//°Ñjpeg Í¼Ïñ×ª»»³Étiff Í¼Ïñ
+int main(int argc, char **argv)
+{
+	Mat src, dst;
+    src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+
+	imwrite("pase_test.tif", src);
+	waitKey();
+	cout << "I am ok" << endl;
+	return 0;
+}
+
+
+
+#if 0
+
 //¸µÀïÒ¶±ä»»²âÊÔ
 int main(int argc, char **argv)
 {
@@ -66,7 +82,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-
+#endif
 
 #if 0
 
