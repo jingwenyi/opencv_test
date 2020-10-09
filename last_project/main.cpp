@@ -16,6 +16,82 @@ using namespace std;
 using namespace cv;
 
 
+#if 1
+//测试旋转极坐标下的旋转
+int main(int argc, char **argv)
+{
+	Mat src, src2, dst;
+    src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+	src2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG");
+
+	if(src.empty() || src2.empty())
+	{
+		cout << "src is empty!"  << endl;
+		return -1;
+	}
+
+	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
+	image_algorithm->Image_rotate( src, dst, 180);
+
+
+	
+	Mat src_blur, src2_blur, dst_blur;
+	//双边滤波
+	bilateralFilter(src, src_blur,15,100,3);
+	bilateralFilter(src2, src2_blur,15,100,3);
+	bilateralFilter(dst, dst_blur,15,100,3);
+
+#if 0
+#if 0
+	Mat src_resize, dst_resize;
+	image_algorithm->Image_resize(src, src_resize,Size(src.cols / 2, src.rows / 2));
+	image_algorithm->Image_resize(dst, dst_resize,Size(dst.cols / 2, dst.rows / 2));
+
+	Mat src_new, dst_new;
+	copyMakeBorder(src_resize, src_new, src_resize.rows / 2, src_resize.rows / 2, src_resize.cols / 2, src_resize.cols / 2, BORDER_CONSTANT);
+	copyMakeBorder(dst_resize, dst_new, dst_resize.rows / 2, dst_resize.rows / 2, dst_resize.cols / 2, dst_resize.cols / 2, BORDER_CONSTANT);
+
+	imwrite("src_new.jpg", src_new);
+	imwrite("dst_new.jpg", dst_new);
+#else
+	Mat src_new, dst_new;
+	src_new = src.clone();
+	dst_new = dst.clone();
+#endif
+#endif
+
+	Mat src_new,src2_new, dst_new;
+	src_new = src_blur.clone();
+	dst_new = dst_blur.clone();
+	src2_new = src2_blur.clone();
+	
+	
+	int flags = INTER_LINEAR + WARP_FILL_OUTLIERS;
+
+	Mat log_polar1, log_polar2, log_polar3;
+
+	Point2f center( (float)src_new.cols / 2, (float)src_new.rows / 2 );
+    double maxRadius = min(center.y, center.x);
+    //double maxRadius =  hypot (center.x, center.y);
+
+	double M = src_new.cols / log(maxRadius);
+    logPolar(src_new, log_polar1, center, M, flags);
+	logPolar(dst_new, log_polar2, center, M, flags);
+	logPolar(src2_new, log_polar3, center, M, flags);
+
+	imwrite("log_polar1.jpg", log_polar1);
+	imwrite("log_polar2.jpg", log_polar2);
+	imwrite("log_polar3.jpg", log_polar3);
+
+	waitKey();
+	cout << "I am ok" << endl;
+	return 0;
+}
+
+#endif
+
+
+#if 0
 //把图像转为极坐标
 int main(int argc, char **argv)
 {
@@ -63,7 +139,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-
+#endif
 
 #if 0
 
