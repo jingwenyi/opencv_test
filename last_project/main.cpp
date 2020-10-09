@@ -16,6 +16,57 @@ using namespace std;
 using namespace cv;
 
 
+//把图像转为极坐标
+int main(int argc, char **argv)
+{
+	Mat src, dst;
+    src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+
+	if(src.empty() )
+	{
+		cout << "src is empty!"  << endl;
+		return -1;
+	}
+
+	int flags = INTER_LINEAR + WARP_FILL_OUTLIERS;
+
+	Mat log_polar_img, lin_polar_img, recovered_log_polar, recovered_lin_polar_img;
+
+	Point2f center( (float)src.cols / 2, (float)src.rows / 2 );
+    double maxRadius = 0.7*min(center.y, center.x);
+
+#if 1
+	double M = src.cols / log(maxRadius);
+    logPolar(src, log_polar_img, center, M, flags);
+    linearPolar(src, lin_polar_img, center, maxRadius, flags);
+
+    logPolar(log_polar_img, recovered_log_polar, center, M, flags + WARP_INVERSE_MAP);
+    linearPolar(lin_polar_img, recovered_lin_polar_img, center, maxRadius, flags + WARP_INVERSE_MAP);
+#else  // opencv 4.0
+	//欧拉坐标变换成极坐标
+	warpPolar(src, lin_polar_img, Size(),center, maxRadius, flags);                     // linear Polar
+    warpPolar(src, log_polar_img, Size(),center, maxRadius, flags + WARP_POLAR_LOG);    // semilog Polar
+
+	//极坐标变换成欧拉坐标
+	warpPolar(lin_polar_img, recovered_lin_polar_img, src.size(), center, maxRadius, flags + WARP_INVERSE_MAP);
+    warpPolar(log_polar_img, recovered_log_polar, src.size(), center, maxRadius, flags + WARP_POLAR_LOG + WARP_INVERSE_MAP);
+#endif
+	
+
+	imwrite("log_polar_img.jpg", log_polar_img);
+	imwrite("lin_polar_img.jpg", lin_polar_img);
+	imwrite("recovered_log_polar.jpg", recovered_log_polar);
+	imwrite("recovered_lin_polar_img.jpg", recovered_lin_polar_img);
+	
+	waitKey();
+	cout << "I am ok" << endl;
+	return 0;
+}
+
+
+
+#if 0
+
 //把jpeg 图像转换成tiff 图像
 int main(int argc, char **argv)
 {
@@ -27,7 +78,7 @@ int main(int argc, char **argv)
 	cout << "I am ok" << endl;
 	return 0;
 }
-
+#endif
 
 
 #if 0
