@@ -15,8 +15,62 @@
 using namespace std;
 using namespace cv;
 
-
 #if 1
+	//Hough_line÷±œﬂºÏ≤‚À„∑®
+int main(int argc, char **argv)
+{
+	Mat src;
+    src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG", IMREAD_GRAYSCALE);
+
+	Mat midImage, dstImage;
+	Canny(src, midImage, 50, 200, 3);
+	cvtColor(midImage, dstImage, CV_GRAY2BGR);
+#if 0
+	vector<Vec2f> lines;
+	HoughLines(midImage, lines, 1, CV_PI / 180, 150, 0, 0);
+
+
+	for(size_t i=0; i<lines.size(); i++)
+	{
+		float rho = lines[i][0], theta = lines[i][1];
+		Point pt1, pt2;
+		double a = cos(theta), b = sin(theta);
+
+		double x0 = a * rho, y0 = b * rho;
+
+		pt1.x = cvRound(x0 + 1000 * (-b));
+		pt1.y = cvRound(y0 + 1000 * (a));
+		pt2.x = cvRound(x0 - 1000 * (-b));
+		pt2.y = cvRound(y0 - 1000 * (a));
+
+		line(dstImage, pt1, pt2, Scalar(55, 100, 195), 1, CV_AA);
+	}
+#else
+	vector<Vec4i>  lines;
+	HoughLinesP(midImage, lines, 1, CV_PI / 180, 500, 500, 100);
+
+	for(size_t i=0; i<lines.size(); i++)
+	{
+		Vec4i l = lines[i];
+		line(dstImage, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(186, 88, 255), 1, CV_AA);
+	}
+
+
+#endif
+
+	imwrite("midImage.jpg", midImage);
+	imwrite("dstImage.jpg", dstImage);
+
+	waitKey();
+	cout << "I am ok" << endl;
+	return 0;
+}
+
+
+#endif
+
+
+#if 0
 //canny±ﬂ‘µºÏ≤‚ ≤‚ ‘
 int main(int argc, char **argv)
 {
