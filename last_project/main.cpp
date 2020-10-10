@@ -17,6 +17,37 @@ using namespace cv;
 
 
 #if 1
+//canny边缘检测 测试
+int main(int argc, char **argv)
+{
+	Mat src;
+    src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+
+	Mat src1 = src.clone();
+
+	Mat dst, edge, gray;
+
+	dst.create(src1.size(), src1.type());
+
+	cvtColor(src1, gray, COLOR_BGR2GRAY);
+
+	//使用3x3内核降噪
+	blur(gray, edge, Size(3,3));
+
+	Canny(edge, edge, 3, 9, 3);
+
+	imwrite("edge.jpg", edge);
+	
+
+
+	waitKey();
+	cout << "I am ok" << endl;
+	return 0;
+}
+#endif
+
+
+#if 0
 //测试旋转极坐标下的旋转
 int main(int argc, char **argv)
 {
