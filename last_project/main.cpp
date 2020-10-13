@@ -17,8 +17,28 @@ using namespace cv;
 
 int main(int argc, char **argv)
 {
-	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
 	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
+
+	
+	Mat src;
+	//src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00337.JPG", IMREAD_GRAYSCALE);
+	src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
+
+	vector<KeyPoint>  keypoints;
+	Mat descriptors;
+
+	image_featur_points->Image_extract_feature_point(src, keypoints, descriptors);
+
+	cout << "keyPonints:" << keypoints.size() << endl;
+
+	if(keypoints.size() > 0)
+		drawKeypoints(src, keypoints, src, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
+
+	imwrite("src_keypoint.jpg",src);
+
+	waitKey();
+	cout << "I am ok" << endl;
+	
 	return 0;
 }
 

@@ -814,7 +814,7 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 
 Image_feature_points_extraction::Image_feature_points_extraction()
 {
-	nfeatures = 1000;
+	nfeatures = 5000;
 	scaleFactor = 1.2f;
 	nlevels = 8;
 	iniThFAST = 20;
