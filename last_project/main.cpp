@@ -15,7 +15,14 @@
 using namespace std;
 using namespace cv;
 
-#if 1
+int main(int argc, char **argv)
+{
+	IMAGE_MOSAIC::Image_algorithm*	image_algorithm = new IMAGE_MOSAIC::Image_algorithm();
+	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
+	return 0;
+}
+
+#if 0
 	//Hough_line÷±œﬂºÏ≤‚À„∑®
 int main(int argc, char **argv)
 {

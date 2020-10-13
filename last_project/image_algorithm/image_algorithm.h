@@ -75,6 +75,49 @@ public:  //for function
 
 };
 
+class ExtractorNode
+{
+public:
+    ExtractorNode():bNoMore(false){}
+
+    void DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNode &n3, ExtractorNode &n4);
+
+    std::vector<cv::KeyPoint> vKeys;
+    cv::Point2i UL, UR, BL, BR;
+    std::list<ExtractorNode>::iterator lit;
+    bool bNoMore;
+};
+
+
+class Image_feature_points_extraction
+{
+public:
+	Image_feature_points_extraction();
+	void Image_extract_feature_point(cv::InputArray _image, std::vector<cv::KeyPoint>& _keypoints, cv::OutputArray _descriptors);
+	void ComputePyramid(cv::Mat image);
+	void ComputeKeyPointsOctTree(std::vector<std::vector<cv::KeyPoint> >& allKeypoints);
+	std::vector<cv::KeyPoint> DistributeOctTree(const std::vector<cv::KeyPoint>& vToDistributeKeys, const int &minX,
+                                       const int &maxX, const int &minY, const int &maxY, const int &N, const int &level);
+
+private:
+	int nfeatures;
+	double scaleFactor;
+	int nlevels;
+	int iniThFAST;
+    int minThFAST;
+	std::vector<float> mvScaleFactor;
+    std::vector<float> mvInvScaleFactor;
+
+	std::vector<cv::Mat> mvImagePyramid;
+
+	std::vector<int> mnFeaturesPerLevel;
+
+	std::vector<int> umax;
+
+	std::vector<cv::Point> pattern;
+};
+
+
 }//namespace IMAGE_MOSAIC
 
 #endif //IMAGE_ALGORITHM_H
