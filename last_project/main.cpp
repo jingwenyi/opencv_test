@@ -21,8 +21,8 @@ int main(int argc, char **argv)
 
 	
 	Mat src;
-	//src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00337.JPG", IMREAD_GRAYSCALE);
-	src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
+	src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG", IMREAD_GRAYSCALE);
+	//src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
 
 	vector<KeyPoint>  keypoints;
 	Mat descriptors;
@@ -35,6 +35,57 @@ int main(int argc, char **argv)
 		drawKeypoints(src, keypoints, src, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
 
 	imwrite("src_keypoint.jpg",src);
+
+	Mat src2;
+	src2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG", IMREAD_GRAYSCALE);
+	//src2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG", IMREAD_GRAYSCALE);
+	
+	vector<KeyPoint>  keypoints2;
+	Mat descriptors2;
+
+	image_featur_points->Image_extract_feature_point(src2, keypoints2, descriptors2);
+
+	cout << "keyPonints2:" << keypoints2.size() << endl;
+
+	if(keypoints2.size() > 0)
+		drawKeypoints(src2, keypoints2, src2, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
+
+	imwrite("src_keypoint2.jpg",src2);
+
+	std::vector<int> vnMatches12;;
+#if 1
+	//使用opencv 的DMatch  进行匹配
+	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+	vector<DMatch> matches;
+	matcher->match(descriptors, descriptors2, matches);
+#if 0
+	auto min_max = minmax_element(matches.begin(), matches.end(), [](const DMatch &m1, const DMatch &m2){return m1.distance < m2.distance;});
+	double min_dist = min_max.first->distance;
+	double max_dist = min_max.second->distance;
+
+	cout<< "min dist:" << min_dist << ", max dist:" << max_dist << endl;
+
+	vector<DMatch> good_matches;
+
+	for(int i=0; i<descriptors.rows; i++)
+	{
+		if(matches[i].distance <= max(1.2*min_dist, 30.0))
+		{
+			good_matches.push_back(matches[i]);
+		}
+	}
+#endif
+
+	Mat image_match;
+	drawMatches(src, keypoints, src2, keypoints2, matches, image_match);
+
+	imwrite("image_match.jpg", image_match);
+	
+#else
+	//对提取出来的特征点进行配对
+	image_featur_points->Feature_points_match(keypoints, descriptors, keypoints2, descriptors2, vnMatches12, 100);
+#endif
+	
 
 	waitKey();
 	cout << "I am ok" << endl;

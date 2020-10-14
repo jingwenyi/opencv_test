@@ -814,7 +814,7 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 
 Image_feature_points_extraction::Image_feature_points_extraction()
 {
-	nfeatures = 5000;
+	nfeatures = 10;
 	scaleFactor = 1.2f;
 	nlevels = 8;
 	iniThFAST = 20;
@@ -1286,6 +1286,60 @@ std::vector<cv::KeyPoint> Image_feature_points_extraction::DistributeOctTree(con
     }
 
     return vResultKeys;
+}
+
+
+#define TH_HIGH  		100
+#define TH_LOW   		50
+#define HISTO_LENGTH  	30
+
+
+// Bit set count operation from
+// http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+int Image_feature_points_extraction::DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
+{
+    const int *pa = a.ptr<int32_t>();
+    const int *pb = b.ptr<int32_t>();
+
+    int dist=0;
+
+    for(int i=0; i<8; i++, pa++, pb++)
+    {
+        unsigned  int v = *pa ^ *pb;
+        v = v - ((v >> 1) & 0x55555555);
+        v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+        dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+    }
+
+    return dist;
+}
+
+
+void Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
+								std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12, int windowSize)
+{
+#if 0
+	int nmatches=0;
+    vnMatches12 = std::vector<int>(image1_keypoints.size(),-1);
+
+	std::vector<int> rotHist[HISTO_LENGTH];
+    for(int i=0;i<HISTO_LENGTH;i++)
+        rotHist[i].reserve(500);
+    const float factor = 1.0f/HISTO_LENGTH;
+
+	std::vector<int> vMatchedDistance(image2_keypoints.size(),INT_MAX);
+    std::vector<int> vnMatches21(image2_keypoints.size(),-1);
+
+	for(size_t i1=0, iend1=image1_keypoints.size(); i1<iend1; i1++)
+    {
+		cv::KeyPoint kp1 = image1_keypoints[i1];
+        int level1 = kp1.octave;
+        if(level1>0)
+            continue;
+
+		
+	}
+#endif
 }
 
 

@@ -99,6 +99,11 @@ public:
 	std::vector<cv::KeyPoint> DistributeOctTree(const std::vector<cv::KeyPoint>& vToDistributeKeys, const int &minX,
                                        const int &maxX, const int &minY, const int &maxY, const int &N, const int &level);
 
+	int DescriptorDistance(const cv::Mat &a, const cv::Mat &b);
+
+	void Feature_points_match(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
+					std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12, int windowSize);
+
 private:
 	int nfeatures;
 	double scaleFactor;
