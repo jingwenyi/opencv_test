@@ -15,6 +15,94 @@
 using namespace std;
 using namespace cv;
 
+#if 1
+int main(int argc, char **argv)
+{
+
+	Mat src;
+	//src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG", IMREAD_GRAYSCALE);
+	src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
+	vector<vector<Point2i> >  pixel_histogram(256);  //0-255
+	//对每一个像素点进行分类
+	for(int i=0; i<src.rows; i++)
+	{
+		for(int j=0; j<src.cols; j++)
+		{
+			pixel_histogram[src.at<uchar>(i, j)].push_back(Point2i(i,j));
+		}
+	}
+
+	for(int i=0; i<pixel_histogram.size(); i++)
+	{
+		cout << i << ":" << pixel_histogram[i].size() << endl;;
+	}
+
+#if 0
+
+	//把46-62的像素点全部设0
+	for(int i=46; i<63; i++)
+	{
+		for(int j=0; j<pixel_histogram[i].size(); j++)
+		{
+			src.at<uchar>(pixel_histogram[i][j].x, pixel_histogram[i][j].y) = 255;
+		}
+	}
+#endif
+
+
+	//从像素直方图中获取线条
+	for(int i=0; i<pixel_histogram.size(); i++)
+	{
+		int line_th = 30;
+		if(pixel_histogram[i].size() < line_th)
+			continue;
+		int start = -1;
+		int end = -1;
+		for(int j=0; j<pixel_histogram[i].size(); j++)
+		{
+			Point2i pixel1(pixel_histogram[i][j]);
+			Point2i pixel2(pixel_histogram[i][j+1]);
+			if((pixel2.x - pixel1.x < 2) || (pixel2.y - pixel1.y < 2))
+			{
+				if(start == -1)
+				{
+					start = j;
+				}
+				end = j+1;
+			}
+			else
+			{
+				if(end - start > line_th)
+				{
+					//说明找到一条线, 把该该条线赋值成255
+					for(int k=start; k<end; k++)
+					{
+						src.at<uchar>(pixel_histogram[i][k].x, pixel_histogram[i][k].y) = 255;
+					}
+				}
+
+				start = -1;
+				end = -1;
+			}
+		}
+	}
+
+
+
+	imwrite("src_test.jpg",src);
+
+
+	waitKey();
+	cout << "I am ok" << endl;
+	
+	return 0;
+}
+
+
+#endif
+
+
+#if 0
 int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
@@ -93,6 +181,8 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+#endif
+
 #if 0
 	//Hough_line直线检测算法
 int main(int argc, char **argv)
@@ -152,6 +242,7 @@ int main(int argc, char **argv)
 //canny边缘检测 测试
 int main(int argc, char **argv)
 {
+#if 0
 	Mat src;
     src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
 
@@ -169,6 +260,14 @@ int main(int argc, char **argv)
 	Canny(edge, edge, 3, 9, 3);
 
 	imwrite("edge.jpg", edge);
+#else
+	Mat src, dst;
+    //src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+    src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
+	Canny(src, dst, 10, 30);
+	imwrite("canny_test.jpg", dst);
+
+#endif
 	
 
 
