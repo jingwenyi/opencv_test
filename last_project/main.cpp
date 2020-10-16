@@ -15,7 +15,7 @@
 using namespace std;
 using namespace cv;
 
-#if 1
+#if 0
 //拉普拉斯金字塔测试
 int main(int argc, char **argv)
 {
@@ -145,15 +145,23 @@ int main(int argc, char **argv)
 #endif
 
 
-#if 0
+#if 1
 int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
 
 	
-	Mat src;
-	src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG", IMREAD_GRAYSCALE);
-	//src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
+	Mat src, src1, src2;
+	//src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG", IMREAD_GRAYSCALE);
+	src2 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
+
+	cv::resize(src2, src2, Size(src2.cols / 2, src2.rows / 2),cv::INTER_AREA);
+
+	//双边滤波
+	//bilateralFilter(src2, src1,15,100,3);
+
+
+	cvtColor(src2, src, COLOR_BGR2GRAY);
 
 	vector<KeyPoint>  keypoints;
 	Mat descriptors;
@@ -166,7 +174,7 @@ int main(int argc, char **argv)
 		drawKeypoints(src, keypoints, src, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
 
 	imwrite("src_keypoint.jpg",src);
-
+#if 0
 	Mat src2;
 	src2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG", IMREAD_GRAYSCALE);
 	//src2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG", IMREAD_GRAYSCALE);
@@ -180,11 +188,13 @@ int main(int argc, char **argv)
 
 	if(keypoints2.size() > 0)
 		drawKeypoints(src2, keypoints2, src2, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
-
 	imwrite("src_keypoint2.jpg",src2);
 
-	std::vector<int> vnMatches12;;
-#if 1
+#endif
+
+
+	std::vector<int> vnMatches12;
+#if 0
 	//使用opencv 的DMatch  进行匹配
 	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
 	vector<DMatch> matches;
@@ -214,7 +224,7 @@ int main(int argc, char **argv)
 	
 #else
 	//对提取出来的特征点进行配对
-	image_featur_points->Feature_points_match(keypoints, descriptors, keypoints2, descriptors2, vnMatches12, 100);
+	//image_featur_points->Feature_points_match(keypoints, descriptors, keypoints2, descriptors2, vnMatches12, 100);
 #endif
 	
 
