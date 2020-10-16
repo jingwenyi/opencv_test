@@ -1389,5 +1389,20 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 }
 
 
+void Image_feature_points_extraction::drawKeyMatch(cv::Mat image1, std::vector<cv::KeyPoint>& image1_keypoints,
+					cv::Mat image2, std::vector<cv::KeyPoint>& image2_keypoints, std::vector<int> &vnMatches12, cv::Mat &image_match)
+{
+	//ÎªÁ½¸öÍ¼Æ¬ÉêÇë¿Õ¼ä
+	int rows = image1.rows > image2.rows ? image1.rows : image2.rows;
+	image_match.create(rows, image1.cols + image2.cols, CV_8UC1);
+	image_match.setTo(0);
+
+	//¿½±´Í¼Ïñ
+	image1.copyTo(image_match(cv::Rect(0, 0, image1.cols, image1.rows)));
+	image2.copyTo(image_match(cv::Rect(image1.cols, 0, image2.cols, image2.rows)));
+}
+
+
+
 } //namespace IMAGE_MOSAIC
 

@@ -55,6 +55,13 @@ int main(int arc, char **argv)
 
 	cout << "nmatthes:" << nmathes << endl;
 
+	if(nmathes > 0)
+	{
+		Mat image_match;
+		image_featur_points->drawKeyMatch(image1, keypoints, image2, keypoints2, vnMatches12, image_match);
+		imwrite("image_match.jpg", image_match);
+	}
+
 	waitKey();
 	cout << "I am ok" << endl;
 	
