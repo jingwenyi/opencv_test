@@ -16,6 +16,49 @@ using namespace std;
 using namespace cv;
 
 #if 1
+//拉普拉斯金字塔测试
+int main(int argc, char **argv)
+{
+	Mat srcImage ;
+	//srcImage  = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+	srcImage  = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG");
+#if 0
+	//高斯金字塔
+	Mat dstImage1, dstImage2;
+	pyrDown(srcImage, dstImage1, Size(srcImage.cols / 2, srcImage.rows / 2));
+	pyrDown(dstImage1, dstImage2, Size(dstImage1.cols / 2, dstImage1.rows / 2));
+
+	
+	imwrite("dstImage1.jpg", dstImage1);
+	imwrite("dstImage2.jpg", dstImage2);
+
+#else
+	//拉普拉斯金字塔
+	Mat downImage1, downImage2;
+	Mat upImage1, upImage2;
+	Mat lapImage1, lapImage2;
+	pyrDown(srcImage, downImage1, Size(srcImage.cols / 2, srcImage.rows / 2));
+	pyrDown(downImage1, downImage2, Size(downImage1.cols / 2, downImage1.rows / 2));
+	 
+	pyrUp(downImage2, upImage2, Size(downImage2.cols * 2, downImage2.rows * 2));
+	pyrUp(downImage1, upImage1, Size(downImage1.cols * 2, downImage1.rows * 2));
+	 
+	lapImage1 = srcImage - upImage1;
+	lapImage2 = downImage1 - upImage2;
+	 
+	imwrite("lapImage1.jpg", lapImage1);
+	imwrite("lapImage2.jpg", lapImage2);
+#endif
+
+	waitKey();
+	cout << "I am ok" << endl;
+	
+	return 0;
+}
+
+#endif
+
+#if 0
 int main(int argc, char **argv)
 {
 
@@ -263,8 +306,8 @@ int main(int argc, char **argv)
 #else
 	Mat src, dst;
     //src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
-    src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
-	Canny(src, dst, 10, 30);
+    src = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
+	Canny(src, dst, 70, 150);
 	imwrite("canny_test.jpg", dst);
 
 #endif
