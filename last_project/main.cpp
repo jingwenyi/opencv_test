@@ -151,17 +151,15 @@ int main(int argc, char **argv)
 	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
 
 	
-	Mat src, src1, src2;
+	Mat src, src1, src2, src_test;
 	//src = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG", IMREAD_GRAYSCALE);
 	src2 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
 
-	cv::resize(src2, src2, Size(src2.cols / 2, src2.rows / 2),cv::INTER_AREA);
+	cvtColor(src2, src_test, COLOR_BGR2GRAY);
 
-	//Ë«±ßÂË²¨
-	//bilateralFilter(src2, src1,15,100,3);
+	cv::resize(src2, src1, Size(src2.cols / 8, src2.rows / 8),cv::INTER_AREA);
 
-
-	cvtColor(src2, src, COLOR_BGR2GRAY);
+	cvtColor(src1, src, COLOR_BGR2GRAY);
 
 	vector<KeyPoint>  keypoints;
 	Mat descriptors;
@@ -175,6 +173,10 @@ int main(int argc, char **argv)
 	Mat midImage, dstImage;
 
 	Canny(src, midImage, 60, 80, 3, true);
+
+	cv::resize(midImage, midImage, Size(src2.cols, src2.rows),cv::INTER_AREA);
+
+	midImage = src_test - midImage;
 
 	imwrite("canny.jpg", midImage);
 
