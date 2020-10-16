@@ -1289,7 +1289,7 @@ std::vector<cv::KeyPoint> Image_feature_points_extraction::DistributeOctTree(con
 }
 
 
-#define TH_HIGH  		100
+#define TH_HIGH  		120
 #define TH_LOW   		50
 #define HISTO_LENGTH  	30
 
@@ -1327,10 +1327,6 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
     
 	for(size_t i1=0, iend1 = image1_keypoints.size(); i1<iend1; i1++)
 	{
-		//int level1 = image1_keypoints[i1].octave;
-		//if(level1 > 0)
-		//	continue;
-
 		//获取k1 的描述子
 		cv::Mat d1 = image1_descriptors.row(i1);
 
@@ -1389,7 +1385,7 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 }
 
 
-void Image_feature_points_extraction::drawKeyMatch(cv::Mat image1, std::vector<cv::KeyPoint>& image1_keypoints,
+void Image_feature_points_extraction::drawKeyPointsMatch(cv::Mat image1, std::vector<cv::KeyPoint>& image1_keypoints,
 					cv::Mat image2, std::vector<cv::KeyPoint>& image2_keypoints, std::vector<int> &vnMatches12, cv::Mat &image_match)
 {
 	//为两个图片申请空间
@@ -1397,9 +1393,34 @@ void Image_feature_points_extraction::drawKeyMatch(cv::Mat image1, std::vector<c
 	image_match.create(rows, image1.cols + image2.cols, CV_8UC1);
 	image_match.setTo(0);
 
+	if(image1_keypoints.size() > 0)
+		cv::drawKeypoints(image1, image1_keypoints, image1, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_OVER_OUTIMG);
+
+	if(image2_keypoints.size() > 0)
+		cv::drawKeypoints(image2, image2_keypoints, image2, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_OVER_OUTIMG);
+
 	//拷贝图像
 	image1.copyTo(image_match(cv::Rect(0, 0, image1.cols, image1.rows)));
 	image2.copyTo(image_match(cv::Rect(image1.cols, 0, image2.cols, image2.rows)));
+
+	//匹配ok  的点进行画线
+	for(int i=0; i<vnMatches12.size(); i++)
+	{
+		if(vnMatches12[i] != -1)
+		{
+			//获取image 关键点
+			cv::Point2i image1_k, image2_k;
+
+			image1_k.x = image1_keypoints[i].pt.x;
+			image1_k.y = image1_keypoints[i].pt.y;
+			
+			image2_k.x = image2_keypoints[vnMatches12[i]].pt.x + image1.cols;
+			image2_k.y = image2_keypoints[vnMatches12[i]].pt.y;
+
+			cv::line(image_match, image1_k, image2_k, cv::Scalar(255, 255, 255), 2);
+		}
+	}
+	
 }
 
 

@@ -21,8 +21,10 @@ int main(int arc, char **argv)
 	Mat image1, image2;
 	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
 
-	image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
-	image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG", IMREAD_GRAYSCALE);
+	//image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
+	//image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG", IMREAD_GRAYSCALE);
+	image1 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG", IMREAD_GRAYSCALE);
+	image2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG", IMREAD_GRAYSCALE);
 
 
 	//由于图像很大，特征点不明显，所以把图像缩小
@@ -58,7 +60,7 @@ int main(int arc, char **argv)
 	if(nmathes > 0)
 	{
 		Mat image_match;
-		image_featur_points->drawKeyMatch(image1, keypoints, image2, keypoints2, vnMatches12, image_match);
+		image_featur_points->drawKeyPointsMatch(image1, keypoints, image2, keypoints2, vnMatches12, image_match);
 		imwrite("image_match.jpg", image_match);
 	}
 
