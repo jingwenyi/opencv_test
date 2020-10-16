@@ -15,6 +15,47 @@
 using namespace std;
 using namespace cv;
 
+int main(int arc, char **argv)
+{
+
+	Mat image1, image2;
+	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
+
+	image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG", IMREAD_GRAYSCALE);
+	image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG", IMREAD_GRAYSCALE);
+
+
+	//由于图像很大，特征点不明显，所以把图像缩小
+	//cv::resize(image1, image1, Size(image1.cols / 2, image1.rows / 2),cv::INTER_AREA);
+	//cv::resize(image2, image2, Size(image2.cols / 2, image2.rows / 2),cv::INTER_AREA);
+
+	vector<KeyPoint>  keypoints, keypoints2;
+	Mat descriptors, descriptors2;
+
+	image_featur_points->Image_extract_feature_point(image1, keypoints, descriptors);
+
+	cout << "keyPonints:" << keypoints.size() << endl;
+
+	image_featur_points->Image_extract_feature_point(image2, keypoints2, descriptors2);
+
+	cout << "keyPonints2:" << keypoints.size() << endl;
+
+	if(keypoints.size() > 0)
+		drawKeypoints(image1, keypoints, image1, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
+	imwrite("src_keypoint.jpg",image1);
+
+	if(keypoints2.size() > 0)
+		drawKeypoints(image2, keypoints2, image2, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
+	imwrite("src_keypoint2.jpg",image2);
+
+	waitKey();
+	cout << "I am ok" << endl;
+	
+	return 0;
+}
+
+
+
 #if 0
 //拉普拉斯金字塔测试
 int main(int argc, char **argv)
@@ -145,7 +186,7 @@ int main(int argc, char **argv)
 #endif
 
 
-#if 1
+#if 0
 int main(int argc, char **argv)
 {
 	IMAGE_MOSAIC::Image_feature_points_extraction* image_featur_points = new IMAGE_MOSAIC::Image_feature_points_extraction();
