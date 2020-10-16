@@ -1315,31 +1315,77 @@ int Image_feature_points_extraction::DescriptorDistance(const cv::Mat &a, const 
 }
 
 
-void Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
-								std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12, int windowSize)
+int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
+								std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12)
 {
-#if 0
+
 	int nmatches=0;
     vnMatches12 = std::vector<int>(image1_keypoints.size(),-1);
-
-	std::vector<int> rotHist[HISTO_LENGTH];
-    for(int i=0;i<HISTO_LENGTH;i++)
-        rotHist[i].reserve(500);
-    const float factor = 1.0f/HISTO_LENGTH;
+	std::vector<int> vnMatches21(image2_keypoints.size(),-1);
 
 	std::vector<int> vMatchedDistance(image2_keypoints.size(),INT_MAX);
-    std::vector<int> vnMatches21(image2_keypoints.size(),-1);
+    
+	for(size_t i1=0, iend1 = image1_keypoints.size(); i1<iend1; i1++)
+	{
+		//int level1 = image1_keypoints[i1].octave;
+		//if(level1 > 0)
+		//	continue;
 
-	for(size_t i1=0, iend1=image1_keypoints.size(); i1<iend1; i1++)
-    {
-		cv::KeyPoint kp1 = image1_keypoints[i1];
-        int level1 = kp1.octave;
-        if(level1>0)
-            continue;
+		//获取k1 的描述子
+		cv::Mat d1 = image1_descriptors.row(i1);
 
-		
+		int bestDist = INT_MAX;
+		int bestDist2 = INT_MAX;
+		int bestIdx2 = -1;
+
+		for(size_t i2=0, iend2 = image2_keypoints.size(); i2<iend2; i2++)
+		{
+			//获取k2 的描述子
+			cv::Mat d2 = image2_descriptors.row(i2);
+			int dist = DescriptorDistance(d1, d2);
+
+			if(vMatchedDistance[i2] <= dist)
+				continue;
+
+			if(dist<bestDist)
+			{
+				bestDist2 = bestDist;
+				bestDist = dist;
+				bestIdx2 = i2;
+			}
+			else if(dist<bestDist2)
+			{
+				bestDist2 = dist;
+			}
+		}
+
+
+		//std::cout<< bestDist << std::endl;
+
+		if(bestDist<=TH_HIGH)
+		{
+			//最小距离要小于次小距离 0.9 倍
+			if(bestDist < (float)bestDist2 * 0.9)
+			{
+				//如果已经匹配
+				if(vnMatches21[bestIdx2] >= 0)
+				{
+					//移除匹配
+					vnMatches12[vnMatches21[bestIdx2]] = -1;
+					nmatches--;
+				}
+
+				vnMatches12[i1] = bestIdx2;
+				vnMatches21[bestIdx2] = i1;
+				vMatchedDistance[bestIdx2] = bestDist;
+				nmatches++;
+			}
+		}
 	}
-#endif
+	
+
+
+	return nmatches;
 }
 
 

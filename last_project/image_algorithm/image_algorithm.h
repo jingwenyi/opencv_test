@@ -101,8 +101,8 @@ public:
 
 	int DescriptorDistance(const cv::Mat &a, const cv::Mat &b);
 
-	void Feature_points_match(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
-					std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12, int windowSize);
+	int Feature_points_match(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
+					std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12);
 
 private:
 	int nfeatures;
