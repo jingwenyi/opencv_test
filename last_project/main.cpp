@@ -170,6 +170,27 @@ int main(int argc, char **argv)
 
 	cout << "keyPonints:" << keypoints.size() << endl;
 
+
+
+	Mat midImage, dstImage;
+
+	Canny(src, midImage, 60, 80, 3, true);
+
+	imwrite("canny.jpg", midImage);
+
+#if 1
+	vector<Vec4i>  lines;
+	HoughLinesP(midImage, lines, 1, CV_PI / 180, 500, 500, 100);
+
+	for(size_t i=0; i<lines.size(); i++)
+	{
+		Vec4i l = lines[i];
+		line(midImage, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(186, 88, 255), 1, CV_AA);
+	}
+
+	imwrite("midImage.jpg", midImage);
+
+#endif
 	if(keypoints.size() > 0)
 		drawKeypoints(src, keypoints, src, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
 
