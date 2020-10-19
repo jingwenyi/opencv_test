@@ -1392,7 +1392,7 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 				vnMatches21[bestIdx2] = i1;
 				vMatchedDistance[bestIdx2] = bestDist;
 				nmatches++;
-#if 0
+
 				if(CheckOrientation)
                 {
                     float rot =  image1_keypoints[i1].angle - image2_keypoints[bestIdx2].angle;
@@ -1404,12 +1404,35 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
                     assert(bin>=0 && bin<HISTO_LENGTH);
                     rotHist[bin].push_back(i1);
                 }
-#endif
 			}
 		}
 	}
 	
 
+	
+	if(CheckOrientation)
+	{
+		int ind1=-1;
+		int ind2=-1;
+		int ind3=-1;
+	
+		ComputeThreeMaxima(rotHist,HISTO_LENGTH,ind1,ind2,ind3);
+	
+		for(int i=0; i<HISTO_LENGTH; i++)
+		{
+			if(i==ind1 || i==ind2 || i==ind3)
+				continue;
+			for(size_t j=0, jend=rotHist[i].size(); j<jend; j++)
+			{
+				int idx1 = rotHist[i][j];
+				if(vnMatches12[idx1]>=0)
+				{
+					vnMatches12[idx1]=-1;
+					nmatches--;
+				}
+			}
+		}
+	}
 
 	return nmatches;
 }
@@ -1453,6 +1476,49 @@ void Image_feature_points_extraction::drawKeyPointsMatch(cv::Mat image1, std::ve
 	
 }
 
+
+void Image_feature_points_extraction::ComputeThreeMaxima(std::vector<int>* histo, const int L, int &ind1, int &ind2, int &ind3)
+{
+    int max1=0;
+    int max2=0;
+    int max3=0;
+
+    for(int i=0; i<L; i++)
+    {
+        const int s = histo[i].size();
+        if(s>max1)
+        {
+            max3=max2;
+            max2=max1;
+            max1=s;
+            ind3=ind2;
+            ind2=ind1;
+            ind1=i;
+        }
+        else if(s>max2)
+        {
+            max3=max2;
+            max2=s;
+            ind3=ind2;
+            ind2=i;
+        }
+        else if(s>max3)
+        {
+            max3=s;
+            ind3=i;
+        }
+    }
+
+    if(max2<0.1f*(float)max1)
+    {
+        ind2=-1;
+        ind3=-1;
+    }
+    else if(max3<0.1f*(float)max1)
+    {
+        ind3=-1;
+    }
+}
 
 
 } //namespace IMAGE_MOSAIC
