@@ -815,7 +815,7 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 Image_feature_points_extraction::Image_feature_points_extraction()
 {
 	nfeatures = 1000;
-	scaleFactor = 1.2f;
+	scaleFactor = 2.0f;
 	nlevels = 8;
 	iniThFAST = 20;
     minThFAST = 7;
@@ -1327,6 +1327,9 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
     
 	for(size_t i1=0, iend1 = image1_keypoints.size(); i1<iend1; i1++)
 	{
+		//获取该关键点获取的金字塔层
+		int level1 = image2_keypoints[i1].octave;
+		
 		//获取k1 的描述子
 		cv::Mat d1 = image1_descriptors.row(i1);
 
@@ -1336,6 +1339,12 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 
 		for(size_t i2=0, iend2 = image2_keypoints.size(); i2<iend2; i2++)
 		{
+			//获取该关键点获取的金字塔层
+			int level2 = image2_keypoints[i2].octave;
+
+			if(level2 != level1)
+				continue;
+			
 			//获取k2 的描述子
 			cv::Mat d2 = image2_descriptors.row(i2);
 			int dist = DescriptorDistance(d1, d2);
