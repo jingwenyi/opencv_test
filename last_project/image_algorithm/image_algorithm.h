@@ -123,6 +123,8 @@ private:
 	std::vector<int> umax;
 
 	std::vector<cv::Point> pattern;
+
+	bool CheckOrientation;
 };
 
 

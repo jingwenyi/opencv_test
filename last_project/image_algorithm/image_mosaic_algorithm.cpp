@@ -819,6 +819,9 @@ Image_feature_points_extraction::Image_feature_points_extraction()
 	nlevels = 8;
 	iniThFAST = 20;
     minThFAST = 7;
+
+
+	CheckOrientation = true;
 	
 	mvScaleFactor.resize(nlevels);
 	mvScaleFactor[0]=1.0f;
@@ -1324,11 +1327,16 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 	std::vector<int> vnMatches21(image2_keypoints.size(),-1);
 
 	std::vector<int> vMatchedDistance(image2_keypoints.size(),INT_MAX);
+
+	std::vector<int> rotHist[HISTO_LENGTH];
+    for(int i=0;i<HISTO_LENGTH;i++)
+        rotHist[i].reserve(500);
+    const float factor = 1.0f/HISTO_LENGTH;
     
 	for(size_t i1=0, iend1 = image1_keypoints.size(); i1<iend1; i1++)
 	{
 		//获取该关键点获取的金字塔层
-		int level1 = image2_keypoints[i1].octave;
+		int level1 = image1_keypoints[i1].octave;
 		
 		//获取k1 的描述子
 		cv::Mat d1 = image1_descriptors.row(i1);
@@ -1384,6 +1392,19 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 				vnMatches21[bestIdx2] = i1;
 				vMatchedDistance[bestIdx2] = bestDist;
 				nmatches++;
+#if 0
+				if(CheckOrientation)
+                {
+                    float rot =  image1_keypoints[i1].angle - image2_keypoints[bestIdx2].angle;
+                    if(rot<0.0)
+                        rot+=360.0f;
+                    int bin = round(rot*factor);
+                    if(bin==HISTO_LENGTH)
+                        bin=0;
+                    assert(bin>=0 && bin<HISTO_LENGTH);
+                    rotHist[bin].push_back(i1);
+                }
+#endif
 			}
 		}
 	}
