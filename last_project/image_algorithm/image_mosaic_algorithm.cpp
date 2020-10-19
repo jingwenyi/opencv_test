@@ -1292,8 +1292,8 @@ std::vector<cv::KeyPoint> Image_feature_points_extraction::DistributeOctTree(con
 }
 
 
-#define TH_HIGH  		120
-#define TH_LOW   		50
+#define TH_HIGH  		150
+#define TH_LOW   		100
 #define HISTO_LENGTH  	30
 
 
@@ -1373,9 +1373,9 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 		}
 
 
-		//std::cout<< bestDist << std::endl;
+		std::cout<< bestDist << std::endl;
 
-		if(bestDist<=TH_HIGH)
+		if(bestDist<=TH_LOW)
 		{
 			//最小距离要小于次小距离 0.9 倍
 			if(bestDist < (float)bestDist2 * 0.9)
