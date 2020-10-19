@@ -822,6 +822,7 @@ Image_feature_points_extraction::Image_feature_points_extraction()
 
 
 	CheckOrientation = true;
+	CheckVariance = true;
 	
 	mvScaleFactor.resize(nlevels);
 	mvScaleFactor[0]=1.0f;
@@ -1373,7 +1374,7 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 		}
 
 
-		std::cout<< bestDist << std::endl;
+		//std::cout<< bestDist << std::endl;
 
 		if(bestDist<=TH_LOW)
 		{
@@ -1428,6 +1429,82 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 				if(vnMatches12[idx1]>=0)
 				{
 					vnMatches12[idx1]=-1;
+					nmatches--;
+				}
+			}
+		}
+	}
+
+	//遍历所有匹配成功的特征点，使用最小二乘法
+	if(CheckVariance){
+		int x_average = 0;
+		int y_average = 0;
+	
+		for(int i=0; i<vnMatches12.size(); i++)
+		{
+			if(vnMatches12[i] != -1)
+			{
+				x_average += image1_keypoints[i].pt.x - image2_keypoints[vnMatches12[i]].pt.x;
+				y_average += image1_keypoints[i].pt.y - image2_keypoints[vnMatches12[i]].pt.y;
+			}
+		}
+
+		x_average /= nmatches;
+		y_average /= nmatches;
+
+		int variance_min_num = nmatches / 2;
+		int variance_min_dis[variance_min_num];
+		int variance_min_err[variance_min_num];
+
+		for(int i=0; i<variance_min_num; i++)
+		{
+			variance_min_dis[i] = -1;
+			variance_min_err[i] = INT_MAX;
+		}
+
+		for(int i=0; i<vnMatches12.size(); i++)
+		{
+			if(vnMatches12[i] != -1)
+			{
+				int x_d = image1_keypoints[i].pt.x - image2_keypoints[vnMatches12[i]].pt.x;
+				int y_d = image1_keypoints[i].pt.y - image2_keypoints[vnMatches12[i]].pt.y;
+				int v_x = pow(x_d - x_average, 2);
+				int v_y = pow(y_d - y_average, 2);
+
+				int v_x_y = v_x + v_y;
+				
+				for(int j=0; j<variance_min_num; j++)
+				{
+					if(v_x_y < variance_min_err[j])
+					{
+						for(int k=variance_min_num-1; k>j; k--)
+						{
+							variance_min_err[k] = variance_min_err[k-1];
+						}
+						variance_min_err[j] = v_x_y;
+						variance_min_dis[j] = i;
+						break;
+					}
+				}
+			}
+		}
+
+		for(int i=0; i<vnMatches12.size(); i++)
+		{
+			if(vnMatches12[i] != -1)
+			{
+				bool have = false;
+				for(int j=0; j<variance_min_num; j++)
+				{
+					if(variance_min_dis[j] == i)
+					{
+						have = true;
+					}
+				}
+
+				if(!have)
+				{
+					vnMatches12[i] = -1;
 					nmatches--;
 				}
 			}

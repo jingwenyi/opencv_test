@@ -127,6 +127,7 @@ private:
 	std::vector<cv::Point> pattern;
 
 	bool CheckOrientation;
+	bool CheckVariance;
 };
 
 
