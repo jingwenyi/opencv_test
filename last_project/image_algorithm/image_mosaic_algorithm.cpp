@@ -814,11 +814,13 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 
 Image_feature_points_extraction::Image_feature_points_extraction()
 {
-	nfeatures = 1000;
+	nfeatures = 10000;
 	scaleFactor = 2.0f;
 	nlevels = 8;
 	iniThFAST = 20;
     minThFAST = 7;
+
+	matchWindowsSize = nfeatures / 100;
 
 
 	CheckOrientation = true;
@@ -1513,6 +1515,14 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 
 	return nmatches;
 }
+
+
+int Image_feature_points_extraction::Feature_points_match_windows(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
+								std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12)
+{
+	
+}
+
 
 
 void Image_feature_points_extraction::drawKeyPointsMatch(cv::Mat image1, std::vector<cv::KeyPoint>& image1_keypoints,
