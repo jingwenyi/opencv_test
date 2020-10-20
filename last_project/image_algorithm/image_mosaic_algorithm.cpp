@@ -814,7 +814,7 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 
 Image_feature_points_extraction::Image_feature_points_extraction()
 {
-	nfeatures = 10000;
+	nfeatures = 20000;
 	scaleFactor = 2.0f;
 	nlevels = 8;
 	iniThFAST = 20;
@@ -1296,7 +1296,7 @@ std::vector<cv::KeyPoint> Image_feature_points_extraction::DistributeOctTree(con
 
 
 #define TH_HIGH  		150
-#define TH_LOW   		100
+#define TH_LOW   		50
 #define HISTO_LENGTH  	30
 
 
@@ -1520,6 +1520,19 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 int Image_feature_points_extraction::Feature_points_match_windows(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
 								std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12)
 {
+	//第一步:  把image1 分成matchWindowsSize  个窗口
+
+
+	//第二步:  从每个窗口中找出最佳匹配特征点，跟其他特征点的汉明距离最远
+
+
+	//第三步:  从最佳特征点去与image2 中的特征点进行匹配，取出3 个最优匹配位置
+	
+
+	//第四步: 在3 个最优匹配位置获取matchWindowsSize 大小的所有特征点，进行匹配，寻找最佳匹配位置
+	//通过最佳匹配位置，和周围特征点的匹配，可以求出图片的旋转和位置偏移
+
+	//第五步: 把image1 所有的窗口执行二、三、四步，通过最小二乘法求出最优解
 	
 }
 
