@@ -50,9 +50,9 @@ int main(int arc, char **argv)
 		drawKeypoints(image2, keypoints2, image2, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
 	imwrite("src_keypoint2.jpg",image2);
 
-#if 0
-	vector<int> vnMatches12;
 
+	vector<int> vnMatches12;
+#if 0
 	int nmathes = image_featur_points->Feature_points_match(keypoints, descriptors, keypoints2, descriptors2, vnMatches12);
 
 	cout << "nmatthes:" << nmathes << endl;
@@ -64,6 +64,8 @@ int main(int arc, char **argv)
 		imwrite("image_match.jpg", image_match);
 	}
 #endif
+
+	image_featur_points->Feature_points_match_windows(image1, keypoints, descriptors, image2, keypoints2, descriptors2, vnMatches12);
 	waitKey();
 	cout << "I am ok" << endl;
 	

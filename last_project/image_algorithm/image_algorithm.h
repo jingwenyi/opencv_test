@@ -104,12 +104,12 @@ public:
 	int Feature_points_match(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
 					std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12);
 
-	int Feature_points_match_windows(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
-								std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12);
+	int Feature_points_match_windows(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
+								cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12);
 
 
-	void drawKeyPointsMatch(cv::Mat image1, std::vector<cv::KeyPoint>& image1_keypoints,
-					cv::Mat image2, std::vector<cv::KeyPoint>& image2_keypoints, std::vector<int> &vnMatches12, cv::Mat &image_match);
+	void drawKeyPointsMatch(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints,
+					cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, std::vector<int> &vnMatches12, cv::Mat &image_match);
 
 	void ComputeThreeMaxima(std::vector<int>* histo, const int L, int &ind1, int &ind2, int &ind3);
 

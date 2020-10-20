@@ -820,7 +820,7 @@ Image_feature_points_extraction::Image_feature_points_extraction()
 	iniThFAST = 20;
     minThFAST = 7;
 
-	matchWindowsSize = nfeatures / 100;
+	matchWindowsSize = 100;
 
 
 	CheckOrientation = true;
@@ -1517,10 +1517,47 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 }
 
 
-int Image_feature_points_extraction::Feature_points_match_windows(std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
-								std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12)
+int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
+								cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12)
 {
 	//第一步:  把image1 分成matchWindowsSize  个窗口
+	int windows_size_cols, windows_size_rows;
+	int windows_cols_num, windows_rows_num;
+
+	float y_div_x = (float)image1.rows / (float)image1.cols;
+	float y = std::sqrt(matchWindowsSize *  y_div_x);
+	windows_rows_num = (int)y;
+	windows_cols_num  = (int)(y / y_div_x);
+
+	std::cout << "windows num rows:" << windows_rows_num << ", cols:" << windows_cols_num << std::endl;
+
+	windows_size_cols = image1.cols / windows_cols_num;
+	windows_size_rows = image1.rows / windows_rows_num;
+
+	std::cout << "windows size rows:" << windows_size_rows << ", cols:" << windows_size_cols << std::endl;
+
+	
+
+	std::vector<cv::KeyPoint> windows_feature_points[windows_cols_num][windows_rows_num];
+	std::vector<cv::Mat> windows_feature_descriptors[windows_cols_num][windows_rows_num];
+
+
+	for(int i=0; i<image1_keypoints.size(); i++)
+	{
+		int cols = image1_keypoints[i].pt.x / windows_size_cols;
+		int rows = image1_keypoints[i].pt.y / windows_size_rows;
+
+		windows_feature_points[cols][rows].push_back(image1_keypoints[i]);
+		windows_feature_descriptors[cols][rows].push_back(image1_descriptors.row(i));
+	}
+
+	for(int i=0; i<windows_cols_num; i++)
+	{
+		for(int j=0; j<windows_rows_num; j++)
+		{
+			std::cout << "i:" << i << ", j:" << j <<", num:" << windows_feature_points[i][j].size() << std::endl;
+		}
+	}
 
 
 	//第二步:  从每个窗口中找出最佳匹配特征点，跟其他特征点的汉明距离最远
@@ -1538,8 +1575,8 @@ int Image_feature_points_extraction::Feature_points_match_windows(std::vector<cv
 
 
 
-void Image_feature_points_extraction::drawKeyPointsMatch(cv::Mat image1, std::vector<cv::KeyPoint>& image1_keypoints,
-					cv::Mat image2, std::vector<cv::KeyPoint>& image2_keypoints, std::vector<int> &vnMatches12, cv::Mat &image_match)
+void Image_feature_points_extraction::drawKeyPointsMatch(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints,
+					cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, std::vector<int> &vnMatches12, cv::Mat &image_match)
 {
 	//为两个图片申请空间
 	int rows = image1.rows > image2.rows ? image1.rows : image2.rows;
