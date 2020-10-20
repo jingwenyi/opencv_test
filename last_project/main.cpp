@@ -41,7 +41,7 @@ int main(int arc, char **argv)
 	image_featur_points->Image_extract_feature_point(image2, keypoints2, descriptors2);
 
 	cout << "keyPonints2:" << keypoints.size() << endl;
-
+#if 0
 	if(keypoints.size() > 0)
 		drawKeypoints(image1, keypoints, image1, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
 	imwrite("src_keypoint.jpg",image1);
@@ -49,6 +49,7 @@ int main(int arc, char **argv)
 	if(keypoints2.size() > 0)
 		drawKeypoints(image2, keypoints2, image2, Scalar::all(-1), DrawMatchesFlags::DRAW_OVER_OUTIMG);
 	imwrite("src_keypoint2.jpg",image2);
+#endif
 
 
 	vector<int> vnMatches12;

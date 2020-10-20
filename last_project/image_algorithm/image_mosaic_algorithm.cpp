@@ -1570,11 +1570,12 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 	//通过最佳匹配位置，和周围特征点的匹配，可以求出图片的旋转和位置偏移
 	//第五步: 把image1 所有的窗口执行二、三、四步，通过最小二乘法求出最优解
 
+	std::vector<cv::KeyPoint> all_best_keypoint;
 	for(int i=0; i<windows_cols_num; i++)
 	{
 		for(int j=0; j<windows_rows_num; j++)
 		{
-			cv::KeyPoint best_keypoint;
+			//求出每个窗口中最佳的特征点
 			int descriptors_err_max = 0;
 			int max_point;
 			int windows_size = windows_feature_descriptors[i][j].size();
@@ -1595,9 +1596,16 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 				}
 			}
 
+			cv::KeyPoint &best_keypoint = windows_feature_points[i][j][max_point];
+
+			all_best_keypoint.push_back(best_keypoint);
+
 			std::cout << "max_point:" << max_point << "descriptors err max:" << descriptors_err_max <<std::endl;
 		}
 	}
+
+	cv::drawKeypoints(image1, all_best_keypoint, image1, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_OVER_OUTIMG);
+	cv::imwrite("all_best_keypoint.jpg",image1);
 	
 }
 
