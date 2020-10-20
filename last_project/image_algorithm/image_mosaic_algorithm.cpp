@@ -1551,6 +1551,7 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 		windows_feature_descriptors[cols][rows].push_back(image1_descriptors.row(i));
 	}
 
+#if 0
 	for(int i=0; i<windows_cols_num; i++)
 	{
 		for(int j=0; j<windows_rows_num; j++)
@@ -1558,18 +1559,45 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 			std::cout << "i:" << i << ", j:" << j <<", num:" << windows_feature_points[i][j].size() << std::endl;
 		}
 	}
+#endif
 
 
 	//第二步:  从每个窗口中找出最佳匹配特征点，跟其他特征点的汉明距离最远
 
-
 	//第三步:  从最佳特征点去与image2 中的特征点进行匹配，取出3 个最优匹配位置
-	
 
 	//第四步: 在3 个最优匹配位置获取matchWindowsSize 大小的所有特征点，进行匹配，寻找最佳匹配位置
 	//通过最佳匹配位置，和周围特征点的匹配，可以求出图片的旋转和位置偏移
-
 	//第五步: 把image1 所有的窗口执行二、三、四步，通过最小二乘法求出最优解
+
+	for(int i=0; i<windows_cols_num; i++)
+	{
+		for(int j=0; j<windows_rows_num; j++)
+		{
+			cv::KeyPoint best_keypoint;
+			int descriptors_err_max = 0;
+			int max_point;
+			int windows_size = windows_feature_descriptors[i][j].size();
+			for(int k=0; k<windows_size; k++)
+			{
+				int dist = 0;
+				cv::Mat k_d = windows_feature_descriptors[i][j][k];
+				for(int p=0; p < windows_size; p++)
+				{
+					cv::Mat p_d = windows_feature_descriptors[i][j][p];
+					dist += DescriptorDistance(k_d, p_d);
+				}
+
+				if(dist > descriptors_err_max)
+				{
+					descriptors_err_max = dist;
+					max_point = k;
+				}
+			}
+
+			std::cout << "max_point:" << max_point << "descriptors err max:" << descriptors_err_max <<std::endl;
+		}
+	}
 	
 }
 
