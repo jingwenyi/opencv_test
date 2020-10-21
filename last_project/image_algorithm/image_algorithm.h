@@ -105,7 +105,7 @@ public:
 					std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12);
 
 	int Feature_points_match_windows(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
-								cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<int> &vnMatches12);
+								cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors,std::vector<std::pair<cv::KeyPoint, cv::KeyPoint> > &vnMatches12);
 
 
 	void drawKeyPointsMatch(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints,
