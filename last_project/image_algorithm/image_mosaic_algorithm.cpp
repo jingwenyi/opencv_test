@@ -1600,7 +1600,61 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 
 			all_best_keypoint.push_back(best_keypoint);
 
-			std::cout << "max_point:" << max_point << "descriptors err max:" << descriptors_err_max <<std::endl;
+			//std::cout << "max_point:" << max_point << "descriptors err max:" << descriptors_err_max <<std::endl;
+
+			
+			int bestDist = INT_MAX;
+			int bestDist2 = INT_MAX;
+			int bestDist3 = INT_MAX;
+			int bestIdx = -1;
+			int bestIdx2 = -1;
+			int bestIdx3 = -1;
+
+			int level1 = best_keypoint.octave;
+			cv::Mat d1 = windows_feature_descriptors[i][j][max_point];
+
+			//最佳特征点和image2 中的特征点进行匹配
+			for(int l=0; l<image2_keypoints.size(); l++)
+			{
+				int level2 = image2_keypoints[l].octave;
+
+				//if(level2 != level1)
+				//	continue;
+				
+				cv::Mat d2 = image2_descriptors.row(l);
+
+				int dist = DescriptorDistance(d1, d2);
+
+				if(dist < bestDist)
+				{
+					bestDist3 = bestDist2;
+					bestIdx3 = bestIdx2;
+					
+					bestDist2 = bestDist;
+					bestIdx2 = bestIdx;
+
+					bestDist = dist;
+					bestIdx = l;
+				}
+				else if(dist < bestDist2)
+				{
+					bestDist3 = bestDist2;
+					bestIdx3 = bestIdx2;
+
+					bestDist2 = dist;
+					bestIdx2 = l;
+				}
+				else if(dist < bestDist3)
+				{
+					bestDist3 = dist;
+					bestIdx3 = l;
+				}
+			}
+
+			std::cout << "best dist:" << bestDist << ",2:" << bestDist2 << ", 3:" << bestDist3 << std::endl;
+			
+
+			
 		}
 	}
 
