@@ -1541,7 +1541,7 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 	std::vector<cv::KeyPoint> windows_feature_points[windows_cols_num][windows_rows_num];
 	std::vector<cv::Mat> windows_feature_descriptors[windows_cols_num][windows_rows_num];
 
-#if 0
+
 	for(int i=0; i<image1_keypoints.size(); i++)
 	{
 		int cols = image1_keypoints[i].pt.x / windows_size_cols;
@@ -1550,10 +1550,10 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 		windows_feature_points[cols][rows].push_back(image1_keypoints[i]);
 		windows_feature_descriptors[cols][rows].push_back(image1_descriptors.row(i));
 	}
-#endif
+
 
 	
-#if 1
+#if 0
 	for(int i=0; i<windows_cols_num; i++)
 	{
 		for(int j=0; j<windows_rows_num; j++)
@@ -1603,6 +1603,41 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 		}
 	}
 #endif
+
+	//用image1 的窗口在image2 的窗口中进行匹配
+	for(int i=0; i<windows_cols_num; i++)
+	{
+		for(int j=0; j<windows_rows_num; j++)
+		{
+			int matches_variance[windows_cols_num2][windows_rows_num2];
+			int matches_average[windows_cols_num2][windows_rows_num2];
+		
+			//std::cout << "i:" << i << ", j:" << j <<", num:" << windows_feature_points[i][j].size() << std::endl;
+
+			std::vector<cv::KeyPoint> k1 = windows_feature_points[i][j];
+			std::vector<cv::Mat> d1 = windows_feature_descriptors[i][j];
+			std::cout << "k1 size:" << k1.size()  << std::endl;
+			if(k1.size() == 0)
+				continue;
+
+			//遍历image2 的所有窗口
+			for(int i2=0; i2<windows_cols_num2; i2++)
+			{
+				for(int j2=0; j2<windows_rows_num2; j2++)
+				{
+					//std::cout << "i2:" << i2 << ", j2:" << j2 <<", num:" << windows_feature_points2[i2][j2].size() << std::endl;
+					//获取image2 该窗口中所有特征点向量
+					std::vector<cv::KeyPoint> k2 = windows_feature_points2[i2][j2];
+					std::vector<cv::Mat> d2 = windows_feature_descriptors2[i2][j2];
+					std::cout << "k2 size:" << k2.size() << std::endl;
+					if(k2.size() == 0)
+						continue;
+				}
+			}
+
+			
+		}
+	}
 
 
 #if 0
