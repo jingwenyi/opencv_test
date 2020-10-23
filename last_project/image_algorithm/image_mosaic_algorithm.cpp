@@ -1625,6 +1625,9 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 			{
 				for(int j2=0; j2<windows_rows_num2; j2++)
 				{
+					matches_variance[i2][j2] = -1;
+					matches_average[i2][j2] = -1;
+					
 					//std::cout << "i2:" << i2 << ", j2:" << j2 <<", num:" << windows_feature_points2[i2][j2].size() << std::endl;
 					//获取image2 该窗口中所有特征点向量
 					std::vector<cv::KeyPoint> k2 = windows_feature_points2[i2][j2];
@@ -1632,6 +1635,10 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 					std::cout << "k2 size:" << k2.size() << std::endl;
 					if(k2.size() == 0)
 						continue;
+
+					std::vector<int> Matches12(k1.size(), -1);
+					std::vector<int> Matches21(k2.size(), -1);
+					std::vector<int> Matchesdist(k1.size(), -1);
 				}
 			}
 
