@@ -1614,9 +1614,10 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 		
 			//std::cout << "i:" << i << ", j:" << j <<", num:" << windows_feature_points[i][j].size() << std::endl;
 
+			//获取窗口1 该窗口的特征向量
 			std::vector<cv::KeyPoint> k1 = windows_feature_points[i][j];
-			std::vector<cv::Mat> d1 = windows_feature_descriptors[i][j];
-			std::cout << "k1 size:" << k1.size()  << std::endl;
+			std::vector<cv::Mat> des1 = windows_feature_descriptors[i][j];
+			//std::cout << "k1 size:" << k1.size()  << std::endl;
 			if(k1.size() == 0)
 				continue;
 
@@ -1631,57 +1632,20 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 					//std::cout << "i2:" << i2 << ", j2:" << j2 <<", num:" << windows_feature_points2[i2][j2].size() << std::endl;
 					//获取image2 该窗口中所有特征点向量
 					std::vector<cv::KeyPoint> k2 = windows_feature_points2[i2][j2];
-					std::vector<cv::Mat> d2 = windows_feature_descriptors2[i2][j2];
-					std::cout << "k2 size:" << k2.size() << std::endl;
+					std::vector<cv::Mat> des2 = windows_feature_descriptors2[i2][j2];
+					//std::cout << "k2 size:" << k2.size() << std::endl;
 					if(k2.size() == 0)
 						continue;
 
 					std::vector<int> Matches12(k1.size(), -1);
 					std::vector<int> Matches21(k2.size(), -1);
 					std::vector<int> Matchesdist(k1.size(), -1);
-				}
-			}
 
-			
-		}
-	}
-
-
-#if 0
-	//用image1 的窗口在image2 的窗口中进行匹配
-
-	for(int i1=0; i1<windows_cols_num; i1++)
-	{
-		for(int j1=0; j1<windows_size_rows; j1++)
-		{
-			//获取image1 该窗口的所有特征点向量
-			//std::vector<cv::KeyPoint> &k1 = windows_feature_points[i1][j1];
-			//std::vector<cv::Mat> &des1 = windows_feature_descriptors[i1][j1];
-			
-			int matches_variance[windows_cols_num2][windows_rows_num2];
-			int matches_average[windows_cols_num2][windows_rows_num2];
-
-			std::cout << "k1 size:" << windows_feature_points[i1][j1].size() << std::endl;
-
-			//遍历image2 的所有窗口
-			for(int i2=0; i2<windows_cols_num2; i2++)
-			{
-				for(int j2=0; j2<windows_rows_num2; j2++)
-				{
-					//获取image2 该窗口的所有特征点向量
-					//std::vector<cv::KeyPoint> &k2 = windows_feature_points2[i2][j2];
-					//std::vector<cv::Mat> &des2 = windows_feature_descriptors2[i2][j2];
-					//std::vector<int> Matches12(windows_feature_points[i1][j1].size(),-1);
-					//std::vector<int> Matches21(windows_feature_points2[i2][j2].size(), -1);
-					//std::vector<int> Matchesdist(windows_feature_points[i1][j1].size(), -1);
-					
-
-					//std::cout << "k1 size:" << windows_feature_points[i1][j1].size() << std::endl;
-#if 0
-					for(int l1 = 0; l1<k1.size(); l1++)
+					//image1 窗口在image2 中寻找对应的窗口
+					for(int l=0; l<k1.size(); l++)
 					{
-						int level1 = k1[l1].octave;
-						cv::Mat d1 = des1[l1];
+						int level = k1[l].octave;
+						cv::Mat d1 = des1[l];
 
 						int bestDist = INT_MAX;
 						int bestIdx = -1;
@@ -1689,9 +1653,8 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 						for(int l2=0; l2<k2.size(); l2++)
 						{
 							int level2 = k2[l2].octave;
-							
 
-							if(level1 != level2)
+							if(level != level2)
 								continue;
 
 							cv::Mat d2 = des2[l2];
@@ -1704,161 +1667,68 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 							}
 						}
 
-						//处理image2中该特征点已经被匹配的情况
 						if(Matches21[bestIdx] >= 0)
 						{
-							if(Matchesdist[Matches21[bestIdx]] < bestDist)
+							if(Matchesdist[Matches21[bestIdx]] > bestDist)
 							{
-								Matchesdist[Matches21[bestIdx]] = -1;
-								Matchesdist[l1] = bestDist;
-								Matches12[l1] = bestIdx;
-								Matches21[bestIdx] = l1;
+								Matchesdist[Matches21[bestIdx]]  = -1;
+								Matchesdist[l] = bestDist;
+								Matches12[l] = bestIdx;
+								Matches21[bestIdx] = l;
 							}
 						}
 						else
 						{
-							Matchesdist[l1] = bestDist;
-							Matches12[l1] = bestIdx;
-							Matches21[bestIdx] = l1;
+							Matchesdist[l] = bestDist;
+							Matches12[l] = bestIdx;
+							Matches21[bestIdx] = l;
 						}
+						
 					}
 
 					//计算该窗口匹配到的特征点的平均距离
-					int matches_num = 0;
-					int average = 0;
+					int num=0;
+					int average=0;
 					for(int n=0; n<Matchesdist.size(); n++)
 					{
 						if(Matchesdist[n] != -1)
 						{
-							matches_num++;
+							num++;
 							average += Matchesdist[n];
 						}
 					}
 
-					average /= matches_num;
+					average /= num;
 					matches_average[i2][j2] = average;
+					//std::cout << "average:" << average << std::endl;
 
 					//求方差
+					int variance = 0;
 					for(int n=0; n<Matchesdist.size(); n++)
 					{
 						if(Matchesdist[n] != -1)
 						{
-							matches_variance[i2][j2] += std::pow(Matchesdist[n] - average,2);
+							variance += std::pow(Matchesdist[n] - average,2);
 						}
 					}
-#endif
-
-				}
-			}
-
-			
-
-
-			
-		}
-	}
-#endif
-
-#if 0
-	//第二步:  从每个窗口中找出最佳匹配特征点，跟其他特征点的汉明距离最远
-
-	//第三步:  从最佳特征点去与image2 中的特征点进行匹配，取出3 个最优匹配位置
-
-	//第四步: 在3 个最优匹配位置获取matchWindowsSize 大小的所有特征点，进行匹配，寻找最佳匹配位置
-	//通过最佳匹配位置，和周围特征点的匹配，可以求出图片的旋转和位置偏移
-	//第五步: 把image1 所有的窗口执行二、三、四步，通过最小二乘法求出最优解
-
-	std::vector<cv::KeyPoint> all_best_keypoint;
-	for(int i=0; i<windows_cols_num; i++)
-	{
-		for(int j=0; j<windows_rows_num; j++)
-		{
-			//求出每个窗口中最佳的特征点
-			int descriptors_err_max = 0;
-			int max_point;
-			int windows_size = windows_feature_descriptors[i][j].size();
-			for(int k=0; k<windows_size; k++)
-			{
-				int dist = 0;
-				cv::Mat k_d = windows_feature_descriptors[i][j][k];
-				for(int p=0; p < windows_size; p++)
-				{
-					cv::Mat p_d = windows_feature_descriptors[i][j][p];
-					dist += DescriptorDistance(k_d, p_d);
-				}
-
-				if(dist > descriptors_err_max)
-				{
-					descriptors_err_max = dist;
-					max_point = k;
-				}
-			}
-
-			cv::KeyPoint &best_keypoint = windows_feature_points[i][j][max_point];
-
-			all_best_keypoint.push_back(best_keypoint);
-
-			//std::cout << "max_point:" << max_point << "descriptors err max:" << descriptors_err_max <<std::endl;
-
-			
-			int bestDist = INT_MAX;
-			int bestDist2 = INT_MAX;
-			int bestDist3 = INT_MAX;
-			int bestIdx = -1;
-			int bestIdx2 = -1;
-			int bestIdx3 = -1;
-
-			int level1 = best_keypoint.octave;
-			cv::Mat d1 = windows_feature_descriptors[i][j][max_point];
-
-			//最佳特征点和image2 中的特征点进行匹配
-			for(int l=0; l<image2_keypoints.size(); l++)
-			{
-				int level2 = image2_keypoints[l].octave;
-
-				//if(level2 != level1)
-				//	continue;
-				
-				cv::Mat d2 = image2_descriptors.row(l);
-
-				int dist = DescriptorDistance(d1, d2);
-
-				if(dist < bestDist)
-				{
-					bestDist3 = bestDist2;
-					bestIdx3 = bestIdx2;
 					
-					bestDist2 = bestDist;
-					bestIdx2 = bestIdx;
+					variance /= num;
+					matches_variance[i2][j2] = variance;
 
-					bestDist = dist;
-					bestIdx = l;
-				}
-				else if(dist < bestDist2)
-				{
-					bestDist3 = bestDist2;
-					bestIdx3 = bestIdx2;
-
-					bestDist2 = dist;
-					bestIdx2 = l;
-				}
-				else if(dist < bestDist3)
-				{
-					bestDist3 = dist;
-					bestIdx3 = l;
+					std::cout << "variance:" << variance << std::endl;
+					
 				}
 			}
 
-			std::cout << "best dist:" << bestDist << ",2:" << bestDist2 << ", 3:" << bestDist3 << std::endl;
+			
 			
 
 			
 		}
 	}
 
-	cv::drawKeypoints(image1, all_best_keypoint, image1, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_OVER_OUTIMG);
-	cv::imwrite("all_best_keypoint.jpg",image1);
-#endif
+
+
 }
 
 
