@@ -67,7 +67,14 @@ int main(int arc, char **argv)
 	}
 #else
 	vector<pair<KeyPoint, KeyPoint> >  vnMatches12;
-	image_featur_points->Feature_points_match_windows(image1, keypoints, descriptors, image2, keypoints2, descriptors2, vnMatches12);
+	int nmathes = image_featur_points->Feature_points_match_windows(image1, keypoints, descriptors, image2, keypoints2, descriptors2, vnMatches12);
+
+	if(nmathes > 0)
+	{
+		Mat image_match;
+		image_featur_points->drawKeyPointsMatch2(image1, keypoints, image2, keypoints2, vnMatches12, image_match);
+		imwrite("image_match.jpg", image_match);
+	}
 
 #endif
 	waitKey();
