@@ -1516,10 +1516,11 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 	return nmatches;
 }
 
-
+#define VARIANCE_MAX   60
 int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
 								cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors, std::vector<std::pair<cv::KeyPoint, cv::KeyPoint> > &vnMatches12)
 {
+	int matches_nums = 0;
 	// 把image1 分成matchWindowsSize  个窗口
 	int windows_size_cols, windows_size_rows;
 	int windows_cols_num, windows_rows_num;
@@ -1609,8 +1610,8 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 	{
 		for(int j=0; j<windows_rows_num; j++)
 		{
-			int matches_variance[windows_cols_num2][windows_rows_num2];
-			int matches_average[windows_cols_num2][windows_rows_num2];
+			//int matches_variance[windows_cols_num2][windows_rows_num2];
+			//int matches_average[windows_cols_num2][windows_rows_num2];
 		
 			//std::cout << "i:" << i << ", j:" << j <<", num:" << windows_feature_points[i][j].size() << std::endl;
 
@@ -1626,8 +1627,8 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 			{
 				for(int j2=0; j2<windows_rows_num2; j2++)
 				{
-					matches_variance[i2][j2] = -1;
-					matches_average[i2][j2] = -1;
+					//matches_variance[i2][j2] = -1;
+					//matches_average[i2][j2] = -1;
 					
 					//std::cout << "i2:" << i2 << ", j2:" << j2 <<", num:" << windows_feature_points2[i2][j2].size() << std::endl;
 					//获取image2 该窗口中所有特征点向量
@@ -1699,7 +1700,7 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 					}
 
 					average /= num;
-					matches_average[i2][j2] = average;
+					//matches_average[i2][j2] = average;
 					//std::cout << "average:" << average << std::endl;
 
 					//求方差
@@ -1713,22 +1714,28 @@ int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image
 					}
 					
 					variance /= num;
-					matches_variance[i2][j2] = variance;
+					//matches_variance[i2][j2] = variance;
+
+					if (variance > VARIANCE_MAX)
+						continue;
 
 					std::cout << "variance:" << variance << std::endl;
+
+					for(int n=0; n<Matches12.size(); n++)
+					{
+						if(Matches12[n] != -1)
+						{
+							matches_nums++;
+							vnMatches12.push_back(std::make_pair(k1[n], k2[Matches12[n]]));
+						}
+					}
 					
 				}
 			}
-
-			
-			
-
-			
 		}
 	}
 
-
-
+	return matches_nums;
 }
 
 
