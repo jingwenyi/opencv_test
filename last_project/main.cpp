@@ -12,9 +12,69 @@
 #include <unistd.h>
 #include "./image_algorithm/image_algorithm.h"
 
+
+
+
+
 using namespace std;
 using namespace cv;
 
+#if 1
+//https://blog.csdn.net/lijiang1991/article/details/50855279
+//sift  特征点提取测试
+int main(int arc, char **argv)
+{
+	Mat image1, image2;
+
+	//image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
+	//image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG");
+	image1 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+	image2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG");
+
+
+	
+	cv::resize(image1, image1, Size(image1.cols / 4, image1.rows / 4),cv::INTER_AREA);
+	cv::resize(image2, image2, Size(image2.cols / 4, image2.rows / 4),cv::INTER_AREA);
+
+	//定义SIFT 特征检测类对象
+	Ptr<Feature2D> sift = xfeatures2d::SIFT::create();
+
+	vector<KeyPoint> keyPoints1;
+	vector<KeyPoint> keyPoints2;
+
+	sift->detect(image1, keyPoints1);
+	sift->detect(image2, keyPoints2);
+
+	Mat descriptor1, descriptor2;
+
+	sift->compute(image1, keyPoints1, descriptor1);
+	sift->compute(image2, keyPoints2, descriptor2);
+
+	
+
+	
+	//绘制特征点
+	Mat feature_pic1, feature_pic2;
+		
+	drawKeypoints(image1, keyPoints1, feature_pic1, Scalar::all(-1), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);//颜色随机，带有方向
+	drawKeypoints(image2, keyPoints2, feature_pic2, Scalar::all(-1), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+		
+	imwrite("feature1.jpg", feature_pic1);
+	imwrite("feature2.jpg", feature_pic2);
+
+
+	//BFMatches matcher;
+	//std::vector<DMatch> matches;
+	//matcher.match(descriptor1, descriptor2, matches);
+
+	waitKey();
+	cout << "I am ok" << endl;
+
+	return 0;
+}
+#endif
+
+#if 0
 int main(int arc, char **argv)
 {
 
@@ -82,7 +142,7 @@ int main(int arc, char **argv)
 	
 	return 0;
 }
-
+#endif
 
 
 #if 0

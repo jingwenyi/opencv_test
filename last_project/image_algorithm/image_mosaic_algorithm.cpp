@@ -1516,7 +1516,7 @@ int Image_feature_points_extraction::Feature_points_match(std::vector<cv::KeyPoi
 	return nmatches;
 }
 
-#define VARIANCE_MAX   20
+#define VARIANCE_MAX   60
 int Image_feature_points_extraction::Feature_points_match_windows(cv::Mat& image1, std::vector<cv::KeyPoint>& image1_keypoints, cv::Mat& image1_descriptors,
 								cv::Mat& image2, std::vector<cv::KeyPoint>& image2_keypoints, cv::Mat& image2_descriptors, std::vector<std::pair<cv::KeyPoint, cv::KeyPoint> > &vnMatches12)
 {
@@ -1808,7 +1808,7 @@ void Image_feature_points_extraction::drawKeyPointsMatch2(cv::Mat& image1, std::
 		image1_k.x = k1.pt.x;
 		image1_k.y = k1.pt.y;
 
-		image2_k.x = k2.pt.x + image1.cols;
+		image2_k.x = k2.pt.x;
 		image2_k.y = k2.pt.y;
 
 		cv::line(image_match, image1_k, image2_k, cv::Scalar(255, 255, 255), 2);
