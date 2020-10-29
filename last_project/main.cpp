@@ -16,6 +16,8 @@
 
 
 
+
+
 using namespace std;
 using namespace cv;
 
@@ -33,8 +35,8 @@ int main(int arc, char **argv)
 
 
 	
-	cv::resize(image1, image1, Size(image1.cols / 4, image1.rows / 4),cv::INTER_AREA);
-	cv::resize(image2, image2, Size(image2.cols / 4, image2.rows / 4),cv::INTER_AREA);
+	cv::resize(image1, image1, Size(image1.cols / 2, image1.rows / 2),cv::INTER_AREA);
+	cv::resize(image2, image2, Size(image2.cols / 2, image2.rows / 2),cv::INTER_AREA);
 
 	//定义SIFT 特征检测类对象
 	Ptr<Feature2D> sift = xfeatures2d::SIFT::create();
@@ -66,6 +68,18 @@ int main(int arc, char **argv)
 	//BFMatches matcher;
 	//std::vector<DMatch> matches;
 	//matcher.match(descriptor1, descriptor2, matches);
+
+
+	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce");
+	std::vector<DMatch> matches;
+	matcher->match(descriptor1, descriptor2, matches);
+
+
+	Mat imgMatches;
+	drawMatches(image1, keyPoints1, image2, keyPoints2, matches, imgMatches);
+	imwrite("image_matches.jpg", imgMatches);
+
+	
 
 	waitKey();
 	cout << "I am ok" << endl;
