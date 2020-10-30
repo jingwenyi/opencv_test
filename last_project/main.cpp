@@ -35,8 +35,8 @@ int main(int arc, char **argv)
 
 
 	
-	cv::resize(image1, image1, Size(image1.cols / 2, image1.rows / 2),cv::INTER_AREA);
-	cv::resize(image2, image2, Size(image2.cols / 2, image2.rows / 2),cv::INTER_AREA);
+	cv::resize(image1, image1, Size(image1.cols / 4, image1.rows / 4),cv::INTER_AREA);
+	cv::resize(image2, image2, Size(image2.cols / 4, image2.rows / 4),cv::INTER_AREA);
 
 	//定义SIFT 特征检测类对象
 	Ptr<Feature2D> sift = xfeatures2d::SIFT::create();
@@ -64,12 +64,6 @@ int main(int arc, char **argv)
 	imwrite("feature1.jpg", feature_pic1);
 	imwrite("feature2.jpg", feature_pic2);
 
-
-	//BFMatches matcher;
-	//std::vector<DMatch> matches;
-	//matcher.match(descriptor1, descriptor2, matches);
-
-
 	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce");
 	std::vector<DMatch> matches;
 	matcher->match(descriptor1, descriptor2, matches);
@@ -79,6 +73,79 @@ int main(int arc, char **argv)
 	drawMatches(image1, keyPoints1, image2, keyPoints2, matches, imgMatches);
 	imwrite("image_matches.jpg", imgMatches);
 
+	//保存匹配对
+	vector<int> queryIdxs(matches.size()), trainIdxs(matches.size());
+
+	for(int i=0; i<matches.size(); i++)
+	{
+		queryIdxs[i] = matches[i].queryIdx;
+		trainIdxs[i] = matches[i].trainIdx;
+	}
+
+	Mat H12; // 变换矩阵
+	vector<Point2f> points1;
+	KeyPoint::convert(keyPoints1, points1, queryIdxs);
+	vector<Point2f> points2;
+	KeyPoint::convert(keyPoints2, points2, trainIdxs);
+
+	int ransacReprojThreshold = 3;  // 拒绝阈值
+	cout << "matches size:" << matches.size() << endl;
+
+	//计算单应矩阵
+	H12 = findHomography(Mat(points1), Mat(points2), CV_RANSAC, ransacReprojThreshold);
+
+	//用于标记内点使用
+	vector<char> matchesMask(matches.size(), 0);
+
+	//对输入二维点做透视变换
+	Mat points1t;
+	perspectiveTransform(Mat(points1), points1t, H12);
+
+	//保存内点
+	for(int i=0; i<points1.size(); i++)
+	{
+		if(norm(points2[i] - points1t.at<Point2f>(i, 0)) < ransacReprojThreshold)
+		{
+			matchesMask[i] = 1;
+		}
+	}
+
+	Mat match_img2;
+	drawMatches(image1, keyPoints1, image2, keyPoints2, matches, match_img2, Scalar(0, 0, 255), Scalar::all(-1));
+#if 1
+	//画出目标位置
+	std::vector<Point2f> image1_corners(4);
+	image1_corners[0] = cvPoint(0, 0); 
+	image1_corners[1] = cvPoint(image1.cols, 0);
+	image1_corners[2] = cvPoint(image1.cols, image1.rows);
+	image1_corners[3] = cvPoint(0, image1.rows);
+
+	std::vector<Point2f> image2_corners(4);
+	perspectiveTransform(image1_corners, image2_corners, H12);
+
+	line(match_img2,
+		image2_corners[0] + Point2f(static_cast<float>(image1.cols), 0),
+		image2_corners[1] + Point2f(static_cast<float>(image1.cols), 0),
+		Scalar(0, 0, 255), 2);
+	line(match_img2,
+		image2_corners[1] + Point2f(static_cast<float>(image1.cols), 0),
+		image2_corners[2] + Point2f(static_cast<float>(image1.cols), 0),
+		Scalar(0, 0, 255), 2);
+	line(match_img2,
+		image2_corners[2] + Point2f(static_cast<float>(image1.cols), 0),
+		image2_corners[3] + Point2f(static_cast<float>(image1.cols), 0),
+		Scalar(0, 0, 255), 2);
+	line(match_img2,
+		image2_corners[3] + Point2f(static_cast<float>(image1.cols), 0),
+		image2_corners[0] + Point2f(static_cast<float>(image1.cols), 0),
+		Scalar(0, 0, 255), 2);
+
+	
+	
+#endif
+
+	
+	imwrite("image_matches2.jpg", match_img2);
 	
 
 	waitKey();
