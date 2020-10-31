@@ -82,7 +82,44 @@ int main(int arc, char **argv)
 	
 	imwrite("image_matches.jpg", imgMatches);
 
-	
+#if 1
+	//通过匹配距离，筛选出较好的匹配点
+	double min_dist = matches[0].distance, max_dist = matches[0].distance;
+
+	for(int m=0; m<matches.size(); m++)
+	{
+		if(matches[m].distance < min_dist)
+		{
+			min_dist = matches[m].distance;
+		}
+
+		if(matches[m].distance > max_dist)
+		{
+			max_dist = matches[m].distance;
+		}
+	}
+
+	cout << "min dist=" << min_dist << endl;
+	cout << "max dist=" << max_dist << endl;
+
+	vector<DMatch> goodMatches;
+	for(int m=0; m < matches.size(); m++)
+	{
+		if(matches[m].distance < 0.6 * max_dist)
+		{
+			goodMatches.push_back(matches[m]);
+		}
+	}
+
+	cout << "the number of good matches:" << goodMatches.size() << endl;
+
+	Mat imgMatches2;
+	drawMatches(image1, keyPoints1, image2, keyPoints2, goodMatches, imgMatches2);
+	imwrite("image_matches2.jpg", imgMatches2);
+
+
+
+#endif
 	
 
 	waitKey();
