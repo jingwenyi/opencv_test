@@ -22,7 +22,8 @@ using namespace std;
 using namespace cv;
 
 #if 1
-//https://blog.csdn.net/lijiang1991/article/details/50855279
+//https://blog.csdn.net/lindamtd/article/details/80667826?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param
+
 //sift  特征点提取测试
 int main(int arc, char **argv)
 {
@@ -82,7 +83,7 @@ int main(int arc, char **argv)
 	
 	imwrite("image_matches.jpg", imgMatches);
 
-#if 1
+
 	//通过匹配距离，筛选出较好的匹配点
 	double min_dist = matches[0].distance, max_dist = matches[0].distance;
 
@@ -117,10 +118,69 @@ int main(int arc, char **argv)
 	drawMatches(image1, keyPoints1, image2, keyPoints2, goodMatches, imgMatches2);
 	imwrite("image_matches2.jpg", imgMatches2);
 
-
-
-#endif
 	
+	//RANSAC 匹配过程
+	vector<DMatch> m_Matches;
+	m_Matches = goodMatches;
+
+	int ptCount = goodMatches.size();
+
+	if(ptCount < 100)
+	{
+		cout << "Don't find enough match points" << endl;
+		return 0;
+	}
+
+	//坐标转换成float 类型
+	vector<KeyPoint> RAN_KP1, RAN_KP2;
+	for(size_t i=0; i<m_Matches.size(); i++)
+	{
+		RAN_KP1.push_back(keyPoints1[goodMatches[i].queryIdx]);
+		RAN_KP2.push_back(keyPoints2[goodMatches[i].trainIdx]);
+	}
+
+	//坐标变换
+	vector<Point2f>  p01, p02;
+	for(size_t i=0; i<m_Matches.size(); i++)
+	{
+		p01.push_back(RAN_KP1[i].pt);
+		p02.push_back(RAN_KP2[i].pt);
+	}
+
+#if 0
+	//求单应矩阵
+	
+
+
+#else
+	//求基础矩阵
+	vector<uchar>  RansacStatus;
+	Mat Fundamental = findFundamentalMat(p01, p02, RansacStatus, FM_RANSAC);
+#endif
+
+	//取出内点
+	vector<KeyPoint> RR_KP1, RR_KP2;
+	vector<DMatch> RR_matches;
+
+	int index = 0;
+	for (size_t i=0; i<m_Matches.size(); i++)
+	{
+		if(RansacStatus[i] !=0)
+		{
+			RR_KP1.push_back(RAN_KP1[i]);
+			RR_KP2.push_back(RAN_KP2[i]);
+			m_Matches[i].queryIdx = index;
+			m_Matches[i].trainIdx = index;
+			RR_matches.push_back(m_Matches[i]);
+			index++;
+		}
+	}
+
+	cout << "RANSAC  size:" << RR_matches.size() << endl;
+
+	Mat img_RR_matches;
+	drawMatches(image1, RR_KP1, image2, RR_KP2, RR_matches, img_RR_matches);
+	imwrite("after_ransac.jpg", img_RR_matches);
 
 	waitKey();
 	cout << "I am ok" << endl;
