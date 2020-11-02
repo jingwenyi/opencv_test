@@ -23,6 +23,7 @@ using namespace cv;
 
 #if 1
 //https://blog.csdn.net/lindamtd/article/details/80667826?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param
+//https://blog.csdn.net/fb_help/article/details/70365853
 
 //sift  特征点提取测试
 int main(int arc, char **argv)
@@ -79,8 +80,18 @@ int main(int arc, char **argv)
 	cout << "dmatch size:" << matches.size() << endl;
 
 	Mat imgMatches;
+#if 1
 	drawMatches(image1, keyPoints1, image2, keyPoints2, matches, imgMatches);
-	
+#else
+	drawMatches(image1, keyPoints1,
+				image2, keyPoints2,
+				matches,
+				imgMatches,
+				Scalar(255, 255, 255),
+				Scalar(255, 255, 255),
+				vector<char>(),  //inliers
+				2);
+#endif
 	imwrite("image_matches.jpg", imgMatches);
 
 
@@ -146,17 +157,11 @@ int main(int arc, char **argv)
 		p01.push_back(RAN_KP1[i].pt);
 		p02.push_back(RAN_KP2[i].pt);
 	}
-
 #if 0
-	//求单应矩阵
-	
-
-
-#else
-	//求基础矩阵
+	//求基础矩阵，可以输出内点，外点
 	vector<uchar>  RansacStatus;
 	Mat Fundamental = findFundamentalMat(p01, p02, RansacStatus, FM_RANSAC);
-#endif
+
 
 	//取出内点
 	vector<KeyPoint> RR_KP1, RR_KP2;
@@ -182,6 +187,43 @@ int main(int arc, char **argv)
 	drawMatches(image1, RR_KP1, image2, RR_KP2, RR_matches, img_RR_matches);
 	imwrite("after_ransac.jpg", img_RR_matches);
 
+#else
+
+	//https://www.jianshu.com/p/549ce9168b0e
+	vector<char> inliners;
+	//求单应矩阵
+	Mat m_homography = findHomography(p01, p02,inliners, RANSAC, 1.0);
+
+
+	//取出内点
+	vector<KeyPoint> RR_KP1, RR_KP2;
+	vector<DMatch> RR_matches;
+
+	int index = 0;
+	for (size_t i=0; i<m_Matches.size(); i++)
+	{
+		if(inliners[i] !=0)
+		{
+			RR_KP1.push_back(RAN_KP1[i]);
+			RR_KP2.push_back(RAN_KP2[i]);
+			m_Matches[i].queryIdx = index;
+			m_Matches[i].trainIdx = index;
+			RR_matches.push_back(m_Matches[i]);
+			index++;
+		}
+	}
+
+	cout << "RANSAC  size:" << RR_matches.size() << endl;
+
+	Mat image_hom;
+	drawMatches(image1, RR_KP1, image2, RR_KP2, RR_matches, image_hom);
+
+	imwrite("image_hom.jpg", image_hom);
+	
+
+	
+
+#endif
 	waitKey();
 	cout << "I am ok" << endl;
 
