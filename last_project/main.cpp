@@ -24,6 +24,8 @@ using namespace cv;
 #if 1
 //https://blog.csdn.net/lindamtd/article/details/80667826?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param
 //https://blog.csdn.net/fb_help/article/details/70365853
+//https://blog.csdn.net/u012384044/article/details/73162675
+
 
 //sift  特征点提取测试
 int main(int arc, char **argv)
@@ -219,6 +221,40 @@ int main(int arc, char **argv)
 	drawMatches(image1, RR_KP1, image2, RR_KP2, RR_matches, image_hom);
 
 	imwrite("image_hom.jpg", image_hom);
+
+#if 0
+	//图像透视变换 ，没有重叠的部分显示不出来
+	Mat image1_warp;
+	warpPerspective(image1, image1_warp, m_homography, Size(image1.cols, image1.rows));
+
+	imwrite("warp.jpg", image1_warp);
+
+#else
+	
+	//计算修正矩阵
+	vector<Point2f> image1_corners(4);
+	image1_corners[0] = Point(0, 0);
+	image1_corners[1] = Point(image1.cols, 0);
+	image1_corners[2] = Point(image1.cols, image1.rows);
+	image1_corners[3] = Point(0, image1.rows);
+
+	vector<Point2f> image2_corners(4);
+	perspectiveTransform(image1_corners, image2_corners, m_homography);
+
+	cout << image2_corners << endl;
+
+	Mat adjustMat = (Mat_<double>(3,3) << 1.0, 0, abs(image2_corners[0].x), 0, 1.0, 0, 0, 0, 1.0);
+
+	cout << adjustMat << endl;
+	Mat adjustHomo = adjustMat * m_homography;
+	
+	//透视变化
+	Mat image1_warp;
+	warpPerspective(image1, image1_warp, adjustHomo, Size(image1.cols + abs(image2_corners[0].x), image1.rows));
+
+	imwrite("warp.jpg", image1_warp);
+
+#endif
 	
 
 	
