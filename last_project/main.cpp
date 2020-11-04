@@ -250,7 +250,7 @@ int main(int arc, char **argv)
 	
 	//͸�ӱ仯
 	Mat image1_warp;
-	warpPerspective(image1, image1_warp, adjustHomo, Size(image1.cols + abs(image2_corners[0].x), image1.rows));
+	warpPerspective(image1, image1_warp, adjustHomo, Size(image1.cols + abs(image2_corners[0].x), abs(image2_corners[3].y)));
 
 	imwrite("warp.jpg", image1_warp);
 
