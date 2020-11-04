@@ -246,6 +246,7 @@ int main(int arc, char **argv)
 	Mat adjustMat = (Mat_<double>(3,3) << 1.0, 0, abs(image2_corners[0].x), 0, 1.0, 0, 0, 0, 1.0);
 
 	cout << adjustMat << endl;
+	//修正后的单应矩阵
 	Mat adjustHomo = adjustMat * m_homography;
 	
 	//透视变化
@@ -255,7 +256,10 @@ int main(int arc, char **argv)
 	imwrite("warp.jpg", image1_warp);
 
 #endif
-	
+
+	image2.copyTo(image1_warp(Rect(abs(image2_corners[0].x), 0, image2.cols, image2.rows)));
+
+	imwrite("last_warp.jpg", image1_warp);
 
 	
 
