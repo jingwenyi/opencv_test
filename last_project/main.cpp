@@ -242,8 +242,27 @@ int main(int arc, char **argv)
 	perspectiveTransform(image1_corners, image2_corners, m_homography);
 
 	cout << image2_corners << endl;
+	/*
+	**
+	**	image2_corners 的四个点表示image1 的4个顶点在image2 中对应的位置
+	**	image2_corners[0].x < 0, 表示image1 在image2 的左边，反之
+	**   image2_corners[0].y < 0, 表示image1 在image2 的上方，反之
+	**
+	*/
 
-	Mat adjustMat = (Mat_<double>(3,3) << 1.0, 0, abs(image2_corners[0].x), 0, 1.0, 0, 0, 0, 1.0);
+	float max_x = fabs(image2_corners[0].x) > fabs(image2_corners[3].x) ? fabs(image2_corners[0].x) : fabs(image2_corners[3].x);
+	float max_y = fabs(image2_corners[0].y) > fabs(image2_corners[1].y) ? fabs(image2_corners[0].y) : fabs(image2_corners[1].y);
+	float min_y = image2_corners[0].y < image2_corners[1].y ? image2_corners[0].y : image2_corners[1].y;
+	float min_x = image2_corners[0].x < image2_corners[3].x ? image2_corners[0].x : image2_corners[3].x;
+	float max_x2 = image2_corners[1].x > image2_corners[2].x ? image2_corners[1].x : image2_corners[2].x;
+	float max_y2 = image2_corners[2].y > image2_corners[3].y ? image2_corners[2].y : image2_corners[3].y;
+
+	Mat adjustMat;
+	float mat_cols;
+	float mat_rows;
+	mat_cols = min_x < 0 ? max_x : 0;
+	mat_rows = min_y < 0 ? max_y : 0;
+	adjustMat = (Mat_<double>(3,3) << 1.0, 0, mat_cols, 0, 1.0, mat_rows, 0, 0, 1.0);
 
 	cout << adjustMat << endl;
 	//修正后的单应矩阵
@@ -251,13 +270,24 @@ int main(int arc, char **argv)
 	
 	//透视变化
 	Mat image1_warp;
-	warpPerspective(image1, image1_warp, adjustHomo, Size(image1.cols + abs(image2_corners[0].x), abs(image2_corners[3].y)));
+	int warp_cols;
+	int warp_rows;
+	warp_cols = min_x > 0 ? max_x2 : image2.cols + max_x;
+	warp_rows = min_y > 0 ? max_y2: image2.rows + max_y;
+	
+
+	warpPerspective(image1, image1_warp, adjustHomo, Size(warp_cols, warp_rows));
 
 	imwrite("warp.jpg", image1_warp);
 
 #endif
 
-	image2.copyTo(image1_warp(Rect(abs(image2_corners[0].x), 0, image2.cols, image2.rows)));
+	int copy_cols;
+	int copy_rows;
+	
+	copy_cols = min_x > 0 ?  0:abs(min_x);
+	copy_rows = min_y > 0 ?  0:abs(min_y);
+	image2.copyTo(image1_warp(Rect(copy_cols, copy_rows, image2.cols, image2.rows)));
 
 	imwrite("last_warp.jpg", image1_warp);
 
