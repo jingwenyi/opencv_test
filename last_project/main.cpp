@@ -22,11 +22,142 @@ using namespace std;
 using namespace cv;
 
 #if 1
+//生产不同类型的小波
+void wavelet(const string _wname, Mat& _lowFilter, Mat& _highFilter)
+{
+	if(_wname == "haar" || _wname == "db1")
+	{
+		int N=2;
+		_lowFilter = Mat::zeros(1, N, CV_32F);
+		_highFilter = Mat::zeros(1, N, CV_32F);
+
+		_lowFilter.at<float>(0,0) = 1/sqrtf(N);
+		_lowFilter.at<float>(0,1) = 1/sqrtf(N);
+
+		_highFilter.at<float>(0,0) = 1/sqrtf(N);
+		_highFilter.at<float>(0,1) = 1/sqrtf(N);
+	}
+
+	if(_wname == "sym2")
+	{
+		int N=4;
+		float h[] = {-0.483, 0.836, -0.224, -0.129};
+		float l[] = {-0.129, 0.224, 0.837, 0.483};
+
+		_lowFilter = Mat::zeros(1, N, CV_32F);
+		_highFilter = Mat::zeros(1, N, CV_32F);
+
+		for(int i=0; i<N; i++)
+		{
+			_lowFilter.at<float>(0, i) = l[i];
+			_highFilter.at<float>(0, i) = h[i];
+		}
+	}
+}
+
+//小波分解
+Mat waveletDecompose(const Mat &_src, const Mat& _lowFilter, const Mat &_highFilter)
+{
+	assert(_src.rows==1 && _lowFilter.rows == 1 && _highFilter.rows == 1);
+	assert(_src.cols >= _lowFilter.cols && _src.cols >= _highFilter.cols);
+	Mat src=Mat_<float>(_src);
+
+	int D=src.cols;
+	Mat lowFilter = Mat_<float>(_lowFilter);
+	Mat highFilter = Mat_<float>(_highFilter);
+
+	//频域滤波或时域卷积;  ifft(fft(x) * fft(filter)) = cov(x, filter)
+	Mat dst1 = Mat::zeros(1, D, src.type());
+	Mat dst2 = Mat::zeros(1, D, src.type());
+
+	filter2D(src, dst1, -1, lowFilter);
+	filter2D(src, dst2, -1, highFilter);
+
+	//下采样
+	Mat downDst1 = Mat::zeros(1, D/2, src.type());
+	Mat downDst2 = Mat::zeros(1, D/2, src.type());
+
+	resize(dst1, downDst1, downDst1.size());
+	resize(dst2, downDst2, downDst2.size());
+
+	//数据拼接
+	for(int i=0; i<D/2; i++)
+	{
+		src.at<float>(0,i) = downDst1.at<float>(0,i);
+		src.at<float>(0, i+D/2) = downDst2.at<float>(0,i);
+	}
+
+	return src;
+	
+}
+
+Mat WDT(const Mat &_src, const string _wname, const int _level)
+{
+	Mat src = Mat_<float>(_src);
+	Mat dst = Mat::zeros(src.rows, src.cols, src.type());
+	int N = src.rows;
+	int D = src.cols;
+
+	//高通低通滤波器
+	Mat lowFilter;
+	Mat highFilter;
+	wavelet(_wname, lowFilter, highFilter);
+
+	//小波变换
+	int t=1;
+	int row = N;
+	int col = D;
+	while(t<=_level)
+	{
+		//先进行小波变换
+		for(int i=0; i<row; i++)
+		{
+			//取出src 中药处理的数据的一行
+			Mat oneRow = Mat::zeros(1, col, src.type());
+			for(int j=0; j<col; j++)
+			{
+				oneRow.at<float>(0,j) = src.at<float>(i,j);
+			}
+
+			oneRow = waveletDecompose(oneRow, lowFilter, highFilter);
+
+			for(int j=0; j<col; j++)
+			{
+				dst.at<float>(i,j) = oneRow.at<float>(0,j);
+			}
+		}
+
+		//小波列变换
+		for(int j=0; j<col; j++)
+		{
+			Mat oneCol = Mat::zeros(row, 1, src.type());
+			for(int i=0; i<row; i++)
+			{
+				oneCol.at<float>(i, 0) = dst.at<float>(i,j);//dst, not src
+			}
+
+			oneCol = waveletDecompose(oneCol.t(), lowFilter, highFilter).t();
+
+			for(int i=0; i<row; i++)
+			{
+				dst.at<float>(i,j) = oneCol.at<float>(i, 0);
+			}
+		}
+
+		//更新
+		row /= 2;
+		col /=2;
+		t++;
+		src=dst;
+		
+	}
+
+	return dst;
+}
+
 //https://blog.csdn.net/lindamtd/article/details/80667826?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param
 //https://blog.csdn.net/fb_help/article/details/70365853
 //https://blog.csdn.net/u012384044/article/details/73162675
-
-
 //sift  特征点提取测试
 int main(int arc, char **argv)
 {
@@ -282,6 +413,9 @@ int main(int arc, char **argv)
 
 #endif
 
+	Mat wav_image1 = image1_warp.clone();
+	
+
 	int copy_cols;
 	int copy_rows;
 	
@@ -291,7 +425,28 @@ int main(int arc, char **argv)
 
 	imwrite("last_warp.jpg", image1_warp);
 
-	
+	//小波融合效果
+	Mat wav_image2 = wav_image1.clone();
+	wav_image2.setTo(0);
+	image2.copyTo(wav_image2(Rect(copy_cols, copy_rows, image2.cols, image2.rows)));
+
+
+	imwrite("wav_image2.jpg", wav_image2);
+
+	//现在只能处理灰度图，先转换成灰度图
+	Mat image1_wav_gray;
+	cvtColor(wav_image1, image1_wav_gray, COLOR_BGR2GRAY);
+
+	Mat imgWave = WDT(image1_wav_gray,"haar",3);
+
+	imwrite("imageWave.jpg", imgWave);
+
+	Mat image2_wav_gray;
+	cvtColor(wav_image2, image2_wav_gray, COLOR_BGR2GRAY);
+
+	Mat imgWave2 = WDT(image2_wav_gray,"haar",3);
+
+	imwrite("imageWave2.jpg", imgWave2);	
 
 #endif
 	waitKey();
