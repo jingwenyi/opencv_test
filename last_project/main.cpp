@@ -155,6 +155,151 @@ Mat WDT(const Mat &_src, const string _wname, const int _level)
 	return dst;
 }
 
+
+
+//---------------------test2  start--------------
+//https://blog.csdn.net/qq_37333087/article/details/81094661
+
+//小波分解
+void  laplace_decompose(Mat &src, int s, Mat &wave)
+{
+	Mat full_src(src.rows, src.cols, CV_32FC1);
+	Mat dst = src.clone();
+	dst.convertTo(dst, CV_32FC1);
+
+	for(int m=0; m<s; m++)
+	{
+		dst.convertTo(dst, CV_32FC1);
+		Mat wave_src(dst.rows, dst.cols, CV_32FC1);
+		//列变换
+		for(int i=0; i<wave_src.rows; i++)
+		{
+			for(int j=0; j<wave_src.cols/2; j++)
+			{
+				wave_src.at<float>(i,j) = (dst.at<float>(i, 2*j) + dst.at<float>(i, 2*j+1))/2;
+				wave_src.at<float>(i, j+wave_src.cols/2) = wave_src.at<float>(i,j) - dst.at<float>(i, 2*j);
+			}
+		}
+
+		Mat temp = wave_src.clone();
+		for(int i=0; i<wave_src.rows/2; i++)
+		{
+			for(int j=0; j<wave_src.cols/2; j++)
+			{
+				wave_src.at<float>(i,j) = (temp.at<float>(2*i, j) + temp.at<float>(2*i + 1, j))/2;
+				wave_src.at<float>(i+wave_src.rows/2, j) = wave_src.at<float>(i,j) - temp.at<float>(2*i, j);
+			}
+		}
+
+		dst.release();
+		dst = wave_src(Rect(0,0, wave_src.cols/2, wave_src.rows/2));
+		wave_src.copyTo(full_src(Rect(0,0, wave_src.cols, wave_src.rows)));
+	}
+
+	wave = full_src.clone();
+}
+
+//小波复原
+void wave_recover(Mat &full_scale, Mat &original, int level)
+{
+	//每个循环中把一个级数的小波还原
+	for(int m=0; m<level; m++)
+	{
+		Mat temp = full_scale(Rect(0, 0, full_scale.cols / pow(2, level-m-1), full_scale.rows / pow(2, level-m-1)));
+
+		//先恢复左边
+		Mat recover_src(temp.rows, temp.cols, CV_32FC1);
+		for(int i=0; i<recover_src.rows; i++)
+		{
+			for(int j=0; j<recover_src.cols/2; j++)
+			{
+				if(i%2==0)
+				{
+					recover_src.at<float>(i,j) = temp.at<float>(i/2, j) - temp.at<float>(i/2 + recover_src.rows / 2, j);
+				}
+				else
+				{
+					recover_src.at<float>(i,j) = temp.at<float>(i/2, j) + temp.at<float>(i/2 + recover_src.rows/2, j);
+				}
+			}
+
+			Mat temp2 = recover_src.clone();
+			//再恢复整个
+			for(int i=0; i<recover_src.rows; i++)
+			{
+				for(int j=0; j<recover_src.cols; j++)
+				{
+					if(j % 2 == 0)
+					{
+						recover_src.at<float>(i,j) = temp2.at<float>(i, j/2) - temp.at<float>(i, j/2 + temp.cols/2);
+					}
+					else
+					{
+						recover_src.at<float>(i,j) = temp2.at<float>(i, j/2) + temp.at<float>(i, j/2 + temp.cols/2);
+					}
+				}
+			}
+		}
+		recover_src.copyTo(temp);
+	}
+
+	original = full_scale.clone();
+	original.convertTo(original, CV_8UC1);
+}
+
+
+//小波操作
+void ware_operate(Mat &full_scale, int level)
+{
+	//取出最低尺度的那一层， 对其进行操作， 仅最低尺度
+	//那层可以对时域进行操作，其他层只能对频域进行操作
+	Mat temp = full_scale(Rect(0, 0, full_scale.cols / 4, full_scale.rows / 4));
+	temp = temp(Rect(0, 0, temp.cols / 2, temp.rows / 2));
+
+	Mat temp2 = temp.clone();
+	//这里对时域操作，降低灰度
+	for(int i=0; i<temp2.rows; i++)
+	{
+		for(int j=0; j<temp2.cols; j++)
+		{
+			temp2.at<float>(i,j) -= 20;
+		}
+	}
+
+	temp2.copyTo(temp);
+
+	//这里对频域操作，拉伸细节
+	//先处理左下角
+	for(int i=temp.rows/2; i<temp.rows; i++)
+	{
+		for(int j=0; j<temp.cols/2; j++)
+		{
+			if(temp.at<float>(i,j) > 0)
+				temp.at<float>(i,j) +=5;
+			if(temp.at<float>(i,j) < 0)
+				temp.at<float>(i,j) -=5;
+		}
+	}
+
+	//再处理右半边
+	for(int i=0; i<temp.rows; i++)
+	{
+		for(int j=0; j<temp.cols; j++)
+		{
+			if(temp.at<float>(i,j) > 0)
+				temp.at<float>(i,j) +=5;
+			if(temp.at<float>(i,j) < 0)
+				temp.at<float>(i,j) -=5;
+		}
+	}
+}
+
+
+
+
+
+//--------------------test2 end-----------
+
 //https://blog.csdn.net/lindamtd/article/details/80667826?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param
 //https://blog.csdn.net/fb_help/article/details/70365853
 //https://blog.csdn.net/u012384044/article/details/73162675
@@ -163,10 +308,10 @@ int main(int arc, char **argv)
 {
 	Mat image1, image2;
 
-	image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
-	image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG");
-	//image1 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
-	//image2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG");
+	//image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
+	//image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG");
+	image1 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+	image2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG");
 
 
 	
@@ -432,6 +577,7 @@ int main(int arc, char **argv)
 
 
 	imwrite("wav_image2.jpg", wav_image2);
+#if 0
 
 	//现在只能处理灰度图，先转换成灰度图
 	Mat image1_wav_gray;
@@ -447,6 +593,32 @@ int main(int arc, char **argv)
 	Mat imgWave2 = WDT(image2_wav_gray,"haar",3);
 
 	imwrite("imageWave2.jpg", imgWave2);	
+#else
+	Mat image1_wav_gray;
+	cvtColor(wav_image1, image1_wav_gray, COLOR_BGR2GRAY);
+
+	Mat image2_wav_gray;
+	cvtColor(wav_image2, image2_wav_gray, COLOR_BGR2GRAY);
+
+	Mat full_src1, full_src2;
+	laplace_decompose(image1_wav_gray, 1, full_src1);
+	laplace_decompose(image2_wav_gray, 1, full_src2);
+	imwrite("full_src1.jpg", full_src1);
+	imwrite("full_src2.jpg", full_src2);
+
+	//ware_operate(full_src1, 1);
+	//ware_operate(full_src2, 1);
+
+	//imwrite("operate1.jpg", full_src1);
+	//imwrite("operate2.jpg", full_src2);
+
+	Mat src_recover1, src_recover2;
+	wave_recover(full_src1, src_recover1, 1);
+	wave_recover(full_src2, src_recover2, 1);
+
+	imwrite("recover1.jpg", src_recover1);
+	imwrite("recover2.jpg", src_recover2);
+#endif
 
 #endif
 	waitKey();
