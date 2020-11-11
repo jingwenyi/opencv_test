@@ -309,10 +309,10 @@ int main(int arc, char **argv)
 {
 	Mat image1, image2;
 
-	//image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
-	//image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG");
-	image1 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
-	image2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG");
+	image1 = imread("/home/wenyi/workspace/DCIM/test/DSC00014.JPG");
+	image2 = imread("/home/wenyi/workspace/DCIM/test/DSC00015.JPG");
+	//image1 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00325.JPG");
+	//image2 = imread("/home/wenyi/workspace/DCIM/10000904/DSC00326.JPG");
 
 
 	
@@ -631,7 +631,11 @@ int main(int arc, char **argv)
 	//https://blog.csdn.net/Qwilfish/article/details/80207442
 	Mat src;
 	cvtColor(wav_image1, src, COLOR_BGR2GRAY);
+
+	Mat src2;
+	cvtColor(wav_image2, src2, COLOR_BGR2GRAY);
 	Mat dst;
+	Mat dst2;
 	int Width = src.cols;
 	int Height= src.rows;
 	//小波分解次数
@@ -642,6 +646,11 @@ int main(int arc, char **argv)
 	Mat  wavelet = Mat::zeros(src.size(), CV_32FC1);
 	Mat  imgtmp = src.clone();
 	imgtmp.convertTo(imgtmp, CV_32FC1);
+
+	Mat tmp2 = Mat::zeros(src2.size(), CV_32FC1);
+	Mat  wavelet2 = Mat::zeros(src2.size(), CV_32FC1);
+	Mat  imgtmp2 = src2.clone();
+	imgtmp2.convertTo(imgtmp2, CV_32FC1);
 	//执行小波变换
 	while (depthcount <= depth) {
 		Width = src.cols / pow(2,depthcount-1);
@@ -650,6 +659,9 @@ int main(int arc, char **argv)
 			for (int j = 0; j < Width / 2; j++) {
 				tmp.at<float>(i, j) = (imgtmp.at<float>(i, 2 * j) + imgtmp.at<float>(i, 2 * j + 1)) / 2;
 				tmp.at<float>(i, j + Width / 2) = (imgtmp.at<float>(i, 2 * j) - imgtmp.at<float>(i, 2 * j + 1)) / 2;
+
+				tmp2.at<float>(i, j) = (imgtmp2.at<float>(i, 2 * j) + imgtmp2.at<float>(i, 2 * j + 1)) / 2;
+				tmp2.at<float>(i, j + Width / 2) = (imgtmp2.at<float>(i, 2 * j) - imgtmp2.at<float>(i, 2 * j + 1)) / 2;
 			}
 		}
 		
@@ -657,16 +669,41 @@ int main(int arc, char **argv)
 			for (int j = 0; j < Width; j++) {
 				wavelet.at<float>(i, j) = (tmp.at<float>(2 * i, j) + tmp.at<float>(2 * i + 1, j)) / 2;
 				wavelet.at<float>(i + Height / 2, j) = (tmp.at<float>(2 * i, j) - tmp.at<float>(2 * i + 1, j)) / 2;
+
+				wavelet2.at<float>(i, j) = (tmp2.at<float>(2 * i, j) + tmp2.at<float>(2 * i + 1, j)) / 2;
+				wavelet2.at<float>(i + Height / 2, j) = (tmp2.at<float>(2 * i, j) - tmp2.at<float>(2 * i + 1, j)) / 2;
 			}
 		}
 		
 		imgtmp = wavelet;
+		imgtmp2 = wavelet2;
 		depthcount++;
 	}
 	
 	convertScaleAbs(wavelet, dst);
+	convertScaleAbs(wavelet2, dst2);
 
 	imwrite("haar.jpg", dst);
+	imwrite("haar2.jpg", dst2);
+
+	cout << "Height:" << Height << ", Width" << Width << endl;
+
+	//把wavelet2 中的数据拷贝到wavelet1中
+	for(int i=0; i<wavelet.rows; i++)
+	{
+		for(int j=0; j<wavelet.cols; j++)
+		{
+			if(wavelet.at<float>( i, j) == 0 && wavelet2.at<float>( i, j) != 0)
+			{
+				wavelet.at<float>( i, j) = wavelet2.at<float>( i, j);
+			}
+			else if(wavelet.at<float>( i, j) != 0 && wavelet2.at<float>( i, j) != 0)
+			{
+				wavelet.at<float>( i, j) = (wavelet.at<float>( i, j) + wavelet2.at<float>( i, j)) / 2;
+			}
+				
+		}
+	}
 		
 	//反变换
 	while (depthcount > 1) {
@@ -675,6 +712,9 @@ int main(int arc, char **argv)
 			for (int j = 0; j < Width; j++) {
 				tmp.at<float>(2*i, j) = wavelet.at<float>( i, j) + wavelet.at<float>(i+Height/2,j);
 				tmp.at<float>(2*i+1, j) = wavelet.at<float>( i, j) - wavelet.at<float>(i + Height/2, j);
+
+				tmp2.at<float>(2*i, j) = wavelet2.at<float>( i, j) + wavelet2.at<float>(i+Height/2,j);
+				tmp2.at<float>(2*i+1, j) = wavelet2.at<float>( i, j) - wavelet2.at<float>(i + Height/2, j);
 			}
 		}
 		
@@ -682,18 +722,24 @@ int main(int arc, char **argv)
 			for (int j = 0; j < Width / 2; j++) {
 				imgtmp.at<float>(i, 2*j) = tmp.at<float>(i,  j) + tmp.at<float>(i,	j + Width/2);
 				imgtmp.at<float>(i, 2*j+1) = tmp.at<float>(i,  j) - tmp.at<float>(i,  j + Width/2);
+
+				imgtmp2.at<float>(i, 2*j) = tmp2.at<float>(i,  j) + tmp2.at<float>(i,	j + Width/2);
+				imgtmp2.at<float>(i, 2*j+1) = tmp2.at<float>(i,  j) - tmp2.at<float>(i,  j + Width/2);
 			}
 		}
 		
 		depthcount--;
 		wavelet = imgtmp;
+		wavelet2 = imgtmp2;
 		Height *= 2;
 		Width *= 2;
 	}
 
 	convertScaleAbs(imgtmp, imgtmp);
+	convertScaleAbs(imgtmp2, imgtmp2);
 
 	imwrite("wave_recover.jpg", imgtmp);
+	imwrite("wave_recover2.jpg", imgtmp2);
 
 #endif
 
