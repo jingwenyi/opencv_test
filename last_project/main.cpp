@@ -264,6 +264,155 @@ int main(int arc, char **argv)
 		imwrite(strFile.c_str(), feature_pic);
 	}
 
+
+	dir.clear();
+	dir = "./matches_image";
+	if(access(dir.c_str(), 0) == -1)
+	{
+		std::cout << dir << " is not existing." << std::endl;
+		std::cout << "now make it!" << std::endl;
+		int flag = mkdir(dir.c_str(), 0777);
+	
+		if(flag == 0)
+		{
+			std::cout << "make successfully" << std::endl;
+		}
+		else
+		{
+			std::cout << "mkdir error!" << std::endl;
+			return -1;
+		}
+	}
+
+
+	//暴力匹配测试
+	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce");
+	vector<vector<DMatch> > _matches;
+
+	//每两张图片进行匹配
+	for(int i=0; i<image_name.size() - 1; i++)
+	{
+		vector<DMatch> matches;
+		matcher->match(_descriptor[i], _descriptor[i+1], matches);
+
+		cout << "matches size:" << matches.size() << endl;
+
+		if(matches.size() > 0)
+		{
+			//通过匹配距离，筛选出较好的匹配点
+			double min_dist = matches[0].distance, max_dist = matches[0].distance;
+
+			for(int m=0; m<matches.size(); m++)
+			{
+				if(matches[m].distance < min_dist)
+				{
+					min_dist = matches[m].distance;
+				}
+
+				if(matches[m].distance > max_dist)
+				{
+					max_dist = matches[m].distance;
+				}
+			}
+
+			cout << "min dist=" << min_dist << endl;
+			cout << "max dist=" << max_dist << endl;
+
+			vector<DMatch> goodMatches;
+			for(int m=0; m < matches.size(); m++)
+			{
+				if(matches[m].distance < 0.6 * max_dist)
+				{
+					goodMatches.push_back(matches[m]);
+				}
+			}
+
+			_matches.push_back(goodMatches);
+		
+			
+
+			//Mat imgMatches;
+			//drawMatches(image1, _keyPoints[i], image2, _keyPoints[i+1], goodMatches, imgMatches);
+
+
+			//RANSAC 匹配过程
+			vector<DMatch> m_Matches;
+			m_Matches = goodMatches;
+
+			int ptCount = goodMatches.size();
+
+			if(ptCount < 40)
+			{
+				cout << "Don't find enough match points:" << ptCount << endl;
+				continue;
+			}
+
+			//坐标转换成float 类型
+			vector<KeyPoint> RAN_KP1, RAN_KP2;
+			for(size_t m=0; m<m_Matches.size(); m++)
+			{
+				RAN_KP1.push_back(_keyPoints[i][goodMatches[m].queryIdx]);
+				RAN_KP2.push_back(_keyPoints[i+1][goodMatches[m].trainIdx]);
+			}
+
+			//坐标变换
+			vector<Point2f>  p01, p02;
+			for(size_t m=0; m<m_Matches.size(); m++)
+			{
+				p01.push_back(RAN_KP1[m].pt);
+				p02.push_back(RAN_KP2[m].pt);
+			}
+
+
+			vector<char> inliners;
+			//求单应矩阵
+			Mat m_homography = findHomography(p01, p02,inliners, RANSAC, 1.0);
+
+
+			//取出内点
+			vector<KeyPoint> RR_KP1, RR_KP2;
+			vector<DMatch> RR_matches;
+
+			int index = 0;
+			for (size_t m=0; m<m_Matches.size(); m++)
+			{
+				if(inliners[m] !=0)
+				{
+					RR_KP1.push_back(RAN_KP1[m]);
+					RR_KP2.push_back(RAN_KP2[m]);
+					m_Matches[m].queryIdx = index;
+					m_Matches[m].trainIdx = index;
+					RR_matches.push_back(m_Matches[m]);
+					index++;
+				}
+			}
+
+			cout << "RANSAC  size:" << RR_matches.size() << endl;
+
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[i];
+
+			Mat image1 = imread(strFile.c_str());
+
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[i+1];
+
+			Mat image2 = imread(strFile.c_str());
+
+			Mat image_hom;
+			drawMatches(image1, RR_KP1, image2, RR_KP2, RR_matches, image_hom);
+
+			strFile.clear();
+			strFile = "./matches_image/";
+			strFile += image_name[i];
+
+			imwrite(strFile.c_str(), image_hom);
+
+		}
+	}
+
 	return 0;
 }
 #endif
