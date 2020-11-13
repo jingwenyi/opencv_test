@@ -12,16 +12,263 @@
 #include <unistd.h>
 #include "./image_algorithm/image_algorithm.h"
 
-
-
-
-
-
-
 using namespace std;
 using namespace cv;
 
+
 #if 1
+
+struct Gps_Topology
+{
+	Gps_Topology(int _image_index=-1, int _gps_index_previous=-1, int _gps_index_last=-1, int _gps_index_left=-1, int _gps_index_right=-1):
+						image_index(_image_index), 
+						gps_index_previous(_gps_index_previous),
+						gps_index_last(_gps_index_last),
+						gps_index_right(_gps_index_right)
+	{
+	}
+	int image_index;
+	int gps_index_previous;
+	int gps_index_last;
+	int gps_index_left;
+	int gps_index_right;
+};
+
+
+struct Gps_Xyz {
+	Gps_Xyz(int _alt=0, int _lat=0, int _lng=0):
+		alt(_alt), lat(_lat), lng(_lng)
+	{
+	}
+	
+    int alt:24;                                     ///Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
+    int lat;                                        /// Latitude * 10**7
+    int lng;                                        ///Longitude * 10**7
+};
+
+int main(int arc, char **argv)
+{
+	vector<string>  image_name;
+
+	//先把图像缩小到之前的 1/16
+	string strFile = "/home/wenyi/workspace/DCIM/10000904/image_name.txt";
+
+	ifstream f;
+    f.open(strFile.c_str());
+
+	// skip first one lines
+    string s0;
+    getline(f,s0);
+
+	 while(!f.eof())
+    {
+		string s;
+        getline(f,s);
+        if(!s.empty())
+        {
+        	image_name.push_back(s);
+        }
+		
+	}
+
+	f.close();
+	strFile.clear();
+
+	std::string dir = "./resize_image";
+	if(access(dir.c_str(), 0) == -1)
+	{
+		std::cout << dir << " is not existing." << std::endl;
+		std::cout << "now make it!" << std::endl;
+		int flag = mkdir(dir.c_str(), 0777);
+	
+		if(flag == 0)
+		{
+			std::cout << "make successfully" << std::endl;
+		}
+		else
+		{
+			std::cout << "mkdir error!" << std::endl;
+			return -1;
+		}
+	}
+
+	for(auto name:image_name)
+	{
+		strFile.clear();
+		strFile = "/home/wenyi/workspace/DCIM/10000904/";
+		strFile += name;
+
+		cout << name << endl;
+
+
+		Mat image = imread(strFile.c_str());
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		resize(image, image, Size(image.cols / 4, image.rows / 4),INTER_AREA);
+
+		strFile.clear();
+		strFile = "./resize_image/";
+		strFile += name;
+
+		imwrite(strFile.c_str(), image);
+
+	}
+
+
+	//把gps 坐标读取到一个vector 中
+	vector<struct Gps_Xyz>  gps_xyz;
+
+	strFile.clear();
+	strFile = "/home/wenyi/workspace/DCIM/10000904/image_gps_imu.txt";
+
+	f.open(strFile.c_str());
+	// skip first one lines
+    getline(f,s0);
+
+	 while(!f.eof())
+    {
+		string s;
+        getline(f,s);
+        if(!s.empty())
+        {
+            stringstream ss;
+            ss << s;
+            double lat;
+			ss >> lat;
+
+			double lng;
+			ss >> lng;
+
+			double alt;
+			ss >> alt;
+
+			double alt_rel;
+			ss >> alt_rel;
+
+			double alt_gps;
+			ss >> alt_gps;
+
+			double roll;
+			ss >> roll;
+
+			double pitch;
+			ss >> pitch;
+
+			double yaw;
+			ss >> yaw;
+
+			struct Gps_Xyz gps(alt * 100, lat * 1.0e7, lng * 1.0e7);
+			gps_xyz.push_back(gps);
+        }
+		
+	}
+	
+	f.close();
+	strFile.clear();
+
+	for(auto gps:gps_xyz)
+	{
+		cout << gps.alt << "\t" << gps.lat << "\t" << gps.lng << endl;
+	}
+	
+#if 0
+
+	//建立图像和gps 坐标以及gps 坐标直接的拓扑关系
+	vector<struct Gps_Topology>  gps_topology;
+
+	for(int i=0; i<gps_xyz.size(); i++)
+	{
+		struct Gps_Topology topology;
+		topology.image_index = i;
+		if(i > 0)
+		{
+			topology.gps_index_previous = i-1;
+		}
+
+		if(i<gps_xyz.size() -1)
+		{
+			topology.gps_index_last = i+1;
+		}
+
+		//计算左右图像
+
+		
+	}
+#endif
+
+	dir.clear();
+	dir = "./feature_image";
+	if(access(dir.c_str(), 0) == -1)
+	{
+		std::cout << dir << " is not existing." << std::endl;
+		std::cout << "now make it!" << std::endl;
+		int flag = mkdir(dir.c_str(), 0777);
+	
+		if(flag == 0)
+		{
+			std::cout << "make successfully" << std::endl;
+		}
+		else
+		{
+			std::cout << "mkdir error!" << std::endl;
+			return -1;
+		}
+	}
+
+	//定义SIFT 特征检测类对象
+	Ptr<Feature2D> sift = xfeatures2d::SIFT::create();
+	vector<vector<KeyPoint> > _keyPoints;
+	vector<Mat> _descriptor;
+	
+
+	//为每张图片提取特征点
+	for(int i=0; i<image_name.size(); i++)
+	{
+		strFile.clear();
+		strFile = "./resize_image/";
+		strFile += image_name[i];
+
+		vector<KeyPoint> keyPoints;
+		Mat descriptor;
+
+		Mat image = imread(strFile.c_str());
+
+		//获取当前滴答数
+		double t0 = getTickCount();
+		
+		sift->detect(image, keyPoints);
+		sift->compute(image, keyPoints, descriptor);
+
+		//获取时钟频率
+		double freq = getTickFrequency();
+		double tt = ((double)getTickCount() - t0) / freq;
+		cout << "extract sift time:" << tt << "s" << endl;
+
+		_keyPoints.push_back(keyPoints);
+		_descriptor.push_back(descriptor);
+
+
+		//绘制特征点
+		Mat feature_pic;
+		drawKeypoints(image, keyPoints, feature_pic, Scalar::all(-1), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);//颜色随机，带有方向
+
+		strFile.clear();
+		strFile = "./feature_image/";
+		strFile += image_name[i];
+
+		imwrite(strFile.c_str(), feature_pic);
+	}
+
+	return 0;
+}
+#endif
+
+#if 0
 //生产不同类型的小波
 void wavelet(const string _wname, Mat& _lowFilter, Mat& _highFilter)
 {
