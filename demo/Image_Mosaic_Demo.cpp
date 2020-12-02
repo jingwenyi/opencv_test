@@ -262,6 +262,94 @@ void Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::P
 }
 
 
+#define DEG_TO_RAD      (M_PI / 180.0f)
+#define RAD_TO_DEG      (180.0f / M_PI)
+
+// scaling factor from 1e-7 degrees to meters at equater
+// == 1.0e-7 * DEG_TO_RAD * RADIUS_OF_EARTH
+#define LOCATION_SCALING_FACTOR 0.011131884502145034f
+// inverse of LOCATION_SCALING_FACTOR
+#define LOCATION_SCALING_FACTOR_INV 89.83204953368922f
+
+
+bool Is_zero(float a)
+{
+	return std::fabs(a) < 1.0e-6f ? true : false;
+}
+
+
+
+
+
+float Constrain_float(float amt, float low, float high) 
+{
+	return ((amt)<(low)?(low):((amt)>(high)?(high):(amt)));
+}
+
+
+float Longitude_scale(const struct Location &loc)
+{
+    float scale = std::cos(loc.lat * 1.0e-7f * DEG_TO_RAD);
+    return Constrain_float(scale, 0.01f, 1.0f);
+}
+
+/*
+ *  extrapolate latitude/longitude given distances north and east
+ */
+void Location_offset(struct Location &loc, float ofs_north, float ofs_east)
+{
+    if (!Is_zero(ofs_north) || !Is_zero(ofs_east)) {
+        int dlat = ofs_north * LOCATION_SCALING_FACTOR_INV;
+        int dlng = (ofs_east * LOCATION_SCALING_FACTOR_INV) / Longitude_scale(loc);
+        loc.lat += dlat;
+        loc.lng += dlng;
+    }
+}
+
+
+
+/*
+ *  extrapolate latitude/longitude given bearing and distance
+ * Note that this function is accurate to about 1mm at a distance of 
+ * 100m. This function has the advantage that it works in relative
+ * positions, so it keeps the accuracy even when dealing with small
+ * distances and floating point numbers
+ */
+void Location_update(struct Location &loc, float bearing, float distance)
+{
+    float ofs_north = std::cos(bearing * DEG_TO_RAD)*distance;
+    float ofs_east  = std::sin(bearing * DEG_TO_RAD)*distance;
+    Location_offset(loc, ofs_north, ofs_east);
+}
+
+
+
+// return bearing in centi-degrees between two locations
+float Get_bearing_cd(const struct Location &loc1, const struct Location &loc2)
+{
+    int off_x = loc2.lng - loc1.lng;
+    int off_y = (loc2.lat - loc1.lat) / Longitude_scale(loc2);
+    int bearing = 9000 + std::atan2(-off_y, off_x) * 5729.57795f;
+    if (bearing < 0) bearing += 36000;
+    return (float)bearing / 100.0f;
+}
+
+
+
+
+
+
+// return distance in meters between two locations
+float Get_distance(const struct Location &loc1, const struct Location &loc2)
+{
+    float dlat              = (float)(loc2.lat - loc1.lat);
+    float dlong             = ((float)(loc2.lng - loc1.lng)) * Longitude_scale(loc2);
+    return std::sqrt(std::pow(dlat, 2)  + std::pow(dlong, 2)) * LOCATION_SCALING_FACTOR;
+}
+
+
+
+#define NARROW_SCALE    8
 
 
 int main(int argc, char *argv[])
@@ -399,8 +487,19 @@ int main(int argc, char *argv[])
 	}
 
 
+	//航线方向
 	float way_line_angle = 92.0f;
+	//地图画布
 	Mat map;
+	//地图画布每个像素点对应的比例尺
+	float scale;
+
+
+	//每张图片在地图上画布上的位置
+	vector<Point2i> photo_on_map;
+
+	//画布原点对应的gps 坐标
+	struct Location map_origin;
 
 	for(size_t num=0; num < image_name.size(); num++)
 	{
@@ -419,7 +518,7 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 
-		resize(image, image, Size(image.cols / 8, image.rows / 8),INTER_AREA);
+		resize(image, image, Size(image.cols / NARROW_SCALE, image.rows / NARROW_SCALE),INTER_AREA);
 
 		Image_rotate(image, image, way_line_angle - imu_data[num].yaw);
 
@@ -462,10 +561,64 @@ int main(int argc, char *argv[])
 
 			cout << "point test x:" << point_test.x << ", y:" << point_test.y << endl;
 
+
+			//通过拼接位置求出两个图像中心像素点的距离
+			float image_center_distance = sqrt(pow(point_test.x, 2)  + pow(point_test.y, 2));
+			float gps_center_distance = Get_distance(gps_data[0], gps_data[1]);
+
+			scale = gps_center_distance / image_center_distance;
+
+			cout << "scale :" << scale << endl;
+
+			//这里应该根据航区的大小申请画布的大小
+			map.create(12000, 4000, CV_8UC3);
+			map.setTo(0);
+
+
+			//第一张图片贴的位置
+			Point2i dest_point; 
+
+			dest_point.x = map.cols / 2 - image_last.cols / 2;
+			dest_point.y = map.rows -  2 * image_last.rows;
+
+
+			photo_on_map.push_back(dest_point);
+
+			image_last.copyTo(map(Rect(dest_point.x , dest_point.y, image_last.cols, image_last.rows)));
+
+			//通过第一张图片的位置计算map (0,0) 的gps坐标
+			
+			float diff_x = (float)dest_point.x + (float)image_last.cols / 2.0f;
+			float diff_y = (float)dest_point.y + (float)image_last.rows / 2.0f;
+
+			float origin_first_image_distance = sqrt(pow(diff_x, 2) + pow(diff_y, 2)) * scale;
+
+			float tmp_bearing = way_line_angle - atan2(diff_x, diff_y) * (180.0f / M_PI);
+	
+			map_origin.alt = gps_data[0].alt;
+			map_origin.lat = gps_data[0].lat;
+			map_origin.lng = gps_data[0].lng;
+
+			Location_update(map_origin, tmp_bearing, origin_first_image_distance);
 		}
+
+		if(num >= 1){
+			float distance = Get_distance(map_origin, gps_data[num]) / scale;
+			float bearing = Get_bearing_cd(map_origin, gps_data[num]);
+
+
+			Point2i image_point;
+			image_point.x = (int)(distance * sin((way_line_angle + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+			image_point.y = (int)(distance * cos((way_line_angle + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+
+			image.copyTo(map(Rect(image_point.x , image_point.y, image.cols, image.rows)));
+		}
+		
 	}
 
-	
+
+
+	imwrite("map.jpg", map);
 
 	waitKey();
 	cout << "I am ok" << endl;
