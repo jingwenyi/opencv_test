@@ -1,9 +1,16 @@
 #include <iostream>
 #include <fstream>
+#include <math.h>
+#include <limits.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
 
 
 using namespace std;
@@ -30,6 +37,14 @@ struct Imu_data {
 	float roll;
 	float yaw;
 };
+
+
+void Image_rotate(Mat& src_image,  Mat& dest_image, double angle)
+{
+	Point2f pt(src_image.cols/2, src_image.rows/2);
+	Mat r = getRotationMatrix2D(pt, angle, 1.0);
+	warpAffine(src_image, dest_image, r, Size(src_image.cols, src_image.rows));
+}
 
 
 
@@ -65,12 +80,12 @@ int main(int argc, char *argv[])
 	f.close();
 	strFile.clear();
 
-#if 0
+
 	for(auto name:image_name)
 	{
 		cout << name << endl;
 	}
-#endif
+
 
 	strFile = "../plane_image/gps.txt";
 
@@ -102,12 +117,12 @@ int main(int argc, char *argv[])
 	
 	f.close();
 	strFile.clear();
-#if 0
+
 	for(auto gps:gps_data)
 	{
 		cout << gps.alt << "\t" << gps.lat << "\t" << gps.lng << endl;
 	}
-#endif
+
 
 	strFile = "../plane_image/imu.txt";
 
@@ -141,15 +156,69 @@ int main(int argc, char *argv[])
 	f.close();
 	strFile.clear();
 
-#if 0
+
 	for(auto imu:imu_data)
 	{
 		cout << imu.pitch << "\t" << imu.roll << "\t" <<imu.yaw << endl;
 	}
-#endif
+
+
+
+
+	std::string dir = "./resize_image";
+	if(access(dir.c_str(), 0) == -1)
+	{
+		cout << dir << " is not existing." << endl;
+		cout << "now make it!" << endl;
+		int flag = mkdir(dir.c_str(), 0777);
+	
+		if(flag == 0)
+		{
+			cout << "make successfully" << endl;
+		}
+		else
+		{
+			cout << "mkdir error!" << endl;
+			return -1;
+		}
+	}
+
+
+	float way_line_angle = 92.0f;
+	Mat map;
+
+	for(size_t num=0; num < image_name.size(); num++)
+	{
+		strFile.clear();
+		strFile = "../plane_image/";
+		strFile += image_name[num];
+
+		cout << image_name[num] << endl;
+
+
+		Mat image = imread(strFile.c_str());
+
+		if(image.empty())
+		{
+			cout << "failed to load:" << strFile << endl;
+			return -1;
+		}
+
+		resize(image, image, Size(image.cols / 8, image.rows / 8),INTER_AREA);
+
+		Image_rotate(image, image, way_line_angle - imu_data[num].yaw);
+
+		strFile.clear();
+		strFile = "./resize_image/";
+		strFile += image_name[num];
+
+		imwrite(strFile.c_str(), image);
+	}
 
 	
 
+	waitKey();
+	cout << "I am ok" << endl;
 
 	return 0;
 }
