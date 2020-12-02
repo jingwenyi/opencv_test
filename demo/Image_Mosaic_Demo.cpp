@@ -47,6 +47,221 @@ void Image_rotate(Mat& src_image,  Mat& dest_image, double angle)
 }
 
 
+void Image_fast_mosaic_algorithm(cv::Mat &src_image1, cv::Mat &src_image2, cv::Point2i &distance)
+
+{
+	//需要先转换成灰度图像
+	cv::Mat image1_gray, image2_gray;
+	cv::cvtColor(src_image1, image1_gray, CV_RGB2GRAY);
+	cv::cvtColor(src_image2, image2_gray, CV_RGB2GRAY);
+
+	cv::Point2i image_size(image1_gray.cols, image1_gray.rows);
+	cv::Point2i image1_sample_size;
+
+	//图像1 和图像2  在x 方向上可能移动的最大距离 diff_x
+	int diff_x;
+	diff_x = image_size.x / 4;
+	image1_sample_size.x = image_size.x / 4;
+	image1_sample_size.y = image_size.y / 15;
+	
+	cv::Point2i image2_sample_size(image1_sample_size.x + diff_x, image1_sample_size.y);
+
+	int start_row[6] = {image1_gray.rows / 4,
+						image1_gray.rows / 4,
+						image1_gray.rows / 4 + image1_sample_size.y + (image_size.y / 10), 
+						image1_gray.rows / 4 + image1_sample_size.y + (image_size.y / 10),
+						image1_gray.rows / 4 + 2 * (image1_sample_size.y + (image_size.y / 10)),
+						image1_gray.rows / 4 + 2 * (image1_sample_size.y + (image_size.y / 10))};
+
+	int start_col[6] = {image1_gray.cols / 3 - image1_sample_size.x / 2,
+						image1_gray.cols * 2 / 3 - image1_sample_size.x / 2,
+						image1_gray.cols / 4 - image1_sample_size.x / 2,
+						image1_gray.cols * 3 / 4 - image1_sample_size.x / 2,
+						image1_gray.cols / 3 - image1_sample_size.x / 2,
+						image1_gray.cols * 2 / 3 - image1_sample_size.x / 2};
+
+
+	int min_err[6];
+	int min_err_idex[6];
+	int min_err_dis[6];
+
+	for(int i=0; i<6; i++)
+	{
+		min_err[i] = INT_MAX;
+		min_err_idex[i] = 0;
+		min_err_dis[i] = 0;
+	}
+
+	//分别查找4 组中最小二乘的位置
+	for(int i=0; i<6; i++)
+	{
+		//计算图像 1  的匹配模板
+		int base[image1_sample_size.x];
+
+		for(int k=0; k<image1_sample_size.x; k++)
+		{
+			base[k] = image1_gray.at<uchar>(start_row[i], start_col[i] + k) - image1_gray.at<uchar>(start_row[i] + image1_sample_size.y, start_col[i] + k);
+		}
+
+		//找出图像2  的最佳匹配
+		int num = image2_gray.rows  - image1_sample_size.y;
+		int rows_min_err[num];
+		int rows_min_err_dis[num];
+
+		for(int n=0; n<num; n++)
+		{
+			rows_min_err[n] = INT_MAX;
+			rows_min_err_dis[n] = 0;
+		}
+
+		int match_image[image2_sample_size.x];
+
+		for(int n = 0; n< num; n++)
+		{
+			for(int j=0; j<image2_sample_size.x; j++)
+			{
+				match_image[j] = image2_gray.at<uchar>(n, start_col[i] - diff_x / 2 + j) -
+								 image2_gray.at<uchar>(n + image2_sample_size.y, start_col[i] - diff_x / 2 + j);
+			}
+
+			//求每一行和第一张图像的最小二乘的最佳位置和值
+			for(int d=0; d<diff_x; d++)
+			{
+				int err = 0;
+				for(int p=0; p<image1_sample_size.x; p++)
+				{
+					err += std::pow(match_image[p + d] - base[p], 2);
+				}
+
+				
+				if(err < rows_min_err[n])
+				{
+					rows_min_err[n] = err;
+					rows_min_err_dis[n] = d;
+
+					if(rows_min_err[n] < min_err[i])
+					{
+						min_err[i] = rows_min_err[n];
+						min_err_dis[i] = rows_min_err_dis[n];
+						min_err_idex[i] = n;
+					}
+				}
+			}
+		}
+	}
+
+	
+	int v_dis_x[6];
+	int v_dis_y[6];
+	int x_average = 0;
+	int y_average = 0;
+
+	for(int i=0; i<6; i++)
+	{
+		v_dis_y[i] = min_err_idex[i] - start_row[i];
+		v_dis_x[i] = diff_x / 2 - min_err_dis[i];
+
+		x_average += v_dis_x[i];
+		y_average += v_dis_y[i];
+	}
+
+	x_average /= 6;
+	y_average /= 6;
+
+	//求方差
+
+	int v[6];
+	int v_min = INT_MAX;
+	int v_min2 = INT_MAX;
+	int v_min3 = INT_MAX;
+	int v_min_n;
+	int v_min2_n;
+	int v_min3_n;
+	
+	for(int i=0; i<6; i++)
+	{
+		v_dis_x[i] = pow(v_dis_x[i] - x_average, 2);
+		v_dis_y[i] = pow(v_dis_y[i] - y_average, 2);
+
+		v[i] = v_dis_x[i] + v_dis_y[i];
+		//求出最小值
+		if(v[i] < v_min)
+		{
+			v_min3 = v_min2;
+			v_min3_n = v_min2_n;
+
+			v_min2 = v_min;
+			v_min2_n = v_min_n;
+
+			
+			v_min = v[i];
+			v_min_n = i;
+		}
+		else if(v[i] < v_min2)
+		{
+			v_min3 = v_min2;
+			v_min3_n = v_min2_n;
+
+			v_min2 = v[i];
+			v_min2_n = i;
+		}
+		else if(v[i] < v_min3)
+		{
+			v_min3 = v[i];
+			v_min3_n = i;
+		}
+
+	}
+
+
+	bool is_ok[6] = {false};
+	is_ok[v_min_n] = true;
+	is_ok[v_min2_n] = true;
+	is_ok[v_min3_n] = true;
+	
+	
+
+	//块匹配连续性检查
+	int err[6];
+	int err_min = INT_MAX;
+	int err_min_num;
+
+	for(int i=0; i<6; i++)
+	{
+		if(!is_ok[i]) continue;
+	
+		err[i] = 0;
+
+		for(int j=0; j<image1_sample_size.y; j++)
+		{
+			for(int k=0; k<image1_sample_size.x; k++)
+			{
+				err[i] += pow(	image2_gray.at<uchar>(min_err_idex[i] + j, start_col[i] - diff_x / 2 + min_err_dis[i] + k) - 
+							 	image1_gray.at<uchar>(start_row[i] + j, start_col[i] + k), 2);
+			}
+		}
+
+		if(err[i] < err_min)
+		{
+			err_min = err[i];
+			err_min_num = i;
+		}
+	}
+
+
+	//计算图像之间的拼接位置
+
+	//y > 0, 表示第二张图片相对于第一张图片上移
+	//y < 0, 表示第二张图片相对于第一张图片下移
+	distance.y = min_err_idex[err_min_num] - start_row[err_min_num];
+	
+	//x > 0, 表示第二张图片相对于第一张图片右移
+	//x < 0 ,表示第二张图片相对于第一张图片左移
+	distance.x = diff_x / 2 - min_err_dis[err_min_num];
+
+}
+
+
 
 
 int main(int argc, char *argv[])
@@ -213,6 +428,41 @@ int main(int argc, char *argv[])
 		strFile += image_name[num];
 
 		imwrite(strFile.c_str(), image);
+
+		if(num == 1)
+		{
+			
+			strFile.clear();
+			strFile = "./resize_image/";
+			strFile += image_name[num - 1];
+			Mat image_last = imread(strFile.c_str());
+
+			if(image_last.empty())
+			{
+				cout << "failed to load:" << strFile << endl;
+				return -1;
+			}
+
+			Mat image_down, image_last_up;
+			image_down = image(Range(image.rows / 2, image.rows),
+													Range(0, image.cols));
+
+			image_last_up = image_last(Range(0, image_last.rows / 2),
+													Range(0, image_last.cols));
+
+
+			Mat image_blur, image_last_blur;
+			bilateralFilter(image_down, image_blur,15,100,3);
+			bilateralFilter(image_last_up, image_last_blur,15,100,3);
+
+			
+			Point2i point_test;
+			Image_fast_mosaic_algorithm(image_last_blur, image_blur,point_test);
+			point_test.y += image.rows / 2;
+
+			cout << "point test x:" << point_test.x << ", y:" << point_test.y << endl;
+
+		}
 	}
 
 	
