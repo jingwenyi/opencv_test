@@ -390,13 +390,14 @@ int main(int argc, char *argv[])
 	}
 
 
-	strFile = "../plane_image/gps.txt";
+	strFile = "../plane_image/gps_imu.txt";
 
 	f.open(strFile.c_str());
 	// skip first one lines
     getline(f,s0);
 
-	while(!f.eof())
+
+	 while(!f.eof())
     {
 		string s;
         getline(f,s);
@@ -413,34 +414,11 @@ int main(int argc, char *argv[])
 			double alt;
 			ss >> alt;
 
-			struct Location gps(alt * 100, lat * 1.0e7, lng * 1.0e7);
-			gps_data.push_back(gps);
-        }
-	}
-	
-	f.close();
-	strFile.clear();
+			double alt_rel;
+			ss >> alt_rel;
 
-	for(auto gps:gps_data)
-	{
-		cout << gps.alt << "\t" << gps.lat << "\t" << gps.lng << endl;
-	}
-
-
-	strFile = "../plane_image/imu.txt";
-
-	f.open(strFile.c_str());
-	// skip first one lines
-    getline(f,s0);
-
-	while(!f.eof())
-    {
-		string s;
-        getline(f,s);
-        if(!s.empty())
-        {
-            stringstream ss;
-            ss << s;
+			double alt_gps;
+			ss >> alt_gps;
 
 			double roll;
 			ss >> roll;
@@ -451,20 +429,25 @@ int main(int argc, char *argv[])
 			double yaw;
 			ss >> yaw;
 
+			struct Location gps(alt * 100, lat * 1.0e7, lng * 1.0e7);
+			gps_data.push_back(gps);
+
 			struct Imu_data imu(pitch, roll, yaw);
 			imu_data.push_back(imu);
-        }
-	}
-	
-	f.close();
-	strFile.clear();
 
+        }
+		
+	}
+
+	for(auto gps:gps_data)
+	{
+		cout << gps.alt << "\t" << gps.lat << "\t" << gps.lng << endl;
+	}
 
 	for(auto imu:imu_data)
 	{
 		cout << imu.pitch << "\t" << imu.roll << "\t" <<imu.yaw << endl;
 	}
-
 
 
 
@@ -488,7 +471,7 @@ int main(int argc, char *argv[])
 
 
 	//航线方向
-	float way_line_angle = 92.0f;
+	float way_line_angle = 189.0f;
 	//地图画布
 	Mat map;
 	//地图画布每个像素点对应的比例尺
@@ -528,6 +511,7 @@ int main(int argc, char *argv[])
 
 		imwrite(strFile.c_str(), image);
 
+
 		if(num == 1)
 		{
 			
@@ -542,22 +526,22 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 
-			Mat image_down, image_last_up;
-			image_down = image(Range(image.rows / 2, image.rows),
+			Mat image_up, image_last_down;
+			image_up = image(Range(0, image.rows / 2),
 													Range(0, image.cols));
 
-			image_last_up = image_last(Range(0, image_last.rows / 2),
+			image_last_down = image_last(Range(image_last.rows / 2, image_last.rows),
 													Range(0, image_last.cols));
 
 
 			Mat image_blur, image_last_blur;
-			bilateralFilter(image_down, image_blur,15,100,3);
-			bilateralFilter(image_last_up, image_last_blur,15,100,3);
+			bilateralFilter(image_up, image_blur,15,100,3);
+			bilateralFilter(image_last_down, image_last_blur,15,100,3);
 
 			
 			Point2i point_test;
 			Image_fast_mosaic_algorithm(image_last_blur, image_blur,point_test);
-			point_test.y += image.rows / 2;
+			point_test.y -= image.rows / 2;
 
 			cout << "point test x:" << point_test.x << ", y:" << point_test.y << endl;
 
@@ -571,15 +555,15 @@ int main(int argc, char *argv[])
 			cout << "scale :" << scale << endl;
 
 			//这里应该根据航区的大小申请画布的大小
-			map.create(12000, 4000, CV_8UC3);
+			map.create(8000, 8000, CV_8UC3);
 			map.setTo(0);
 
 
 			//第一张图片贴的位置
 			Point2i dest_point; 
 
-			dest_point.x = map.cols / 2 - image_last.cols / 2;
-			dest_point.y = map.rows -  2 * image_last.rows;
+			dest_point.x = 6000;
+			dest_point.y = 1500;
 
 
 			photo_on_map.push_back(dest_point);
@@ -593,7 +577,7 @@ int main(int argc, char *argv[])
 
 			float origin_first_image_distance = sqrt(pow(diff_x, 2) + pow(diff_y, 2)) * scale;
 
-			float tmp_bearing = way_line_angle - atan2(diff_x, diff_y) * (180.0f / M_PI);
+			float tmp_bearing = way_line_angle - 180.0f - atan2(diff_x, diff_y) * (180.0f / M_PI);
 	
 			map_origin.alt = gps_data[0].alt;
 			map_origin.lat = gps_data[0].lat;
@@ -602,18 +586,20 @@ int main(int argc, char *argv[])
 			Location_update(map_origin, tmp_bearing, origin_first_image_distance);
 		}
 
-		if(num >= 1){
+		if(num >= 1)
+		{
 			float distance = Get_distance(map_origin, gps_data[num]) / scale;
 			float bearing = Get_bearing_cd(map_origin, gps_data[num]);
 
 
 			Point2i image_point;
-			image_point.x = (int)(distance * sin((way_line_angle + 180 - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
-			image_point.y = (int)(distance * cos((way_line_angle + 180 - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+			image_point.x = (int)(distance * sin((way_line_angle  - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
+			image_point.y = (int)(distance * cos((way_line_angle  - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
 
 			image.copyTo(map(Rect(image_point.x , image_point.y, image.cols, image.rows)));
 		}
-		
+
+
 	}
 
 
