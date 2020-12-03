@@ -325,7 +325,7 @@ void Location_update(struct Location &loc, float bearing, float distance)
 
 
 // return bearing in centi-degrees between two locations
-float Get_bearing_cd(const struct Location &loc1, const struct Location &loc2)
+float Get_bearing(const struct Location &loc1, const struct Location &loc2)
 {
     int off_x = loc2.lng - loc1.lng;
     int off_y = (loc2.lat - loc1.lat) / Longitude_scale(loc2);
@@ -345,6 +345,18 @@ float Get_distance(const struct Location &loc1, const struct Location &loc2)
     float dlat              = (float)(loc2.lat - loc1.lat);
     float dlong             = ((float)(loc2.lng - loc1.lng)) * Longitude_scale(loc2);
     return std::sqrt(std::pow(dlat, 2)  + std::pow(dlong, 2)) * LOCATION_SCALING_FACTOR;
+}
+
+
+
+
+double wrap_360(const double angle)
+{
+    double res = fmod(angle, 360.0);
+    if (res < 0) {
+        res += 360.0;
+    }
+    return res;
 }
 
 
@@ -555,15 +567,16 @@ int main(int argc, char *argv[])
 			cout << "scale :" << scale << endl;
 
 			//这里应该根据航区的大小申请画布的大小
-			map.create(8000, 8000, CV_8UC3);
+			//(y,x)  (row, col)
+			map.create(5000, 4000, CV_8UC3);
 			map.setTo(0);
 
 
 			//第一张图片贴的位置
 			Point2i dest_point; 
 
-			dest_point.x = 6000;
-			dest_point.y = 1500;
+			dest_point.x = 2000;
+			dest_point.y = 1000;
 
 
 			photo_on_map.push_back(dest_point);
@@ -584,17 +597,119 @@ int main(int argc, char *argv[])
 			map_origin.lng = gps_data[0].lng;
 
 			Location_update(map_origin, tmp_bearing, origin_first_image_distance);
+
+			
 		}
 
 		if(num >= 1)
 		{
 			float distance = Get_distance(map_origin, gps_data[num]) / scale;
-			float bearing = Get_bearing_cd(map_origin, gps_data[num]);
+			float bearing = Get_bearing(map_origin, gps_data[num]);
 
 
 			Point2i image_point;
 			image_point.x = (int)(distance * sin((way_line_angle  - bearing) * (M_PI / 180.0f)) - (float)image.cols / 2);
 			image_point.y = (int)(distance * cos((way_line_angle  - bearing) * (M_PI / 180.0f)) - (float)image.rows / 2);
+
+#if 1
+			//计算pos 拓扑思路:  向前找两个最接近的gps 坐标
+			//确定出横向拼接图片和竖向拼接图片
+
+			int dst_min1 = INT_MAX;
+			int dst_min2 = INT_MAX;
+			int min1_num = -1;
+			int min2_num = -1;
+
+
+			int right = -1;
+			int down = -1;
+			int up = -1;
+
+			for(int i=0; i<num; i++)
+			{
+				float dst = Get_distance(gps_data[i], gps_data[num]);
+
+				if(dst < dst_min1)
+				{
+					dst_min2 = dst_min1;
+					min2_num = min1_num;
+
+					dst_min1 = dst;
+					min1_num = i;
+				}
+				else if(dst < dst_min2)
+				{
+					dst_min2 = dst;
+					min2_num = i;
+				}
+			}
+
+			float err_bearing;
+			float min_bearing = Get_bearing(gps_data[min1_num], gps_data[num]);
+			err_bearing  = fabs(min_bearing - way_line_angle);
+			//cout<< "min1 err:" << err_bearing << endl;
+			if(err_bearing < 5 || err_bearing > 355)
+			{
+				up = min1_num;
+			}
+			else if(err_bearing > 175 && err_bearing < 185)
+			{
+				down = min1_num;
+			}
+			else if(err_bearing > 60 && err_bearing < 120)
+			{
+				//这里可以通过航线来判断左右，现在这组图片都是右边
+				right = min1_num;
+			}
+
+			if(min2_num != -1)
+			{
+				min_bearing = Get_bearing(gps_data[min2_num], gps_data[num]);
+			
+				err_bearing  = fabs(min_bearing - way_line_angle);
+
+				//cout<< "min2 err:" << err_bearing << endl;
+
+				if(down == -1 && up == -1)
+				{
+					if(err_bearing < 5 || err_bearing > 355)
+					{
+						up = min2_num;
+					}
+					else if(err_bearing > 175 && err_bearing < 185)
+					{
+						down = min2_num;
+					}
+				}
+				else if(right == -1)
+				{
+					if(err_bearing > 60 && err_bearing < 120)
+					{
+						right = min2_num;
+					}
+				}
+
+			}
+
+
+			if(down >= 0)
+			{
+				cout << "down  is:" << image_name[down] << endl;
+			}
+
+			if(up >= 0)
+			{
+				cout << "up is:" << image_name[up] << endl;
+			}
+
+			if(right >= 0)
+			{
+				cout << "right is:" << image_name[right] << endl;
+			}
+
+#endif
+
+			
 
 			image.copyTo(map(Rect(image_point.x , image_point.y, image.cols, image.rows)));
 		}
