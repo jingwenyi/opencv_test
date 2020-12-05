@@ -617,6 +617,8 @@ int main(int argc, char *argv[])
 #if 1
 			//计算pos 拓扑思路:  向前找两个最接近的gps 坐标
 			//确定出横向拼接图片和竖向拼接图片
+			//为了减少那种两种图片拼接失败的可能性，
+			// 还有必要根据像素点的距离, 判断重叠度是否大于50 %
 
 			int dst_min1 = INT_MAX;
 			int dst_min2 = INT_MAX;
@@ -1021,29 +1023,147 @@ int main(int argc, char *argv[])
 				image_point.y += image.rows / 4;
 
 
+				//图像加权融合
+				int src_start_row = 0;
+				int src_start_col = 0;
+				int map_start_row = image_point.y;
+				int map_start_col = image_point.x;
+				float alpha = 1.0f;//map	中像素的权重
+				int w = 100; //接口  只融合100 个像素点
+				for(int j=0; j<w; j++)
+				{
+					alpha = (float)(w-j) / (float)w;
+					for(int k=0; k<dest_image.cols; k++)
+					{
+						Scalar color1 = map.at<Vec3b>(map_start_row + j, map_start_col + k);
+						Scalar color2 = dest_image.at<Vec3b>(src_start_row + j, src_start_col + k);
+		
+						Scalar color3;
+						color3(0) = color1(0) * alpha + color2(0) * (1 - alpha);
+						color3(1) = color1(1) * alpha + color2(1) * (1 - alpha);
+						color3(2) = color1(2) * alpha + color2(2) * (1 - alpha);
+		
+						dest_image.at<Vec3b>(src_start_row + j, src_start_col + k) = Vec3b(color3(0), color3(1), color3(2));
+					}
+					
+				}
+
+
 				dest_image.copyTo(map(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 			}
 			else if(down == -1 && right >= 0)
 			{
 				// 截掉右边的1/4
-				int cut_size_up = image.rows / 4;
 				int cut_size_right = image.cols / 4;
 				
 		
 				Mat dest_image = image(cv::Range(0, image.rows),
 												cv::Range(0, image.cols - cut_size_right));
+
+
+
+				//左右加权融合融合100 个像素点
+				int _w = 100;
+				float _alpha = 1.0f;//map	中像素的权重
+				int src_start_rows = 0;
+				int src_start_cols = dest_image.cols - _w;
+				int map_start_rows = image_point.y;
+				int map_start_cols = image_point.x + src_start_cols;
+		
+				for(int j=0; j<dest_image.rows; j++)
+				{
+					for(int k=0; k<_w; k++)
+					{
+						_alpha = (float)(_w-k) / (float)_w;
+		
+						Scalar color1 = map.at<Vec3b>(map_start_rows + j, map_start_cols + k);
+						Scalar color2 = dest_image.at<Vec3b>(src_start_rows + j, src_start_cols + k);
+				
+						Scalar color3;
+						color3(0) = color1(0) * _alpha + color2(0) * (1 - _alpha);
+						color3(1) = color1(1) * _alpha + color2(1) * (1 - _alpha);
+						color3(2) = color1(2) * _alpha + color2(2) * (1 - _alpha);
+				
+						dest_image.at<Vec3b>(src_start_rows + j, src_start_cols + k) = Vec3b(color3(0), color3(1), color3(2));
+					}
+				}
+				
 				dest_image.copyTo(map(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
 			}
 			else if(down >=0 && right >=0)
 			{
 				
-				//截掉下边的1/4, 截掉右边的1/4
+				//截掉下边的1/4
 				int cut_size_up = image.rows / 4;
-				int cut_size_right = image.cols / 4;
+				
 				
 				Mat dest_image = image(cv::Range(0, image.rows - cut_size_up),
-																			cv::Range(0, image.cols - cut_size_right));
-				dest_image.copyTo(map(Rect(image_point.x, image_point.y, dest_image.cols, dest_image.rows)));
+																			cv::Range(0, image.cols));
+
+
+				//先进行上下加权融合
+				int w = 100; //接口  只融合100 个像素点
+				int src_start_row = dest_image.rows - 100;
+				int src_start_col = 0;
+				int map_start_row = image_point.y + src_start_row;
+				int map_start_col = image_point.x;
+				float alpha = 1.0f;//map	中像素的权重
+				
+				for(int j=0; j<w; j++)
+				{
+					alpha = (float)(w-j) / (float)w;
+					for(int k=0; k<image.cols; k++)
+					{
+						Scalar color1 = map.at<Vec3b>(map_start_row + j, map_start_col + k);
+						Scalar color2 = dest_image.at<Vec3b>(src_start_row + j, src_start_col + k);
+		
+						Scalar color3;
+						color3(0) = color1(0) * alpha + color2(0) * (1 - alpha);
+						color3(1) = color1(1) * alpha + color2(1) * (1 - alpha);
+						color3(2) = color1(2) * alpha + color2(2) * (1 - alpha);
+		
+						dest_image.at<Vec3b>(src_start_row + j, src_start_col + k) = Vec3b(color3(0), color3(1), color3(2));
+					}
+				}
+
+				//dest_image.copyTo(map(Rect(image_point.x , image_point.y, dest_image.cols, dest_image.rows)));
+
+
+				int cut_size_right = dest_image.cols / 4;
+				Mat _dest_image = dest_image(cv::Range(0, dest_image.rows),
+												cv::Range(0, dest_image.cols - cut_size_right));
+
+
+				//再进行左右加权融合
+				//左右加权融合融合100 个像素点
+				int _w = 100;
+				float _alpha = 1.0f;//map	中像素的权重
+				int src_start_rows = 0;
+				int src_start_cols = _dest_image.cols - _w;
+				int map_start_rows = image_point.y;
+				int map_start_cols = image_point.x + src_start_cols;
+		
+				for(int j=0; j<_dest_image.rows; j++)
+				{
+					for(int k=0; k<_w; k++)
+					{
+						_alpha = (float)(_w-k) / (float)_w;
+		
+						Scalar color1 = map.at<Vec3b>(map_start_rows + j, map_start_cols + k);
+						Scalar color2 = _dest_image.at<Vec3b>(src_start_rows + j, src_start_cols + k);
+				
+						Scalar color3;
+						color3(0) = color1(0) * _alpha + color2(0) * (1 - _alpha);
+						color3(1) = color1(1) * _alpha + color2(1) * (1 - _alpha);
+						color3(2) = color1(2) * _alpha + color2(2) * (1 - _alpha);
+				
+						_dest_image.at<Vec3b>(src_start_rows + j, src_start_cols + k) = Vec3b(color3(0), color3(1), color3(2));
+					}
+				}
+
+				
+				_dest_image.copyTo(map(Rect(image_point.x, image_point.y, _dest_image.cols, _dest_image.rows)));
+
 			}
 			else
 			{
